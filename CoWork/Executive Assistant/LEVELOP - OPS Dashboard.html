@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEVELOP · OPS Dashboard</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#0b0d14; --bg2:#101320; --surface:#141827; --surface2:#1b2135;
+    --border:#232a42; --border2:#2f3852;
+    --txt:#e6e9f5; --txt2:#8d94b0; --txt3:#525a78;
+    --violet:#a78bfa; --vdim:rgba(167,139,250,.10);
+    --gold:#f0b429; --gdim:rgba(240,180,41,.10);
+    --green:#4ade80; --grdim:rgba(74,222,128,.10);
+    --red:#f87171; --rdim:rgba(248,113,113,.10);
+    --blue:#60a5fa; --bdim:rgba(96,165,250,.10);
+    --mono:'SF Mono','Fira Code','Consolas',monospace;
+    --sans:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
+  }
+  body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:13px;line-height:1.55;padding:14px 16px 28px;min-height:100vh;}
+
+  .hd{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 18px;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+  .hd-left{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .logo{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.12em;color:var(--violet);}
+  .badge{font-family:var(--mono);font-size:10px;color:var(--txt2);background:var(--bg2);border:1px solid var(--border2);border-radius:3px;padding:2px 9px;}
+  .badge b{color:var(--violet);}
+  .hd-right{font-family:var(--mono);font-size:10px;color:var(--txt3);}
+
+  .health-bar{display:flex;align-items:center;gap:12px;padding:9px 16px;border-radius:6px;margin-bottom:14px;border:1px solid;font-size:12px;flex-wrap:wrap;}
+  .health-bar.amber{background:var(--gdim);border-color:rgba(240,180,41,.25);color:var(--gold);}
+  .health-bar.green{background:var(--grdim);border-color:rgba(74,222,128,.25);color:var(--green);}
+  .health-label{font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:.1em;}
+  .health-msg{color:var(--txt);}
+
+  .sl{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt3);display:flex;align-items:center;gap:10px;margin-bottom:10px;margin-top:4px;}
+  .sl::after{content:'';flex:1;height:1px;background:var(--border);}
+
+  .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .g6{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
+  .mb{margin-bottom:14px;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;}
+  .ch{display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:6px;}
+  .ct{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--txt3);}
+
+  .pill{font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:2px 8px;border-radius:3px;text-transform:uppercase;font-weight:700;white-space:nowrap;}
+  .pg{background:var(--grdim);color:var(--green);border:1px solid rgba(74,222,128,.25);}
+  .pa{background:var(--gdim);color:var(--gold);border:1px solid rgba(240,180,41,.25);}
+  .pr{background:var(--rdim);color:var(--red);border:1px solid rgba(248,113,113,.25);}
+  .pb{background:var(--bdim);color:var(--blue);border:1px solid rgba(96,165,250,.25);}
+  .pv{background:var(--vdim);color:var(--violet);border:1px solid rgba(167,139,250,.25);}
+  .pm{background:rgba(255,255,255,.04);color:var(--txt3);border:1px solid var(--border);}
+
+  .kv{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1;margin-bottom:3px;}
+  .kl{font-size:11px;color:var(--txt2);margin-bottom:4px;}
+  .kt{font-family:var(--mono);font-size:9px;color:var(--txt3);}
+  .kt b{color:var(--violet);}
+
+  .wk{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;}
+  .wk.now{border-color:var(--violet);box-shadow:0 0 0 1px rgba(167,139,250,.18),0 0 24px rgba(167,139,250,.08);}
+  .wk-hd{padding:9px 13px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;}
+  .wk-title{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--txt2);}
+  .wk.now .wk-title{color:var(--violet);}
+  .wk-dates{font-family:var(--mono);font-size:9px;color:var(--txt3);}
+  .wk-obj{padding:7px 13px;font-size:10.5px;color:var(--txt2);border-bottom:1px solid var(--border);font-style:italic;}
+  .task-ul{list-style:none;padding:8px 13px;flex:1;}
+  .ti{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.03);}
+  .ti:last-child{border-bottom:none;}
+  .tc{width:13px;height:13px;border:1px solid var(--border2);border-radius:2px;background:transparent;cursor:pointer;appearance:none;-webkit-appearance:none;flex-shrink:0;margin-top:3px;position:relative;transition:all .15s;}
+  .tc:checked{background:var(--violet);border-color:var(--violet);}
+  .tc:checked::after{content:'✓';position:absolute;top:-2px;left:1px;font-size:10px;color:#0b0d14;font-weight:900;}
+  .tt{font-size:11px;color:var(--txt);line-height:1.4;flex:1;}
+  .tt.done{text-decoration:line-through;color:var(--txt3);}
+  .tid{font-family:var(--mono);font-size:8.5px;color:var(--txt3);margin-right:4px;}
+  .ag-tag{font-family:var(--mono);font-size:8px;letter-spacing:.04em;padding:0 5px;border-radius:2px;margin-left:4px;flex-shrink:0;align-self:center;white-space:nowrap;}
+  .t-ceo{color:#f0b429;background:rgba(240,180,41,.10);}
+  .t-cfo{color:#4ade80;background:rgba(74,222,128,.10);}
+  .t-cmo{color:#f472b6;background:rgba(244,114,182,.10);}
+  .t-cto{color:#60a5fa;background:rgba(96,165,250,.10);}
+  .t-lr{color:#fb923c;background:rgba(251,146,60,.10);}
+  .t-pd{color:#2dd4bf;background:rgba(45,212,191,.10);}
+  .t-gs{color:#a78bfa;background:rgba(167,139,250,.10);}
+  .t-ea{color:var(--txt2);background:rgba(255,255,255,.05);}
+  .t-alim{color:#f87171;background:rgba(248,113,113,.12);font-weight:700;}
+  .wk-ft{padding:7px 13px;background:rgba(0,0,0,.2);border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;color:var(--txt3);}
+
+  .ch-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+  .ch-item:last-child{border-bottom:none;padding-bottom:0;}
+  .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+  .dot.r{background:var(--red);box-shadow:0 0 7px var(--red);}
+  .dot.a{background:var(--gold);box-shadow:0 0 7px var(--gold);}
+  .dot.b{background:var(--blue);box-shadow:0 0 7px var(--blue);}
+  .dot.g{background:var(--green);box-shadow:0 0 7px var(--green);}
+  .dot.v{background:var(--violet);box-shadow:0 0 7px var(--violet);}
+  .ch-title{font-size:12px;font-weight:600;margin-bottom:2px;}
+  .ch-desc{font-size:11px;color:var(--txt2);line-height:1.45;}
+  .ch-who{font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:3px;}
+
+  .ag-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .ag-row:last-child{border-bottom:none;}
+  .ag-ind{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .ag-name{font-size:12px;font-weight:600;color:var(--txt);}
+  .ag-task{font-size:10.5px;color:var(--txt2);}
+
+  .mt-item{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+  .mt-item:last-child{border-bottom:none;padding-bottom:0;}
+  .mt-num{font-family:var(--mono);font-size:10px;color:var(--violet);width:22px;flex-shrink:0;font-weight:700;}
+  .mt-title{font-size:12px;font-weight:600;color:var(--txt);margin-bottom:2px;}
+  .mt-desc{font-size:11px;color:var(--txt2);line-height:1.45;}
+  .mt-meta{font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:3px;}
+
+  .quote{background:var(--bg2);border-left:2px solid var(--violet);padding:10px 14px;font-size:11.5px;color:var(--txt2);font-style:italic;line-height:1.55;border-radius:0 5px 5px 0;}
+  .quote b{color:var(--txt);font-style:normal;}
+
+  .dead{font-family:var(--mono);font-size:8.5px;color:var(--txt3);margin-left:auto;padding-left:6px;white-space:nowrap;align-self:center;}
+  .cond{font-family:var(--mono);font-size:8px;color:var(--gold);border:1px solid rgba(240,180,41,.3);border-radius:2px;padding:0 4px;margin-left:4px;align-self:center;}
+
+  .footer{font-family:var(--mono);font-size:9px;color:var(--txt3);text-align:right;margin-top:16px;}
+
+  @media (max-width:1400px){.g6{grid-template-columns:repeat(3,1fr);}}
+  @media (max-width:1200px){.g4{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:900px){.g4,.g3,.g6,.g2{grid-template-columns:1fr 1fr;}}
+  @media (max-width:600px){.g4,.g3,.g6,.g2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hd">
+  <div class="hd-left">
+    <div class="logo">LEVELOP</div>
+    <div class="badge">OPS DASHBOARD · <b>Q3 2026</b></div>
+    <div class="badge">Coordinador: <b>Executive Assistant</b></div>
+    <div class="badge">Agentes activos: <b>8</b></div>
+    <div class="badge">ICP: <b>Venezuela</b> <span style="color:#4ade80">✓ aprobado 07/08</span></div>
+    <div class="badge">Precio: <b>$50/10 asientos + $4</b></div>
+  </div>
+  <div class="hd-right" id="live-dt"></div>
+</div>
+
+<!-- HEALTH -->
+<div class="health-bar amber">
+  <span class="health-label">Estado del Sprint</span>
+  <span class="health-msg">🟡 <b>A-1 a A-4 aprobadas por Alim el 07/08</b> — Venezuela, precio $50/10+$4, desembolso legal completo, 5 Fundadores. Solo A-5 sigue abierta (sin urgencia). <b>Nuevo:</b> "Beneficios de Levelop" escaló a decisión de capital (Levelop compraría inventario de marcas por adelantado) — el CFO la marca como Arquitectura A repetida, ahora sobre marcas, y pide que <code>LVL-024</code> sea el chokehold #1 del Dashboard. Dos bottlenecks de comunicación activos: el <b>CTO acumula 4 mensajes ALTA sin responder desde el 06/08</b> y <b>PD/LR sin actividad lateral</b> desde el día 1. Ver el diagrama abajo.</span>
+  <span style="margin-left:auto;font-family:var(--mono);font-size:10px;" id="sprint-pct">0% completado</span>
+</div>
+
+<!-- OVERVIEW -->
+<div class="g4 mb">
+  <div class="card">
+    <div class="ct" style="margin-bottom:5px">Tareas registradas</div>
+    <div class="kv" style="color:var(--violet)">29</div>
+    <div class="kl">LVL-001 a LVL-029 · precio ajustado a $50/10+$4 el 07/08 sin generar IDs nuevos</div>
+    <div class="kt">Todas trazan a un <b>agente real</b></div>
+  </div>
+  <div class="card">
+    <div class="ct" style="margin-bottom:5px">Esperando a Alim</div>
+    <div class="kv" style="color:var(--green)">1</div>
+    <div class="kl">A-1 a A-4 resueltas 07/08 · solo A-5 (bus factor) sigue abierta, sin urgencia</div>
+    <div class="kt">Ver <b>Esperando Respuesta</b></div>
+  </div>
+  <div class="card">
+    <div class="ct" style="margin-bottom:5px">Bottleneck activo</div>
+    <div class="kv" style="color:var(--red)">CTO</div>
+    <div class="kl">4 mensajes ALTA del CFO sin responder desde 07/08 · LVL-022 en 0% · LVL-024 ahora bloquea también una decisión de capital</div>
+    <div class="kt">Ver <b>Red de Comunicación</b></div>
+  </div>
+  <div class="card">
+    <div class="ct" style="margin-bottom:5px">Cosas que matamos</div>
+    <div class="kv" style="color:var(--green)">8</div>
+    <div class="kl">Decisión del CEO en la Mesa Redonda del 06/08</div>
+    <div class="kt">Ver <b>Lo que NO hacemos</b></div>
+  </div>
+</div>
+
+<!-- MESA REDONDA -->
+<div class="sl">Mesa Redonda — 06 Ago · Spec de Cashea · CEO + CFO + CMO + CTO + Lead Researcher</div>
+<div class="card mb">
+  <div class="ch">
+    <span class="ct">Decisiones firmes de la mesa</span>
+    <span class="pill pv">6 decisiones · 5 choques resueltos</span>
+  </div>
+
+  <div class="quote mb" style="margin-bottom:12px">
+    <b>El hallazgo que ordenó todo lo demás (Lead Researcher):</b> "Tienes dos empresas en un solo documento — una en Chile con leads y sin foso, otra en Venezuela con foso y sin leads. Hasta que elijas cuál eres, cada agente optimizará para la otra."
+  </div>
+
+  <div class="mt-item">
+    <div class="mt-num">D-1</div>
+    <div style="flex:1">
+      <div class="mt-title">Cashea reclasificada a "diseño de referencia condicional"</div>
+      <div class="mt-desc">No existe evidencia de programa de partners ni API pública de Cashea. El endpoint, el payload y la firma HMAC son diseño hipotético nuestro. El payload de ejemplo usa offset <b>-07:00 (Los Ángeles)</b> para una operación venezolana — ese JSON fue generado, no observado. Sobrevive una sola acción: averiguar si existe alguien en Cashea con quien hablar.</div>
+      <div class="mt-meta">→ Growth &amp; Sales · <b style="color:var(--gold)">20 Ago</b> · LVL-001, LVL-002</div>
+    </div>
+    <span class="ag-tag t-gs">GS</span>
+  </div>
+
+  <div class="mt-item">
+    <div class="mt-num">D-2</div>
+    <div style="flex:1">
+      <div class="mt-title">Venezuela es el ICP. Chile es caja, no norte.</div>
+      <div class="mt-desc">La tesis del producto —la compensación real se paga en beneficios porque el salario nominal es simbólico— solo es cierta en Venezuela. Base1 Publicidad y Agencia Salvaje se atienden con el producto tal cual y se cobra en USD. <b>Cero roadmap dedicado, cero features pedidas por ellos.</b></div>
+      <div class="mt-meta">→ CEO / CMO · <b style="color:var(--green)">✓ Aprobada por Alim 07 Ago</b> · LVL-003</div>
+    </div>
+    <span class="ag-tag t-ceo">CEO</span>
+  </div>
+
+  <div class="mt-item">
+    <div class="mt-num">D-3</div>
+    <div style="flex:1">
+      <div class="mt-title">Purga de claims + nuevo posicionamiento publicado</div>
+      <div class="mt-desc">Salen 7 claims que no se sostienen. Entra la nueva categoría: <b>Sistema de Beneficios por Desempeño</b> — <i>"Tus beneficios ya existen. Levelop decide quién se los gana."</i> "Work OS gamificado" muere como posicionamiento maestro y sobrevive solo como descriptor de la experiencia dentro del producto.</div>
+      <div class="mt-meta">→ CMO · <b style="color:var(--gold)">3 Sep</b> · LVL-004, LVL-005, LVL-012</div>
+    </div>
+    <span class="ag-tag t-cmo">CMO</span>
+  </div>
+
+  <div class="mt-item">
+    <div class="mt-num">D-4</div>
+    <div style="flex:1">
+      <div class="mt-title">Capa genérica de canje (sirve igual sin Cashea)</div>
+      <div class="mt-desc">Ledger de doble entrada real, estado <code>INDETERMINATE</code>, patrón outbox, asientos compensatorios, endpoint de reconciliación, e interfaz <code>RedemptionProvider</code> con un único provider real: <code>ManualFulfillment</code>. Incluye <b>reset a cero de los saldos de Oro de localStorage</b> (hoy se editan desde DevTools en 10 segundos), backups probados y gestión de secretos.</div>
+      <div class="mt-meta">→ CTO · Hito 1 <b style="color:var(--gold)">20 Sep</b> · Hito 2 <b style="color:var(--gold)">4 Nov</b> · LVL-007 a LVL-017</div>
+    </div>
+    <span class="ag-tag t-cto">CTO</span>
+  </div>
+
+  <div class="mt-item">
+    <div class="mt-num">D-5</div>
+    <div style="flex:1">
+      <div class="mt-title">Voz de cliente: 20 entrevistas + teardown de Fina + Programa Fundadores</div>
+      <div class="mt-desc">Hoy hay <b>cero</b> voz de cliente: ni una entrevista, encuesta ni carta de intención venezolana en todo el corpus. Todo el diagnóstico de dolor es inferido de literatura. Fina (&gt;4.000 clientes VE, &gt;$1,5M ARR) es el único benchmark real de disposición a pagar y nunca se estudió.</div>
+      <div class="mt-meta">→ Growth &amp; Sales + CMO · <b style="color:var(--gold)">15 Oct</b> · LVL-006, LVL-010, LVL-011, LVL-018, LVL-027</div>
+    </div>
+    <span class="ag-tag t-gs">GS</span>
+  </div>
+
+  <div class="mt-item">
+    <div class="mt-num">D-6</div>
+    <div style="flex:1">
+      <div class="mt-title">Dictamen laboral venezolano + ratificación de la arquitectura B del pool</div>
+      <div class="mt-desc">La validez jurídica de las Intrarrecompensas está afirmada tres veces en el corpus y fundamentada cero — ningún documento cita LOTTT ni opinión de abogado. Y el pool nunca pasa por cuentas de Levelop: bajo la arquitectura A seríamos custodio de dinero de terceros en un corredor sancionado, y <b>el Oro caducado se volvería ingreso nuestro — ganaríamos cuando el empleado no cobra.</b></div>
+      <div class="mt-meta">→ CFO · <b style="color:var(--green)">Desembolso aprobado 07 Ago</b> · vence 30 Sep · LVL-015, LVL-016</div>
+    </div>
+    <span class="ag-tag t-cfo">CFO</span>
+  </div>
+
+  <div class="mt-item">
+    <div class="mt-num">🔑</div>
+    <div style="flex:1">
+      <div class="mt-title">La pregunta que le quita el sueño al CEO</div>
+      <div class="mt-desc"><b>¿El dueño de una PyME venezolana pagará en dólares por un software que decide quién se gana los beneficios — o repartirlos a dedo es exactamente el poder que no piensa ceder?</b> Si es lo segundo, no tenemos un problema de producto, de precio ni de Cashea: tenemos un comprador que no existe.</div>
+      <div class="mt-meta">→ Las 20 entrevistas existen para responder esto. Todo lo demás es secundario.</div>
+    </div>
+    <span class="ag-tag t-ceo">CEO</span>
+  </div>
+</div>
+
+<!-- SPRINT CALENDAR -->
+<div class="sl">Sprint Calendar — 90 días · 6 Ago → 4 Nov · Marcar tareas completadas</div>
+<div class="g6 mb">
+
+  <!-- Q1 -->
+  <div class="wk now">
+    <div class="wk-hd">
+      <div class="wk-title">Q1 — ELEGIR <span class="pill pb" style="margin-left:6px">ACTIVA</span></div>
+      <div class="wk-dates">6–19 AGO</div>
+    </div>
+    <div class="wk-obj">Objetivo: dejar de ser dos empresas. Decisión de mercado aplicada al corpus y primer contacto con Cashea enviado.</div>
+    <ul class="task-ul">
+      <li class="ti"><input type="checkbox" class="tc" data-id="q1-1"><span class="tt"><span class="tid">LVL-001</span>Reclasificar la spec de Cashea a "diseño de referencia condicional" (encabezado en el archivo)</span><span class="ag-tag t-cto">CTO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q1-2"><span class="tt"><span class="tid">LVL-002</span>Contacto formal y documentado con Cashea partnerships</span><span class="ag-tag t-gs">GS</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q1-3"><span class="tt"><span class="tid">LVL-003</span>Reescribir el corpus bajo el supuesto "Venezuela ICP"<span class="cond">A-1</span></span><span class="ag-tag t-ceo">CEO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q1-4"><span class="tt"><span class="tid">LVL-004</span>Inventario de dónde están publicados los claims falsos</span><span class="ag-tag t-cmo">CMO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q1-5"><span class="tt"><span class="tid">LVL-006</span>Lista de 40 PyMEs objetivo (Caracas / Valencia)<span class="cond">A-1</span></span><span class="ag-tag t-gs">GS</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q1-6"><span class="tt"><span class="tid">LVL-026</span>Elegir fuente única de tamaño de mercado y retirar la contradictoria</span><span class="ag-tag t-lr">LR</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q1-7"><span class="tt"><span class="tid">LVL-027</span>Guiones de entrevista + línea base a medir (sesión LR + GS)</span><span class="ag-tag t-lr">LR+GS</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q1-8"><span class="tt"><span class="tid">LVL-029</span>Congelar la decisión de hosting en UN documento</span><span class="ag-tag t-cto">CTO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q1-9"><span class="tt"><span class="tid">A-1..A-5</span><b>Responder los 5 escalamientos de la mesa</b></span><span class="ag-tag t-alim">ALIM</span></li>
+    </ul>
+    <div class="wk-ft"><span id="q1c">0/9</span></div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="wk">
+    <div class="wk-hd">
+      <div class="wk-title">Q2 — HIGIENE</div>
+      <div class="wk-dates">20 AGO–2 SEP</div>
+    </div>
+    <div class="wk-obj">Objetivo: dejar de ser indefendibles en due diligence. Corte contable del Oro y primeras entrevistas.</div>
+    <ul class="task-ul">
+      <li class="ti"><input type="checkbox" class="tc" data-id="q2-1"><span class="tt"><span class="tid">LVL-007</span>Reset a cero de los saldos de Oro de localStorage (corte contable)</span><span class="ag-tag t-cto">CTO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q2-2"><span class="tt"><span class="tid">LVL-008</span>Backups <b>restaurados</b> (no solo configurados) + gestión de secretos<span class="cond">A-3</span></span><span class="ag-tag t-cto">CTO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q2-3"><span class="tt"><span class="tid">LVL-009</span>Esquema del ledger de doble entrada + diseño de la migración</span><span class="ag-tag t-cto">CTO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q2-4"><span class="tt"><span class="tid">LVL-010</span>Teardown de Fina: canal, precio, ticket, mecanismo de cobro</span><span class="ag-tag t-lr">LR+GS</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q2-5"><span class="tt"><span class="tid">LVL-011a</span>Primeras 6 entrevistas de descubrimiento</span><span class="ag-tag t-gs">GS</span></li>
+    </ul>
+    <div class="wk-ft"><span id="q2c">0/5</span></div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="wk">
+    <div class="wk-hd">
+      <div class="wk-title">Q3 — EXISTIR</div>
+      <div class="wk-dates">3–16 SEP</div>
+    </div>
+    <div class="wk-obj">Objetivo: fin de localStorage y nuevo posicionamiento en vivo. Por primera vez, producto real y mensaje defendible.</div>
+    <ul class="task-ul">
+      <li class="ti"><input type="checkbox" class="tc" data-id="q3-1"><span class="tt"><span class="tid">LVL-005</span>Purga de claims publicada</span><span class="ag-tag t-cmo">CMO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q3-2"><span class="tt"><span class="tid">LVL-012</span>Nueva web + deck maestro "Sistema de Beneficios por Desempeño"<span class="cond">A-2</span></span><span class="ag-tag t-cmo">CMO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q3-3"><span class="tt"><span class="tid">LVL-013</span>Backend mínimo: auth + persistencia de misiones (<b>fin de localStorage</b>)</span><span class="ag-tag t-cto">CTO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q3-4"><span class="tt"><span class="tid">LVL-021</span>Calculadora de ROI pública y editable con supuestos visibles</span><span class="ag-tag t-cfo">CFO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q3-5"><span class="tt"><span class="tid">LVL-022</span><b>Costo de inferencia de IA por usuario/mes</b> — bloquea la ratificación de precio</span><span class="ag-tag t-cto">CTO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q3-6"><span class="tt"><span class="tid">LVL-011b</span>Entrevistas 7–14</span><span class="ag-tag t-gs">GS</span></li>
+    </ul>
+    <div class="wk-ft"><span id="q3c">0/6</span></div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="wk">
+    <div class="wk-hd">
+      <div class="wk-title">Q4 — EL LEDGER</div>
+      <div class="wk-dates">17–30 SEP</div>
+    </div>
+    <div class="wk-obj">Objetivo: el Oro deja de ser confeti y pasa a ser un pasivo auditable. Y sabemos si es legal.</div>
+    <ul class="task-ul">
+      <li class="ti"><input type="checkbox" class="tc" data-id="q4-1"><span class="tt"><span class="tid">LVL-014</span>Ledger con outbox + estado <code>INDETERMINATE</code> + endpoint de reconciliación</span><span class="ag-tag t-cto">CTO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q4-2"><span class="tt"><span class="tid">LVL-015</span>Dictamen de abogado laboral venezolano (LOTTT / Intrarrecompensas)<span class="cond">A-3</span></span><span class="ag-tag t-cfo">CFO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q4-3"><span class="tt"><span class="tid">LVL-016</span>Ratificación por escrito de la arquitectura B del pool</span><span class="ag-tag t-cfo">CFO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q4-4"><span class="tt"><span class="tid">LVL-023</span>Mapa de estados del ciclo de vida de una transacción</span><span class="ag-tag t-pd">PD</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q4-5"><span class="tt"><span class="tid">LVL-024</span>Reglas de gobernanza del pool (tasa, aviso previo, techo/piso, no-clawback)</span><span class="ag-tag t-pd">PD+CFO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q4-6"><span class="tt"><span class="tid">LVL-011c</span>Entrevistas 15–20</span><span class="ag-tag t-gs">GS</span></li>
+    </ul>
+    <div class="wk-ft"><span id="q4c">0/6</span></div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="wk">
+    <div class="wk-hd">
+      <div class="wk-title">Q5 — CANJEAR</div>
+      <div class="wk-dates">1–14 OCT</div>
+    </div>
+    <div class="wk-obj">Objetivo: un canje real ejecutado sin ninguna API externa. Y Fundadores firmados con línea base medida.</div>
+    <ul class="task-ul">
+      <li class="ti"><input type="checkbox" class="tc" data-id="q5-1"><span class="tt"><span class="tid">LVL-017</span><code>ManualFulfillment</code> + máquina de estados de canje</span><span class="ag-tag t-cto">CTO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q5-2"><span class="tt"><span class="tid">LVL-018</span>Programa Fundadores cerrado con contratos de línea base<span class="cond">A-4</span></span><span class="ag-tag t-gs">GS+CMO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q5-3"><span class="tt"><span class="tid">LVL-019</span>"Levelop usa Levelop" — diario público de uso propio</span><span class="ag-tag t-cmo">CMO</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q5-4"><span class="tt"><span class="tid">LVL-025</span>Reponer con fuente: mercado PyME VE + costo de rotación local</span><span class="ag-tag t-lr">LR</span></li>
+    </ul>
+    <div class="wk-ft"><span id="q5c">0/4</span></div>
+  </div>
+
+  <!-- Q6 -->
+  <div class="wk">
+    <div class="wk-hd">
+      <div class="wk-title">Q6 — PRIMER USO REAL</div>
+      <div class="wk-dates">15 OCT–4 NOV</div>
+    </div>
+    <div class="wk-obj">Objetivo: cuentas Fundadoras onboardeadas con economía viva. Cobro manual y feo — y está bien.</div>
+    <ul class="task-ul">
+      <li class="ti"><input type="checkbox" class="tc" data-id="q6-1"><span class="tt"><span class="tid">LVL-020</span>Onboarding con gate: 3 Intrarrecompensas activas + 1 canje ejecutado</span><span class="ag-tag t-pd">PD+GS</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q6-2"><span class="tt"><span class="tid">LVL-028</span>Opt-out real del layer gamificado en producto</span><span class="ag-tag t-cto">CTO+PD</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q6-3"><span class="tt"><span class="tid">—</span>Cobro manual por transferencia / USDT a las primeras cuentas</span><span class="ag-tag t-gs">GS</span></li>
+      <li class="ti"><input type="checkbox" class="tc" data-id="q6-4"><span class="tt"><span class="tid">—</span>Sprint Review de cierre de trimestre con Alim</span><span class="ag-tag t-ea">EA</span></li>
+    </ul>
+    <div class="wk-ft"><span id="q6c">0/4</span></div>
+  </div>
+
+</div>
+
+<!-- BOTTOM ROW -->
+<div class="g3 mb">
+
+  <!-- CHOKEHOLDS -->
+  <div class="card">
+    <div class="ch">
+      <span class="ct">Chokeholds</span>
+      <span class="pill pr">5 activos · 3 reglas permanentes</span>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot r"></div>
+      <div>
+        <div class="ch-title">🔴 MÁS URGENTE (pedido explícito del CFO) · LVL-024 — ya no es solo gobernanza del pool, ahora bloquea capital</div>
+        <div class="ch-desc">El CFO ya resolvió la parte conceptual con el CTO (Oro = pasivo, arquitectura B, decay de 90 días, tasa versionada por cohorte), pero el documento formal de <code>LVL-024</code> sigue en 0%. Desde el 07/08 bloquea tres cosas a la vez, no una: el esquema de cuentas del CTO, el diseño de la Tienda del PD (<b>que nunca fue incluido</b> en la conversación pese a que la propia tabla del CFO lo lista como copropietario), y ahora también el tamaño real del capital que requiere "Beneficios de Levelop" (ver más abajo). El CFO pidió textualmente que este sea el chokehold #1 del Dashboard.</div>
+        <div class="ch-who">→ CFO + PD + CTO · LVL-024 · vence 30 Sep, pero ya bloquea hoy</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot r"></div>
+      <div>
+        <div class="ch-title">🔴 CTO en silencio desde el 06/08 — ahora con 4 mensajes ALTA sin responder</div>
+        <div class="ch-desc">Al formato de costo por decisión y a si los convenios de marca tocan el ledger (MSG-004/005 del CFO), se sumaron dos mensajes más del CFO retirando y reformulando la pregunta (MSG-006/007) — el CTO no ha respondido ninguno. <code>LVL-022</code> sigue en 0%, bloqueando precio y self-funding. Es el nodo con más peso entrante y cero salida de todo el sistema esta semana.</div>
+        <div class="ch-who">→ CTO · LVL-022 + LVL-024 · EA pidió respuesta antes del 09 Ago, sigue sin llegar</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot a"></div>
+      <div>
+        <div class="ch-title">🟡 ¿Existe alguien en Cashea con quien hablar?</div>
+        <div class="ch-desc">El Lead Researcher: <i>"Es una investigación de una semana que puede ahorrar un trimestre de ingeniería."</i> Cierra o abre definitivamente el capítulo cuatro del posicionamiento. El CEO puso fecha límite al día 60: si no hay interlocutor, el capítulo se cierra por este año y dejamos de mantener la opción abierta en la cabeza de todos.</div>
+        <div class="ch-who">→ Growth &amp; Sales · LVL-002 · vence 20 Ago</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot a"></div>
+      <div>
+        <div class="ch-title">🟡 Estados de fallo — el 60% del trabajo que no existe en el diseño</div>
+        <div class="ch-desc">El CTO no puede construir la máquina de estados de canje sin saber qué ve el usuario en cada estado, incluido el nuevo <code>CANJE_INDETERMINADO</code>. El PD le devolvió una buena pregunta: necesita saber qué estados de error son <b>físicamente distinguibles</b> en la arquitectura antes de dibujarlos. El CTO aceptó tipificar los motivos de rechazo en vez de devolver un 409 genérico — pero eso fue el 06/08, y no hay avance registrado desde entonces.</div>
+        <div class="ch-who">→ Product Designer · LVL-023 · vence 30 Sep</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot a"></div>
+      <div>
+        <div class="ch-title">🟡 Sesión GS+LR (guion de entrevistas) — sin rastro de haber ocurrido</div>
+        <div class="ch-desc">GS y LR pidieron por separado, cada uno por su lado, diseñar juntos el guion de las 20 entrevistas antes del 19/08. La EA la agendó el 06/08. No hay ningún mensaje nuevo en <code>CMO - Lead Researcher.md</code> ni en ningún otro canal que confirme que sucedió, y el deadline está a menos de dos semanas.</div>
+        <div class="ch-who">→ GS + LR · vence 19 Ago</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot v"></div>
+      <div>
+        <div class="ch-title">🔒 R-01 · Ninguna cifra pública sin firma del Lead Researcher</div>
+        <div class="ch-desc">Nace de que las métricas +85%/+40%/−60% y las cifras de mercado LATAM no aparecen con fuente en <b>ningún</b> documento del corpus — la columna "Fuente de Datos" está literalmente vacía en tablas enteras de nuestros propios PDFs.</div>
+        <div class="ch-who">→ Regla permanente desde 06/08</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot v"></div>
+      <div>
+        <div class="ch-title">🔒 R-03 · La participación gamificada es siempre opt-in</div>
+        <div class="ch-desc">Es el claim más fuerte del CMO y el único que no depende de terceros. Si no existe en producto, se pierde también. Ningún agente propone lo contrario, en ninguna circunstancia.</div>
+        <div class="ch-who">→ Regla permanente desde 06/08 · LVL-028</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot v"></div>
+      <div>
+        <div class="ch-title">🔒 R-04 · El Oro es pasivo financiero, no feature</div>
+        <div class="ch-desc">Todo lo que toque el ledger requiere revisión CFO + CTO. Los saldos actuales se editan desde DevTools en diez segundos: si se heredan como canjeables, heredamos un pasivo inflado por datos que nunca fueron auditables.</div>
+        <div class="ch-who">→ Regla permanente desde 06/08</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WAITING ON ALIM -->
+  <div class="card">
+    <div class="ch">
+      <span class="ct">Esperando a Alim</span>
+      <span class="pill pg">4 resueltas 07 Ago · 1 abierta</span>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot g"></div>
+      <div>
+        <div class="ch-title">✅ A-1 · Pivote de mercado a Venezuela — APROBADO</div>
+        <div class="ch-desc">Venezuela es el ICP en firme, ya no supuesto de trabajo. Chile (Base1, Agencia Salvaje) queda como caja, sin roadmap dedicado.</div>
+        <div class="ch-who">→ Resuelto 07 Ago · desbloqueó CMO y GS</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot g"></div>
+      <div>
+        <div class="ch-title">✅ A-2 · Precio — RESUELTO, y ya cambió una vez</div>
+        <div class="ch-desc">Adoptado primero como $79/15+$4. El mismo 07/08 Alim lo devolvió con una objeción de mercado (elevado para PyMEs venezolanas) y confirmó <b>$50/mes, 10 asientos + $4/asiento adicional</b>, con promo trimestral $100/3 meses y semestral $270/6 meses activas. Sigue sin ser precio <i>ratificado en firme</i> — el CFO mantiene esa distinción hasta que LVL-022 (costo de inferencia de IA) aterrice.</div>
+        <div class="ch-who">→ $50/10+$4 es el número de trabajo desde 07 Ago · LVL-012 puede avanzar con él</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot g"></div>
+      <div>
+        <div class="ch-title">✅ A-3 · Desembolso ~$400–900 — APROBADO COMPLETO</div>
+        <div class="ch-desc">Abogado laboral venezolano + backups probados + gestor de secretos, los tres. Desbloquea LVL-008 (CTO, ejecutar no solo planear) y LVL-015 (CFO, contratar al abogado).</div>
+        <div class="ch-who">→ Resuelto 07 Ago</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot g"></div>
+      <div>
+        <div class="ch-title">✅ A-4 · Programa Fundadores — 5 empresas, estructura combinada</div>
+        <div class="ch-desc">Alim mejoró la propuesta del CEO: onboarding previo explicando el producto + entrevista corta sobre qué faltó + pista de conversión a "Embajadores". El CEO mantuvo su número (5, no 10) y fusionó ambas ideas en vez de elegir una.</div>
+        <div class="ch-who">→ Resuelto 07 Ago · LVL-018 ajustada</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot b"></div>
+      <div>
+        <div class="ch-title">A-5 · Bus factor = 1 — sigue abierta, sin urgencia</div>
+        <div class="ch-desc"><b>(a)</b> Socio técnico con equity · <b>(b)</b> Documentar, hacer backups y aceptar el riesgo 12 meses.<br><b>Recomendación CEO: (b)</b> ahora — se reactiva cuando haya presupuesto o cuando el riesgo de DR se vuelva agudo.</div>
+        <div class="ch-who">→ No bloquea esta quincena · riesgo de due diligence</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot a"></div>
+      <div>
+        <div class="ch-title">⚠️ Ya no es "sin escalar" · "Beneficios de Levelop" se convirtió en decisión de capital</div>
+        <div class="ch-desc">Dejó de ser una pregunta de secuencia sin dueño: Alim ya decidió que Levelop compre/mantenga inventario de canje de marcas (Nike, Adidas, Cashea de ejemplo) <b>por adelantado</b>. El CFO lo marcó de inmediato en <code>CFO - CTO.md</code> y <code>CEO - CFO.md</code> como estructuralmente idéntico a la Arquitectura A que ya habíamos rechazado para el pool — ahora aplicada a marcas. Pide sign-off explícito de CEO + CFO + Alim antes de comprometer capital, y una regla nueva no-negociable: el Oro vencido nunca se convierte en ingreso de Levelop. Depende de tres cosas: <code>LVL-024</code> (tasa Oro→USD), que el LR confirme que Venezuela puede pagar a proveedores internacionales de gift cards, y una evaluación de agregadores (Tango Card/BHN, Tremendous).</div>
+        <div class="ch-who">→ CEO + CFO + Alim · bloqueado por LVL-024 · el LR tiene una tarea nueva sin ID todavía</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AGENT STATUS -->
+  <div class="card">
+    <div class="ch">
+      <span class="ct">Estado de Agentes</span>
+      <span class="pill pg">8 activos</span>
+    </div>
+    <div class="ag-row"><div class="ag-ind" style="background:#fb923c"></div><div style="flex:1"><div class="ag-name">Lead Research Agent</div><div class="ag-task">Informe de contexto entregado · desarmó el modelo de ROI del CFO · encontró la contradicción Chile/Venezuela y que Cashea nunca fue verificada</div></div><span class="pill pg">Entregado</span></div>
+    <div class="ag-row"><div class="ag-ind" style="background:#f87171"></div><div style="flex:1"><div class="ag-name">CTO Agent <span style="font-size:8px;color:var(--txt3)">· SIN ESCRIBIR DESDE 06/08</span></div><div class="ag-task">Auditoría técnica sólida el día 1 · desde entonces, 0 respuestas a 4 mensajes ALTA del CFO y 1 aviso de la EA · <b>LVL-022 en 0%, sostiene también el bloqueo de LVL-024</b></div></div><span class="pill pr">Bottleneck</span></div>
+    <div class="ag-row"><div class="ag-ind" style="background:#4ade80"></div><div style="flex:1"><div class="ag-name">CFO Agent</div><div class="ag-task">Hub de facto esta semana: precio bajado a $50/10+$4, Plan de Self-Funding entregado, arquitectura B ratificada por Alim · <b>sigue bloqueado por LVL-022 del CTO</b></div></div><span class="pill pg">Muy activo</span></div>
+    <div class="ag-row"><div class="ag-ind" style="background:#f472b6"></div><div style="flex:1"><div class="ag-name">CMO Agent</div><div class="ag-task">7 claims retirados · categoría reescrita a "Sistema de Beneficios por Desempeño" · precio $50/10+$4 recibido, lámina destrabada · avanzando LVL-012</div></div><span class="pill pb">En ejecución</span></div>
+    <div class="ag-row"><div class="ag-ind" style="background:#f0b429"></div><div style="flex:1"><div class="ag-name">CEO Agent</div><div class="ag-task">A-1 a A-4 resueltas con Alim en directo · recibió MSG-007 (BLOQUEANTE) del CFO sobre "Beneficios de Levelop" como decisión de capital · sign-off pendiente</div></div><span class="pill pa">Decisión pendiente</span></div>
+    <div class="ag-row"><div class="ag-ind" style="background:#a78bfa"></div><div style="flex:1"><div class="ag-name">Growth &amp; Sales</div><div class="ag-task">Desbloqueado (A-1, A-4 resueltas) · ya puede citar $50/10+$4 en campo · <b>sesión con LR para el guion de entrevistas sin confirmar, deadline 19/08 cerca</b></div></div><span class="pill pa">Riesgo de deadline</span></div>
+    <div class="ag-row"><div class="ag-ind" style="background:#2dd4bf"></div><div style="flex:1"><div class="ag-name">Product Designer</div><div class="ag-task">Sin actividad desde el 06/08 · bloqueado por la política de valoración del Oro, y ni siquiera fue incluido cuando CFO y CTO la discutieron entre ellos</div></div><span class="pill pa">Aislado</span></div>
+    <div class="ag-row"><div class="ag-ind" style="background:#fb923c"></div><div style="flex:1"><div class="ag-name">Lead Researcher</div><div class="ag-task">Sin actividad lateral desde el 06/08 · sesión de guion con GS pendiente de confirmar</div></div><span class="pill pa">Aislado</span></div>
+    <div class="ag-row"><div class="ag-ind" style="background:#8d94b0"></div><div style="flex:1"><div class="ag-name">Executive Assistant</div><div class="ag-task">Auditoría de 17 canales · corrigió un broadcast propio que no había emitido (A-1..A-4 a CMO/GS/CTO) · diagrama de red de comunicación entregado</div></div><span class="pill pg">Entregado</span></div>
+  </div>
+
+</div>
+
+<!-- RED DE COMUNICACIÓN -->
+<div class="sl">Red de Comunicación — dónde están los cuellos de botella · pedido por Alim 08 Ago</div>
+<div class="g2 mb" style="align-items:start;">
+
+  <div class="card">
+    <div class="ch">
+      <span class="ct">Mapa de mensajes reales · 06–08 Ago</span>
+      <span class="pill pv">70 mensajes · 16 canales</span>
+    </div>
+
+    <svg viewBox="0 0 900 640" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+      <defs>
+        <marker id="ar-gold" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" style="fill:#f0b429"/></marker>
+        <marker id="ar-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" style="fill:#60a5fa"/></marker>
+        <marker id="ar-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" style="fill:#4ade80"/></marker>
+        <marker id="ar-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" style="fill:#f87171"/></marker>
+      </defs>
+
+      <!-- radial spokes EA-agente, tenues -->
+      <g style="stroke:#2f3852;stroke-width:1.5;opacity:.4;">
+        <line x1="483" y1="317" x2="645" y2="354"/>
+        <line x1="465" y1="341" x2="537" y2="490"/>
+        <line x1="435" y1="341" x2="363" y2="490"/>
+        <line x1="417" y1="317" x2="255" y2="354"/>
+        <line x1="423" y1="289" x2="294" y2="186"/>
+      </g>
+      <g style="stroke:#a78bfa;stroke-width:2.2;opacity:.7;">
+        <line x1="450" y1="276" x2="450" y2="110"/>
+        <line x1="477" y1="289" x2="607" y2="186"/>
+      </g>
+
+      <!-- laterales frías / dormidas, sin novedades desde 06/08 -->
+      <g style="stroke:#525a78;stroke-width:1.5;stroke-dasharray:5 5;opacity:.55;">
+        <line x1="469" y1="104" x2="655" y2="338"/>
+        <line x1="289" y1="190" x2="531" y2="494"/>
+        <line x1="277" y1="196" x2="343" y2="488"/>
+        <line x1="245" y1="385" x2="331" y2="494"/>
+      </g>
+      <line x1="644" y1="361" x2="256" y2="361" style="stroke:#f0b429;stroke-width:2;stroke-dasharray:6 4;opacity:.65"/>
+
+      <!-- laterales calientes -->
+      <line x1="477" y1="93" x2="603" y2="154" style="stroke:#f0b429;stroke-width:4" marker-start="url(#ar-gold)" marker-end="url(#ar-gold)"/>
+      <line x1="600" y1="167" x2="300" y2="167" style="stroke:#60a5fa;stroke-width:3.5" marker-end="url(#ar-blue)"/>
+      <line x1="623" y1="196" x2="557" y2="488" style="stroke:#4ade80;stroke-width:3.5" marker-end="url(#ar-green)"/>
+      <line x1="637" y1="196" x2="667" y2="332" style="stroke:#f87171;stroke-width:3.5" marker-end="url(#ar-red)"/>
+
+      <!-- etiquetas de conteo, con halo para legibilidad sobre las líneas -->
+      <g style="font-family:var(--mono);font-size:11px;font-weight:700;paint-order:stroke;stroke:#0b0d14;stroke-width:5px;stroke-linejoin:round;">
+        <text x="545" y="118" style="fill:#f0b429">6 · activo</text>
+        <text x="435" y="158" style="fill:#60a5fa">6 · CFO→CMO</text>
+        <text x="595" y="345" style="fill:#4ade80">6 · CFO→GS</text>
+        <text x="690" y="270" style="fill:#f87171">7 · 4 sin responder</text>
+        <text x="560" y="230" style="fill:#8d94b0">3 · sin novedades</text>
+        <text x="380" y="335" style="fill:#8d94b0">3</text>
+        <text x="270" y="335" style="fill:#8d94b0">3</text>
+        <text x="450" y="352" style="fill:#f0b429">3 · PD bloqueado</text>
+        <text x="255" y="435" style="fill:#8d94b0">3 · ambos inactivos</text>
+      </g>
+
+      <!-- nodo EA (centro) -->
+      <circle cx="450" cy="310" r="34" style="fill:#1b2135;stroke:#a78bfa;stroke-width:2.5"/>
+      <text x="450" y="316" text-anchor="middle" style="font-family:var(--mono);font-size:15px;font-weight:700;fill:#e6e9f5">EA</text>
+      <text x="450" y="365" text-anchor="middle" style="font-family:var(--mono);font-size:9.5px;fill:#4ade80;paint-order:stroke;stroke:#0b0d14;stroke-width:5px;stroke-linejoin:round;">broadcast corregido 08/08</text>
+
+      <!-- nodo CEO -->
+      <circle cx="450" cy="80" r="30" style="fill:#1b2135;stroke:#f0b429;stroke-width:2.5"/>
+      <text x="450" y="86" text-anchor="middle" style="font-family:var(--mono);font-size:14px;font-weight:700;fill:#e6e9f5">CEO</text>
+
+      <!-- nodo CFO (hub, anillo más grueso) -->
+      <circle cx="630" cy="167" r="32" style="fill:#1b2135;stroke:#4ade80;stroke-width:4"/>
+      <text x="630" y="173" text-anchor="middle" style="font-family:var(--mono);font-size:14px;font-weight:700;fill:#e6e9f5">CFO</text>
+      <text x="630" y="122" text-anchor="middle" style="font-family:var(--mono);font-size:9.5px;font-weight:700;fill:#4ade80;paint-order:stroke;stroke:#0b0d14;stroke-width:5px;stroke-linejoin:round;">★ hub de facto</text>
+
+      <!-- nodo CTO (bottleneck, anillo rojo) -->
+      <circle cx="674" cy="361" r="30" style="fill:rgba(248,113,113,.12);stroke:#f87171;stroke-width:3.5"/>
+      <text x="674" y="367" text-anchor="middle" style="font-family:var(--mono);font-size:14px;font-weight:700;fill:#e6e9f5">CTO</text>
+      <circle cx="700" cy="336" r="12" style="fill:#f87171"/>
+      <text x="700" y="340" text-anchor="middle" style="font-family:var(--mono);font-size:11px;font-weight:900;fill:#0b0d14">2</text>
+      <text x="674" y="410" text-anchor="middle" style="font-family:var(--mono);font-size:9.5px;font-weight:700;fill:#f87171;paint-order:stroke;stroke:#0b0d14;stroke-width:5px;stroke-linejoin:round;">🔴 sin responder 48h+</text>
+
+      <!-- nodo GS -->
+      <circle cx="550" cy="517" r="30" style="fill:#1b2135;stroke:#a78bfa;stroke-width:2.5"/>
+      <text x="550" y="523" text-anchor="middle" style="font-family:var(--mono);font-size:14px;font-weight:700;fill:#e6e9f5">GS</text>
+
+      <!-- nodo LR (aislado) -->
+      <circle cx="350" cy="517" r="30" style="fill:#1b2135;stroke:#fb923c;stroke-width:2;opacity:.6"/>
+      <text x="350" y="523" text-anchor="middle" style="font-family:var(--mono);font-size:14px;font-weight:700;fill:#8d94b0">LR</text>
+      <text x="350" y="562" text-anchor="middle" style="font-family:var(--mono);font-size:9.5px;fill:#fb923c;paint-order:stroke;stroke:#0b0d14;stroke-width:5px;stroke-linejoin:round;">⏸ inactivo desde 06/08</text>
+
+      <!-- nodo PD (aislado) -->
+      <circle cx="226" cy="361" r="30" style="fill:#1b2135;stroke:#2dd4bf;stroke-width:2;opacity:.6"/>
+      <text x="226" y="367" text-anchor="middle" style="font-family:var(--mono);font-size:14px;font-weight:700;fill:#8d94b0">PD</text>
+      <text x="226" y="410" text-anchor="middle" style="font-family:var(--mono);font-size:9.5px;fill:#2dd4bf;paint-order:stroke;stroke:#0b0d14;stroke-width:5px;stroke-linejoin:round;">⏸ inactivo desde 06/08</text>
+
+      <!-- nodo CMO -->
+      <circle cx="270" cy="167" r="30" style="fill:#1b2135;stroke:#f472b6;stroke-width:2.5"/>
+      <text x="270" y="173" text-anchor="middle" style="font-family:var(--mono);font-size:14px;font-weight:700;fill:#e6e9f5">CMO</text>
+    </svg>
+
+    <div style="display:flex;flex-wrap:wrap;gap:10px 16px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-family:var(--mono);font-size:9.5px;color:var(--txt2);">
+      <span><span style="display:inline-block;width:16px;height:3px;background:#f0b429;vertical-align:middle;margin-right:4px;"></span>activo y bidireccional</span>
+      <span><span style="display:inline-block;width:16px;height:3px;background:#60a5fa;vertical-align:middle;margin-right:4px;"></span>flujo en una dirección</span>
+      <span><span style="display:inline-block;width:16px;height:3px;background:#f87171;vertical-align:middle;margin-right:4px;"></span>sin responder (bottleneck)</span>
+      <span><span style="display:inline-block;width:16px;height:1px;border-top:2px dashed #525a78;vertical-align:middle;margin-right:4px;"></span>canal frío desde el día 1</span>
+      <span><b style="color:#4ade80">◎</b> hub de facto</span>
+      <span><b style="color:#f87171">◎</b> bottleneck activo</span>
+      <span><b style="color:#8d94b0">◎</b> nodo aislado</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch">
+      <span class="ct">Qué significa esto para vos</span>
+      <span class="pill pr">2 bottlenecks · 1 decisión de capital</span>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot r"></div>
+      <div>
+        <div class="ch-title">1. El CTO es el bottleneck más caro ahora mismo — y creció mientras yo verificaba</div>
+        <div class="ch-desc">Cero mensajes desde el 06/08 pese a acumular <b>4 mensajes ALTA</b> del CFO sin responder (MSG-004 a MSG-007) y mi propio aviso del 08/08. Es el nodo con más peso entrante (CEO, CFO y PD lo están esperando a la vez) y cero salida. <code>LVL-022</code> sigue en 0% — bloquea precio y self-funding — y ahora también sostiene <code>LVL-024</code>, que el CFO pidió tratar como el chokehold más urgente del Dashboard.</div>
+        <div class="ch-who">→ Recomendación: que sea lo primero que resuelva antes de tocar cualquier otra tarea de su backlog</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot a"></div>
+      <div>
+        <div class="ch-title">2. Product Designer y Lead Researcher están aislados</div>
+        <div class="ch-desc">Sus canales (<code>CTO-PD</code>, <code>PD-LR</code>, <code>CMO-LR</code>, <code>CMO-GS</code>) siguen exactamente en 3 mensajes desde el día 1, mientras el resto del sistema intercambió más de 15 mensajes nuevos en 48h. El PD sigue bloqueado en <code>LVL-024</code> sin haber sido incluido cuando CFO y CTO discutieron la valoración del Oro — pese a que la propia tabla del CFO lo lista como copropietario. La sesión GS+LR para el guion de entrevistas no tiene rastro de haber ocurrido.</div>
+        <div class="ch-who">→ Recomendación: incluir a PD explícitamente la próxima vez que CFO/CTO hablen de <code>LVL-024</code>, y confirmar la sesión GS+LR esta semana — el deadline (19/08) está más cerca de lo que parece</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot v"></div>
+      <div>
+        <div class="ch-title">3. El CFO se volvió el hub de facto — no es malo, pero es un riesgo de punto único</div>
+        <div class="ch-desc">En 48 horas inició conversaciones con EA, CEO, CMO, CTO y GS: 5 de 6 canales que tocó esta semana los abrió él, no el receptor (dos cambios de precio, el plan de self-funding, la ratificación de arquitectura B). Está cumpliendo su rol, pero si el precio cambia una tercera vez, quien decide qué hacer con esa información sigue siendo una persona, no un proceso.</div>
+        <div class="ch-who">→ Recomendación: que los cambios de precio pasen también por mi canal radial con cada agente, no solo por los laterales del CFO — así queda una sola fuente de verdad del "último precio vigente"</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot g"></div>
+      <div>
+        <div class="ch-title">4. Un gap mío, ya corregido: no emití el broadcast que el CEO me pidió</div>
+        <div class="ch-desc">El 07/08 el CEO me pidió avisar a CMO, GS y CTO por sus canales radiales que Alim había resuelto A-1 a A-4. No lo hice — se enteraron por el CFO, por canales laterales, antes que por mí. Lo corregí hoy mismo (ver <code>EA - CMO.md</code>, <code>EA - Growth &amp; Sales.md</code>, <code>EA - CTO.md</code> MSG-004). Lo señalo porque es exactamente el tipo de bottleneck que este diagrama existe para detectar, incluido el mío.</div>
+        <div class="ch-who">→ Ya corregido 08/08 · voy a correr este barrido cada vez que actualice el Dashboard, no solo cuando se pida un diagrama</div>
+      </div>
+    </div>
+
+    <div class="ch-item">
+      <div class="dot a"></div>
+      <div>
+        <div class="ch-title">5. "Beneficios de Levelop" ya no es scope creep sin dueño: es una decisión de capital que Alim ya tomó</div>
+        <div class="ch-desc">Mientras yo cerraba la verificación, el CFO escaló esto a CEO (MSG-007, BLOQUEANTE) y a mí (MSG-006): Alim decidió que Levelop compre inventario de canje de marcas por adelantado, y el CFO lo marca como la misma Arquitectura A que rechazamos para el pool de Oro, ahora aplicada a marcas. No es un tema para "adoptar con dueño" — ya tiene dueños (CEO + CFO) y ya necesita sign-off de capital, no una Mesa Redonda de posicionamiento.</div>
+        <div class="ch-who">→ Recomendación: pedir al CEO y al CFO una fecha concreta de sign-off, no dejarla flotando como "evaluando"</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- LO QUE NO HACEMOS + LOOP -->
+<div class="g2 mb">
+  <div class="card">
+    <div class="ch">
+      <span class="ct">Lo que NO vamos a hacer — y por qué</span>
+      <span class="pill pg">8 cosas muertas</span>
+    </div>
+    <div class="ch-item"><div class="dot g"></div><div><div class="ch-title">❌ Integración con Cashea</div><div class="ch-desc">Sin sandbox ni contrato, es código contra una API imaginaria.</div></div></div>
+    <div class="ch-item"><div class="dot g"></div><div><div class="ch-title">❌ Pool prefondeado en cuenta de Levelop</div><div class="ch-desc">Muerto, no se revisa este año. Ser custodio de dinero de terceros en un corredor sancionado nos mata antes que cualquier competidor — y ganar cuando el empleado no cobra su Oro es indefendible ante el primer periodista.</div></div></div>
+    <div class="ch-item"><div class="dot g"></div><div><div class="ch-title">❌ Screening OFAC propio</div><div class="ch-desc">La lista SDN indexa nombres, alias y fechas de nacimiento — <b>no cédulas venezolanas</b> — con falsos positivos masivos en apellidos hispanos. Y nuestra exposición real es el RIF del cliente corporativo, no el empleado. Íbamos a construir el control equivocado, caro y dañino.</div></div></div>
+    <div class="ch-item"><div class="dot g"></div><div><div class="ch-title">❌ Offline-first, CRDTs de texto, OT</div><div class="ch-desc">No caben en 18h/semana. Pero el modelo de eventos nace append-only e idempotente desde el día uno, para que el offline sea después una decisión de UI y no una reescritura.</div></div></div>
+    <div class="ch-item"><div class="dot g"></div><div><div class="ch-title">❌ Daycohost y todo claim de infraestructura</div><div class="ch-desc">No tenemos infraestructura. Ese es el caso de <b>Fina</b>, no el nuestro.</div></div></div>
+    <div class="ch-item"><div class="dot g"></div><div><div class="ch-title">❌ Una segunda web/deck para Chile · ❌ Ratificar $8/usuario · ❌ Contratar</div><div class="ch-desc">Un solo posicionamiento. Un solo precio, y no ese. Y no hay caja ni nada que delegar todavía.</div></div></div>
+    <div class="ch-item"><div class="dot a"></div><div><div class="ch-title">⚠️ Lo que no cabe en el trimestre, dicho explícitamente</div><div class="ch-desc">Offline, Cashea, billing automatizado, multi-tenant robusto, app móvil e IA. <b>El cobro será manual y feo durante todo el trimestre. Está bien</b> — y se dice ahora para que nadie lo descubra en octubre.</div><div class="ch-who">→ CEO, resolución de la mesa 06/08</div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="ch">
+      <span class="ct">Loop de mejora continua</span>
+      <span class="pill pv">Retro quincenal · próxima 20 Ago</span>
+    </div>
+    <div class="ch-item"><div class="dot v"></div><div><div class="ch-title">Cómo funciona</div><div class="ch-desc">Cada agente escribe <b>Aprendizajes</b> (bloque 5) y <b>Mejoras propuestas</b> (bloque 6) en su propio LOG al cerrar cada sesión. La EA los cosecha cada quincena y produce una RETRO que puede cambiar un BRIEF, cambiar el PROTOCOLO, o crear una tarea o un agente nuevo. Todos leen la RETRO antes de su siguiente sesión.</div></div></div>
+    <div class="ch-item"><div class="dot v"></div><div><div class="ch-title">Tres preguntas obligatorias en cada Retro</div><div class="ch-desc">1. ¿Qué decisión tomamos con información que resultó falsa?<br>2. ¿Qué mensaje entre agentes tardó más de 48h en ser respondido, y por qué?<br>3. ¿Qué agente está haciendo trabajo que otro ya hizo?</div></div></div>
+    <div class="ch-item"><div class="dot b"></div><div><div class="ch-title">Ya en cola para la Retro del 20 Ago</div><div class="ch-desc"><b>CEO:</b> toda mesa empieza preguntando "¿quién falta en esta sala?" — el hallazgo más grave del 06/08 lo trajo el agente no invitado.<br><b>PD:</b> un agente ausente debe poder objetar un encargo antes de que entre al Dashboard con fecha.<br><b>CMO:</b> registro de claims vivos como artefacto propio.<br><b>GS:</b> archivo de "señales de campo" en crudo, sin filtrar.<br><b>CEO:</b> registro de contradicciones abiertas como artefacto vivo.<br><b>LR:</b> mecanismo para retirar de circulación un documento que resultó falso.</div><div class="ch-who">→ Cuatro agentes distintos pidieron un artefacto vivo el mismo día. Eso es una señal.</div></div></div>
+  </div>
+</div>
+
+<div class="footer" id="footer-ts"></div>
+
+<script>
+  function updateHeader(){
+    const now = new Date();
+    document.getElementById('live-dt').textContent = now.toLocaleDateString('es-VE', {weekday:'short',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  }
+  updateHeader();
+  setInterval(updateHeader, 30000);
+
+  document.getElementById('footer-ts').textContent =
+    'Executive Assistant · LEVELOP OPS Dashboard v1.0 · ' + new Date().toLocaleDateString('es-VE', {day:'numeric',month:'short',year:'numeric'});
+
+  const TASK_KEY = 'levelop_tasks';
+
+  // Estado base: el trimestre arranca en cero. Ninguna tarea del board se marca
+  // como completa sin la entrada correspondiente en el LOG del agente dueño
+  // (regla R-06 del protocolo). Los clics locales se guardan en localStorage.
+  const DEFAULT_STATE = {};
+
+  function loadTasks(){
+    try {
+      const saved = JSON.parse(localStorage.getItem(TASK_KEY));
+      if (!saved) return { ...DEFAULT_STATE };
+      return { ...DEFAULT_STATE, ...saved };
+    } catch(e) { return { ...DEFAULT_STATE }; }
+  }
+  function saveTasks(s){ localStorage.setItem(TASK_KEY, JSON.stringify(s)); }
+
+  function updateQ(q){
+    const boxes = document.querySelectorAll(`[data-id^="${q}-"]`);
+    const total = boxes.length;
+    const done = [...boxes].filter(b=>b.checked).length;
+    const el = document.getElementById(`${q}c`);
+    if(el) el.textContent = `${done}/${total}`;
+  }
+  function updateSprintPct(){
+    const all = document.querySelectorAll('.tc');
+    const done = [...all].filter(b=>b.checked).length;
+    const pct = all.length ? Math.round((done/all.length)*100) : 0;
+    document.getElementById('sprint-pct').textContent = pct + '% completado';
+    const hb = document.querySelector('.health-bar');
+    hb.className = (pct >= 70) ? 'health-bar green' : 'health-bar amber';
+  }
+
+  const taskState = loadTasks();
+  document.querySelectorAll('.tc').forEach(cb=>{
+    const id = cb.dataset.id;
+    if(taskState[id]){ cb.checked = true; cb.nextElementSibling.classList.add('done'); }
+    cb.addEventListener('change', ()=>{
+      taskState[id] = cb.checked;
+      saveTasks(taskState);
+      const span = cb.nextElementSibling;
+      if(cb.checked) span.classList.add('done'); else span.classList.remove('done');
+      updateQ(id.split('-')[0]);
+      updateSprintPct();
+    });
+  });
+  ['q1','q2','q3','q4','q5','q6'].forEach(updateQ);
+  updateSprintPct();
+</script>
+
+</body>
+</html>

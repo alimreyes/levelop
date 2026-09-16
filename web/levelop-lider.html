@@ -1,0 +1,917 @@
+<title>Levelop · Líder de Área</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quantico:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+
+<script>
+try{ document.documentElement.setAttribute("data-theme", localStorage.getItem("lvl-tema") || "dark"); }
+catch(e){ document.documentElement.setAttribute("data-theme","dark"); }
+</script>
+
+<style>
+/* ---------- TOKENS ---------- */
+:root{
+  --ground:#EAEAE4; --surface:#FFFFFF; --surface-2:#F1F1EB; --surface-3:#DFDFD7;
+  --line:#D0D0C8; --line-strong:#ABABA1;
+  --ink:#0B0B0C; --ink-2:#4A4A47; --ink-3:#7A7A75;
+  --grid:rgba(11,11,12,.055);
+  --gold:#4E6606; --gold-ink:#3C5004; --gold-bg:#E7F7B7; --gold-line:#C4E273; --gold-solid:#C3F03A;
+  --xp:#0B0B0C;   --xp-bg:#E2E2DB;   --xp-line:#BEBEB4;  --xp-solid:#0B0B0C;
+  --ok:#0A6B7A;   --ok-bg:#D7EFF4;   --ok-line:#9BD2DE;
+  --risk:#C0361F; --risk-bg:#FADFD9; --risk-line:#EEAE9F;
+  --sync:#4A38C4; --sync-bg:#E2DEFA; --sync-line:#B4ABF0;
+  /* series — validadas con el validador de paleta (claro, superficie #FFFFFF) */
+  --s1:#6E8F06; --s2:#0090A8; --s3:#5B4ED6; --s4:#C24430; --s5:#1F6FB5; --s6:#B03E7C;
+  --chart-grid:#D0D0C8;
+  --shadow-sm:none;
+  --shadow:4px 4px 0 rgba(11,11,12,.10);
+  --shadow-lg:8px 8px 0 rgba(11,11,12,.18);
+  --cut:0px;
+  --display:'Silkscreen','Courier New',monospace;
+  --body:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --mono:'Space Mono','SFMono-Regular',Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#08080A; --surface:#121215; --surface-2:#1A1A1E; --surface-3:#26262C;
+    --line:#2A2A31; --line-strong:#43434E;
+    --ink:#EDEDE7; --ink-2:#9B9B95; --ink-3:#6A6A66;
+    --grid:rgba(237,237,231,.045);
+    --gold:#C3F03A; --gold-ink:#D6F871; --gold-bg:#2A3607; --gold-line:#4A5F0D; --gold-solid:#C3F03A;
+    --xp:#EDEDE7;   --xp-bg:#26262C;   --xp-line:#43434E;  --xp-solid:#EDEDE7;
+    --ok:#4FD8E8;   --ok-bg:#0A2C33;   --ok-line:#18505C;
+    --risk:#FF6A52; --risk-bg:#331310; --risk-line:#57241D;
+    --sync:#A79AFF; --sync-bg:#1D1846; --sync-line:#332B70;
+    --s1:#7FA30E; --s2:#1E9AAB; --s3:#8078EE; --s4:#E05C48; --s5:#3390D6; --s6:#CB5694;
+    --chart-grid:#2A2A31;
+    --shadow-sm:none;
+    --shadow:4px 4px 0 rgba(0,0,0,.5);
+    --shadow-lg:8px 8px 0 rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#08080A; --surface:#121215; --surface-2:#1A1A1E; --surface-3:#26262C;
+  --line:#2A2A31; --line-strong:#43434E;
+  --ink:#EDEDE7; --ink-2:#9B9B95; --ink-3:#6A6A66;
+  --grid:rgba(237,237,231,.045);
+  --gold:#C3F03A; --gold-ink:#D6F871; --gold-bg:#2A3607; --gold-line:#4A5F0D; --gold-solid:#C3F03A;
+  --xp:#EDEDE7;   --xp-bg:#26262C;   --xp-line:#43434E;  --xp-solid:#EDEDE7;
+  --ok:#4FD8E8;   --ok-bg:#0A2C33;   --ok-line:#18505C;
+  --risk:#FF6A52; --risk-bg:#331310; --risk-line:#57241D;
+  --sync:#A79AFF; --sync-bg:#1D1846; --sync-line:#332B70;
+  --s1:#7FA30E; --s2:#1E9AAB; --s3:#8078EE; --s4:#E05C48; --s5:#3390D6; --s6:#CB5694;
+  --chart-grid:#2A2A31;
+  --shadow-sm:none;
+  --shadow:4px 4px 0 rgba(0,0,0,.5);
+  --shadow-lg:8px 8px 0 rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+body{margin:0; background:var(--ground); color:var(--ink); font-family:var(--body);
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased}
+button{font:inherit; color:inherit; border:0; background:none; cursor:pointer}
+:focus-visible{outline:2px solid var(--xp-solid); outline-offset:2px}
+p{margin:0}
+svg{display:block}
+h1,h2,h3,h4{margin:0; font-family:var(--display); text-wrap:balance}
+h1{font-weight:700; text-transform:uppercase; line-height:1; font-size:40px; letter-spacing:0}
+h2{font-weight:700; text-transform:uppercase; letter-spacing:0; line-height:1.05; font-size:19px}
+h3{font-weight:700; line-height:1.12; font-size:16px}
+.num{font-family:var(--mono); font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+
+.topbar{position:sticky; top:0; z-index:40; background:var(--surface); box-shadow:inset 0 -1px 0 var(--line)}
+.topbar-in{max-width:1320px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.brand{display:flex; align-items:center; gap:8px; font-family:var(--display); font-weight:700;
+  font-size:22px; text-transform:uppercase; line-height:1}
+.brand em{font-style:normal; color:var(--gold)}
+.brand-mark{width:25px; height:25px; display:grid; place-items:center; font-size:13px; font-weight:700;
+  font-family:var(--display); color:var(--ground); background:var(--gold-solid);
+  clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.tag-int{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+  padding:4px 9px; color:var(--risk); background:var(--risk-bg); box-shadow:inset 0 0 0 1px var(--risk-line);
+  clip-path:polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))}
+.spacer{flex:1}
+.wrap{max-width:1320px; margin:0 auto; padding:22px 20px 60px}
+
+.eyebrow{display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:10px;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--ink-3)}
+.eyebrow::after{content:""; width:24px; height:1px; background:var(--line-strong)}
+.sub{color:var(--ink-2); font-size:13px}
+.sec-h{display:flex; align-items:center; gap:12px; margin:28px 0 12px}
+.sec-h h2{flex:none}
+.sec-h .sub{order:3; text-align:right; flex:none; max-width:44%}
+.sec-h::before{content:""; order:2; flex:1; height:1px; background:var(--line); min-width:18px}
+
+.card{background:var(--surface); box-shadow:var(--shadow-sm), inset 0 0 0 1px var(--line); padding:16px 17px;}
+.row{display:flex; align-items:center}
+.g8{gap:8px} .g12{gap:12px}
+.wrapf{flex-wrap:wrap}
+
+.seg{display:inline-flex; background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); padding:3px; gap:2px}
+.seg button{padding:6px 13px; font-family:var(--mono); font-size:11.5px; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--ink-3); white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--ink); color:var(--surface)}
+.seg-sm{flex:none} .seg-sm button{padding:5px 10px; font-size:10.5px}
+.iconbtn{width:33px; height:33px; display:grid; place-items:center; color:var(--ink-3);
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line);
+  clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))}
+.iconbtn svg{width:18px; height:18px}
+.chip{display:inline-flex; align-items:center; gap:5px; padding:3px 9px; font-family:var(--mono); font-size:11px;
+  white-space:nowrap; background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); color:var(--ink-2)}
+.chip.ok{background:var(--ok-bg); box-shadow:inset 0 0 0 1px var(--ok-line); color:var(--ok)}
+.chip.risk{background:var(--risk-bg); box-shadow:inset 0 0 0 1px var(--risk-line); color:var(--risk)}
+.chip.gold{background:var(--gold-bg); box-shadow:inset 0 0 0 1px var(--gold-line); color:var(--gold-ink)}
+.chip.sync{background:var(--sync-bg); box-shadow:inset 0 0 0 1px var(--sync-line); color:var(--sync)}
+.note{padding:11px 13px; font-size:12.5px; line-height:1.5; background:var(--surface-2);
+  box-shadow:inset 0 0 0 1px var(--line); color:var(--ink-2)}
+.note b{color:var(--ink)}
+.note.gold{background:var(--gold-bg); box-shadow:inset 0 0 0 1px var(--gold-line); color:var(--gold-ink)}
+.note.gold b{color:var(--gold-ink)}
+
+/* ---------- TILES ---------- */
+.tiles{display:grid; gap:2px; background:var(--line); border:2px solid var(--line);
+  grid-template-columns:repeat(2,1fr)}
+.tile{background:var(--surface); padding:14px 15px; min-width:0}
+@media(min-width:760px){
+  .tiles{grid-template-columns:repeat(4,1fr)}
+  .tile .v{font-size:29px}
+}
+@media(min-width:1120px){.tile .v{font-size:40px}}
+.tile .l{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3)}
+.tile .v{font-family:var(--display); font-weight:700; font-size:40px; line-height:.92; margin-top:4px;
+  font-variant-numeric:tabular-nums}
+.tile .d{font-family:var(--mono); font-size:11px; margin-top:5px; color:var(--ink-3)}
+.tile .d.up{color:var(--ok)} .tile .d.down{color:var(--risk)}
+
+/* ---------- GRÁFICOS ---------- */
+.charts{display:grid; gap:12px; grid-template-columns:1fr}
+@media(min-width:1000px){.charts{grid-template-columns:1fr 1fr}}
+.chart-h{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px}
+.chart-h h3{text-transform:uppercase}
+.chart-h .sub{margin-top:3px}
+
+.legend{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:13px}
+.legend span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--ink-2)}
+.legend i{width:11px; height:11px; border-radius:0; display:block}
+
+/* barras horizontales */
+.bars{display:flex; flex-direction:column; gap:9px}
+.bar-row{display:grid; grid-template-columns:104px 1fr auto; gap:11px; align-items:center}
+.bar-row .bl{font-size:12.5px; color:var(--ink-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.bar-track{display:block; height:16px; background:var(--surface-2); position:relative}
+.bar-fill{display:block; height:100%; border-radius:0 4px 4px 0; transition:width .5s cubic-bezier(.2,.8,.25,1)}
+.bar-row .bv{font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums; color:var(--ink);
+  min-width:52px; text-align:right}
+.bar-row .bx{font-family:var(--mono); font-size:10.5px; color:var(--ink-3)}
+
+/* tabla */
+.tbl-wrap{overflow-x:auto; background:var(--surface); box-shadow:inset 0 0 0 1px var(--line);}
+table{border-collapse:collapse; width:100%; min-width:520px}
+th{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);
+  text-align:left; padding:12px 13px; white-space:nowrap; user-select:none}
+td{padding:11px 13px; font-size:13px; border-top:1px solid var(--line); white-space:nowrap}
+td.n{font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right}
+th.n{text-align:right}
+tbody tr:hover{background:var(--surface-2)}
+
+/* tooltip */
+#tip{position:fixed; z-index:90; pointer-events:none; opacity:0; transition:opacity .12s;
+  background:var(--surface); box-shadow:0 18px 40px -18px rgba(0,0,0,.8), inset 0 0 0 1px var(--line-strong);
+  padding:9px 11px; font-size:12.5px; max-width:240px}
+#tip .tk{font-family:var(--display); font-weight:700; font-size:13px; text-transform:uppercase; line-height:1.15}
+#tip .tr{display:flex; justify-content:space-between; gap:14px; font-family:var(--mono); font-size:11.5px;
+  color:var(--ink-2); margin-top:4px}
+#tip .tr b{color:var(--ink); font-weight:500}
+#tip .sw{display:inline-block; width:9px; height:9px; border-radius:0; margin-right:6px}
+
+.hide{display:none !important}
+
+@media (max-width:700px){
+  .sec-h{flex-wrap:wrap}
+  .sec-h .sub{flex:1 0 100%; max-width:100%; text-align:left; order:3}
+}
+
+/* ---------- capa arcade ---------- */
+body{background-color:var(--ground);
+  background-image:linear-gradient(var(--grid) 1px, transparent 1px),
+                   linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:32px 32px}
+h1,h2,h3,h4{text-transform:uppercase; letter-spacing:.01em}
+.card,.panel,.graph-box,.tbl-wrap,.w,.altboard{box-shadow:none !important; border:1px solid var(--line)}
+.tiles{box-shadow:none !important}
+.tile{border:0}
+.chip,.btn,.seg,.iconbtn,.note,.fchip{border-radius:0}
+.seg button[aria-pressed="true"]{background:var(--gold-solid); color:#0B0B0C; font-weight:600}
+.eyebrow::after{height:4px; width:22px; background:none;
+  background-image:linear-gradient(90deg,var(--line-strong) 0 4px,transparent 4px 8px); background-size:8px 4px}
+.sec-h::before{height:4px; background:none;
+  background-image:linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px); background-size:8px 4px}
+.note{border-left-width:4px}
+.tag-int{border-radius:0}
+.bar-fill{border-radius:0 !important; transition:width .3s steps(8)}
+.legend i{border-radius:0}
+#tip{border-radius:0}
+
+/* ================= BACKOFFICE DE LÍDER DE ÁREA ================= */
+.lead{color:var(--ink-2); font-size:15px; max-width:70ch; margin-top:9px}
+.grid2{display:grid; gap:12px; grid-template-columns:1fr}
+@media(min-width:1000px){.grid2{grid-template-columns:1fr 1fr}}
+
+/* --- tarjetas de patrón --- */
+.pat{background:var(--surface); box-shadow:inset 0 0 0 1px var(--line); padding:15px 16px}
+.pat + .pat{margin-top:10px}
+.pat-h{display:flex; align-items:flex-start; gap:12px; flex-wrap:wrap}
+.pat-who{display:flex; align-items:center; gap:10px; flex:1; min-width:0}
+.pat-who .n{font-family:var(--display); font-weight:700; font-size:15px; text-transform:uppercase; line-height:1.1}
+.pat-who .r{font-family:var(--mono); font-size:10.5px; color:var(--ink-3)}
+.pat-tag{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
+  padding:4px 9px; white-space:nowrap}
+.pat-tag.t1{color:var(--gold-ink); background:var(--gold-bg); box-shadow:inset 0 0 0 1px var(--gold-line)}
+.pat-tag.t2{color:var(--sync); background:var(--sync-bg); box-shadow:inset 0 0 0 1px var(--sync-line)}
+.pat-tag.t3{color:var(--risk); background:var(--risk-bg); box-shadow:inset 0 0 0 1px var(--risk-line)}
+.pat-tag.t0{color:var(--ink-3); background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line)}
+.pat-sig{display:flex; gap:16px; flex-wrap:wrap; margin-top:12px}
+.pat-sig div{min-width:78px}
+.pat-sig .sl{font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.pat-sig .sv{font-family:var(--mono); font-size:14px; font-variant-numeric:tabular-nums; margin-top:2px}
+.pat-body{margin-top:13px; font-size:13.5px; line-height:1.5; color:var(--ink-2)}
+.pat-body b{color:var(--ink)}
+.pat-do{margin-top:12px; padding:12px 13px; background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line);
+  font-size:13px; line-height:1.5}
+.pat-do .dt{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--gold); margin-bottom:5px}
+.pat-f{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
+
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 14px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); color:var(--ink); cursor:pointer}
+.btn:hover{box-shadow:inset 0 0 0 1px var(--line-strong)}
+.btn.gold{background:var(--gold-solid); color:#0B0B0C; box-shadow:none; font-weight:700}
+.btn.ghost{background:none}
+.btn.wide{width:100%}
+.btn svg{width:14px; height:14px}
+.btn[disabled]{opacity:.5; cursor:default}
+
+/* --- vista previa / modales --- */
+.veil{position:fixed; inset:0; z-index:100; background:rgba(0,0,0,.62); display:grid; place-items:center;
+  padding:18px; overflow:auto}
+.sheet{background:var(--surface); box-shadow:0 30px 70px -30px rgba(0,0,0,.9), inset 0 0 0 2px var(--line-strong);
+  width:100%; max-width:520px; max-height:92vh; overflow:auto}
+.sheet-h{display:flex; align-items:flex-start; gap:12px; padding:16px 17px 13px;
+  box-shadow:inset 0 -1px 0 var(--line)}
+.sheet-b{padding:16px 17px; display:flex; flex-direction:column; gap:12px}
+.sheet-f{padding:13px 17px; display:flex; gap:9px; box-shadow:inset 0 1px 0 var(--line)}
+.closebtn{width:30px; height:30px; display:grid; place-items:center; flex:none; color:var(--ink-3);
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line)}
+.closebtn svg{width:15px; height:15px}
+.mirror{background:var(--ground); box-shadow:inset 0 0 0 2px var(--line-strong); padding:15px}
+.mirror .mh{font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-3); margin-bottom:9px}
+
+/* =========================================================
+   CIFRAS SIEMPRE EN REGULAR 400
+   ========================================================= */
+.pct{font-family:'Quantico','Courier New',monospace; font-weight:400}
+.num, .hud .num, .score, .seal b, .stat .v, .stat b, .tile .v, .price b,
+.rank-pos, .rank-v, .bv, .bar-row .bv, .w-h .c, .paso-n, .chip.num,
+td.n, #tip .tr b, #tip .tr span, .pat-sig .sv, .ranklist b, .lote .bv,
+.meter-v, .gauge-v{
+  font-weight:400 !important;
+}
+
+/* =========================================================
+   AÑADIDO EN LA CONEXIÓN AL BACKEND (15/09/26)
+   -----------------------------------------------------------
+   El CSS de arriba es del PD y no se toca. Esto es solo lo que
+   hace falta para login, avisos y el marcado de "sin conectar" —
+   mismo criterio que levelop-mvp.html y levelop-backoffice.html:
+   lo que el backend no soporta hoy queda VISIBLE y MARCADO,
+   nunca oculto ni simulado con datos inventados. Detalle: LVL-013.
+   ========================================================= */
+.nc{position:relative; border-style:dashed; border-color:var(--line-strong)}
+.nc h2, .nc h3{color:var(--ink-3)}
+.nc-chip{background:var(--surface-3); border-color:var(--line-strong); color:var(--ink-3)}
+.nc-body{display:flex; flex-direction:column; gap:8px; align-items:flex-start}
+.nc-body p{font-size:12.5px; line-height:1.5; color:var(--ink-3)}
+
+.auth{min-height:100vh; display:grid; place-items:center; padding:24px 16px}
+.auth-card{width:100%; max-width:420px; background:var(--surface); border:2px solid var(--ink);
+  box-shadow:var(--shadow-lg); padding:26px 24px}
+.auth-card .brand{margin-bottom:20px}
+.auth-card h1{font-size:26px; margin-bottom:6px}
+.auth-f{display:flex; flex-direction:column; gap:14px; margin-top:20px}
+.auth-err{padding:11px 12px; font-size:12.5px; line-height:1.5; background:var(--risk-bg);
+  border:1px solid var(--risk-line); border-left:4px solid var(--risk); color:var(--risk)}
+.auth-pick{display:flex; flex-direction:column; gap:8px}
+.auth-pick button{display:flex; align-items:center; gap:11px; padding:13px 14px; text-align:left;
+  background:var(--surface-2); border:1px solid var(--line)}
+.auth-pick button:hover{border-color:var(--gold-solid); background:var(--surface-3)}
+.cargando{padding:60px 18px; text-align:center; color:var(--ink-3); font-family:var(--mono);
+  font-size:10px; text-transform:uppercase; letter-spacing:.02em}
+
+.toasts{position:fixed; left:12px; right:12px; bottom:20px; z-index:70; display:flex; flex-direction:column;
+  gap:8px; align-items:center; pointer-events:none}
+@media (min-width:960px){.toasts{left:auto; right:20px; align-items:flex-end}}
+.toast{pointer-events:auto; max-width:400px; width:100%; padding:11px 13px; background:var(--surface);
+  border:2px solid var(--ink); box-shadow:var(--shadow); display:flex; gap:10px; align-items:flex-start}
+.toast .ti{flex:none; width:17px; height:17px; margin-top:2px; color:var(--ink-2)}
+.toast .tt{font-family:var(--display); font-size:15px; font-weight:700; text-transform:uppercase; line-height:1.15}
+.toast .td{font-size:12.5px; color:var(--ink-2); margin-top:2px; line-height:1.5}
+.toast.ok{border-color:var(--ok)} .toast.ok .td, .toast.ok .ti{color:var(--ok)}
+.toast.risk{border-color:var(--risk)} .toast.risk .td, .toast.risk .ti{color:var(--risk)}
+
+.field{display:flex; flex-direction:column; gap:6px}
+.field label{font-family:var(--mono); font-size:8.5px; text-transform:uppercase; letter-spacing:.01em; color:var(--ink-3)}
+.field input, .field select, .field textarea{padding:10px 12px; border:1px solid var(--line); background:var(--surface-2);
+  font-size:14px; font-family:var(--body)}
+.field textarea{line-height:1.5; resize:vertical}
+.field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--gold-solid); background:var(--surface)}
+.field select{appearance:none}
+</style>
+
+<div class="auth" id="auth"></div>
+
+<div class="hide" id="app">
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><span class="brand-mark">L</span>Levelop<em>!</em></div>
+    <span class="tag-int" id="tagRol">Panel · líder de área</span>
+    <div class="spacer"></div>
+    <div class="seg" id="areasel"></div>
+    <button class="iconbtn" id="themebtn" title="Cambiar tema" aria-label="Cambiar tema"></button>
+    <button class="iconbtn" id="logoutbtn" title="Salir" aria-label="Salir"></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div style="margin-bottom:20px">
+    <span class="eyebrow" id="empresaNombre">Tu área</span>
+    <h1 style="margin-top:6px" id="h1">Área</h1>
+    <p class="lead">Esto no es para vigilar a nadie. Es para que sepas <b>dónde hace falta una mano</b>,
+      <b>cómo anda la colaboración</b> y <b>quién no va a estar</b>. Datos reales del backend — lo que
+      todavía no da queda marcado abajo, nunca inventado.</p>
+  </div>
+
+  <div class="tiles" id="tiles"><div class="cargando">Cargando…</div></div>
+
+  <div class="sec-h"><h2>Quién necesita una mano</h2><span class="sub">Patrones sostenidos, no semanas malas</span></div>
+  <div class="note gold" style="margin-top:2px; margin-bottom:12px" id="notaNombres"></div>
+  <div id="patrones"></div>
+
+  <div class="sec-h"><h2>Cómo anda la colaboración</h2><span class="sub">Cuántas personas distintas comparten misión con cada quien</span></div>
+  <div class="card"><div id="colab"></div></div>
+  <div class="note" style="margin-top:12px" id="colabNota"></div>
+
+  <div class="sec-h"><h2>Quién no va a estar</h2><span class="sub">Sale de los beneficios de tiempo ya canjeados</span></div>
+  <div class="tbl-wrap"><table id="tblAusencias"></table></div>
+
+  <div class="sec-h"><h2>Lo que pide tu área</h2><span class="sub">Y en qué se diferencia del resto de la empresa</span></div>
+  <div id="demanda"></div>
+
+  <div id="ncSecciones"></div>
+
+  <div class="note gold" style="margin-top:20px">
+    <b>Lo que este panel NO muestra, a propósito:</b> el contenido de los hilos de misión, quién apagó la
+    capa de juego, ni qué beneficio pidió cada quien. Tampoco una tabla de tu gente ordenable de mejor a
+    peor. Un líder necesita ver el trabajo, no vigilar a la gente. Si un dato solo sirve para señalar a
+    alguien, no entra aquí — y no es que falte conectarlo: el rol de base de datos de este panel no tiene
+    permiso para leerlo (R-07 lo hace cumplir Postgres, no el código).
+  </div>
+</main>
+</div>
+
+<div id="tip"></div>
+<div id="modal"></div>
+<div class="toasts" id="toasts"></div>
+
+<script src="levelop-config.js"></script>
+<script src="levelop-api.js"></script>
+<script>
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const fmt = n => Number(n||0).toLocaleString("es-VE");
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* =========================================================
+   LEVELOP! — BackOffice de líder de área, conectado al backend real.
+   =========================================================
+   QUÉ CAMBIÓ Y POR QUÉ (15/09/26)
+   -------------------------------------------------------
+   Este archivo era un prototipo con un array `gente` de ~18 personas
+   inventadas (nombres, ritmo, puntualidad, aprobación, ayudas), un
+   grafo de misiones fabricado y una función PATRONES que detectaba
+   "quién necesita una mano" EN EL CLIENTE, comparando esos números
+   falsos. El backend real hace la detección en el SERVIDOR y solo
+   expone las señales ya calculadas (`HelpSignal`) — el frontend
+   nunca vuelve a calcular un patrón, solo lo muestra.
+
+   Dos brechas reales encontradas al conectar, no inventadas para
+   justificar nada — quedan explícitas en el panel, no escondidas:
+
+   1) NOMBRES: el rol de Postgres `levelop_lider` no tiene GRANT
+      sobre la tabla `users` (ver identity.entities.ts, comentario
+      de MembershipPrefs y las migraciones de GRANT). Ningún
+      endpoint de líder puede resolver un membershipId a un nombre
+      de persona. El Maestro §6.1 salvaguarda 4 da a entender que el
+      líder ve nombres ("cada persona ve exactamente lo mismo que su
+      líder") — tal como está construido el rol de base de datos hoy,
+      eso no es posible sin ampliar el GRANT. Reportado a Alim, no
+      decidido por mí: mientras tanto este panel muestra un id corto
+      de membresía en vez de inventar o adivinar un nombre.
+
+   2) HISTORIAL DE INTERACCIONES: `help_interactions` y
+      `help_signal_history` existen en la base (ver el comentario
+      largo de la enmienda del 01/09 en help.entities.ts) y hay un
+      POST /lider/ayuda/interaccion para crear una interacción, pero
+      NO hay ningún GET que la vuelva a leer. El problema que la
+      enmienda dice resolver — "¿ya hablé con esta persona?" — sigue
+      sin poder contestarse desde la UI hasta que exista ese
+      endpoint. Marcado como sin conectar más abajo.
+
+   Regla de Alim, igual que en los otros tres paneles: "Conectar solo
+   lo que el backend ya soporta hoy. Todo lo demás queda visible pero
+   marcado como no conectado — nunca oculto sin explicación ni
+   simulado en silencio como si fuera real." Detalle: LVL-013 §2.
+   ========================================================= */
+
+const S = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const IC = {
+  enchufe: S('<path d="M8.6 3.6v5M15.4 3.6v5"/><path d="M5.6 8.6h12.8v3.2a6.4 6.4 0 0 1-6.4 6.4 6.4 6.4 0 0 1-6.4-6.4V8.6Z"/><path d="M12 18.2v2.2"/>'),
+  x: S('<path d="M6.4 6.4 17.6 17.6M17.6 6.4 6.4 17.6"/>'),
+  tema: S('<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor" stroke="none"/>'),
+  salir: S('<path d="M14.6 16.4V19a1.6 1.6 0 0 1-1.6 1.6H5.6A1.6 1.6 0 0 1 4 19V5a1.6 1.6 0 0 1 1.6-1.6H13A1.6 1.6 0 0 1 14.6 5v2.6"/><path d="M8.8 12h11.2m0 0-3.2-3.2M20 12l-3.2 3.2"/>'),
+  check: S('<path d="m5 13 4 4L19 7"/>'),
+  alerta: S('<path d="M12 4.4 21 19.8H3L12 4.4Z"/><path d="M12 10v4.2M12 17.4h.01"/>'),
+  candado: S('<rect x="4.8" y="10.6" width="14.4" height="9.4" rx="1.6"/><path d="M8.4 10.6V7.8a3.6 3.6 0 0 1 7.2 0v2.8"/>'),
+  chat: S('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>')
+};
+
+/* Copy por patrón — SOLO texto genérico por tipo de patrón. El backend
+   no expone ninguna métrica numérica por persona (ritmo, puntualidad,
+   aprobación, etc.): HelpSignal deliberadamente no tiene columnas de
+   score (salvaguarda 2 del Maestro §6.1). Por eso, a diferencia del
+   prototipo original, ninguna tarjeta aquí muestra un número inventado
+   sobre el desempeño de nadie — solo el patrón detectado y hace cuánto. */
+const COPY_PATRON = {
+  FECHAS_MAL_PUESTAS: {tag:"Los tiempos no cuadran", nivel:"t1",
+    lee:"Las fechas que se le están poniendo a esta misión no le están calzando de forma sostenida.",
+    haz:"Revisa con la persona sus últimas misiones cerradas: cuánto pensó que le iba a tomar contra cuánto le tomó. No arranques la conversación por el retraso — arráncala por la fecha."},
+  CARGA_DESBALANCEADA: {tag:"Cargando de más", nivel:"t3",
+    lee:"Tiene más trabajo abierto que el resto de su área, de forma sostenida.",
+    haz:"Esto se arregla de tu lado, no del suyo: mira qué tiene abierto y muévele algo a alguien antes de hablar de ritmo."},
+  TRABAJA_SOLO: {tag:"Trabaja sola/o", nivel:"t2",
+    lee:"Lleva semanas sin compartir una misión con nadie más del área.",
+    haz:"A veces está bien y a veces es un aviso. Pregúntale si prefiere seguir así o si le vendría bien colaborar con alguien."},
+  BLOQUEADO_POR_TERCEROS: {tag:"Bloqueado por terceros", nivel:"t2",
+    lee:"El patrón sugiere que algo fuera de su control le está frenando el trabajo de forma sostenida.",
+    haz:"Pregúntale qué depende de otra persona o de otro equipo para avanzar, y ayúdala a destrabarlo."},
+  ARRANQUE_LENTO_TRAS_PAUSA: {tag:"Arranque lento tras una pausa", nivel:"t0",
+    lee:"Viene de una pausa (vacaciones, permiso, cambio de proyecto) y el ritmo todavía no se normaliza.",
+    haz:"Es normal. Dale un poco más de tiempo antes de preocuparte, y pregúntale si necesita ponerse al día con algo puntual."},
+  SISTEMA_NO_SABE: {tag:"El sistema no sabe", nivel:"t3",
+    lee:"Varias señales cayeron a la vez y el sistema se declara incompetente para diagnosticar — a propósito: no inventa una causa.",
+    haz:"No lleves este panel a esa conversación. Ten una charla abierta, sin hipótesis del sistema."}
+};
+const TIPO_INTERACCION = {
+  CONVERSO: "Hablamos", AJUSTO_CARGA: "Le ajusté la carga",
+  AJUSTO_FECHAS: "Le ajusté las fechas", SIN_ACCION: "Todavía no hice nada"
+};
+const idCorto = mid => "Miembro ·" + String(mid||"").slice(0,8);
+// 15/09/26 — el backend ahora manda "nombreMembership" (join a users, GRANT
+// nuevo columna (id,nombre) — ver migración NombresParaLiderDeArea). Si por lo
+// que sea no viene (backend viejo sin reiniciar), cae al id corto en vez de
+// romperse — nunca inventa un nombre.
+const nombreDe = row => (row && row.nombreMembership) ? row.nombreMembership : idCorto(row && row.membershipId);
+const semanas = fechaISO => { const d=(Date.now()-new Date(fechaISO).getTime())/86400000; return Math.max(0, Math.floor(d/7)); };
+const fechaCorta = iso => { try{ return new Date(iso).toLocaleDateString("es-VE",{day:"2-digit",month:"short",year:"numeric"}); }catch(e){ return esc(iso); } };
+
+/* ---------------- ESTADO REAL — todo viene del servidor ---------------- */
+const D = { membresia:null, ayuda:[], historial:[], colaboracion:[], ausencias:[], resumenArea:[], demanda:[], cargado:false };
+let areaSel = null;       // null = todas las áreas que lidera
+let signalEnModal = null;
+
+/* ---------------- TOOLTIP ---------------- */
+const tip = $("#tip");
+function mostrarTip(html, e){
+  tip.innerHTML = html; tip.style.opacity = "1";
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if(x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if(y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+}
+const ocultarTip = () => { tip.style.opacity = "0"; };
+document.addEventListener("scroll", ocultarTip, true);
+
+function barrasHorizontales(cont, datos, opts={}){
+  if(!datos.length){ cont.innerHTML = `<p class="sub">Sin datos todavía.</p>`; return; }
+  const max = Math.max(1, ...datos.map(d=>Math.abs(d.v)));
+  cont.innerHTML = `<div class="bars">` + datos.map((d,i)=>`
+    <div class="bar-row" data-i="${i}">
+      <span class="bl" title="${esc(d.n)}">${esc(d.n)}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${(Math.abs(d.v)/max*100).toFixed(1)}%; background:${opts.color?(typeof opts.color==="function"?opts.color(d):opts.color):"var(--s1)"}"></span></span>
+      <span class="bv">${opts.fmtv?opts.fmtv(d):fmt(d.v)}${opts.extra?`<span class="bx"> ${opts.extra(d)}</span>`:""}</span>
+    </div>`).join("") + `</div>`;
+  cont.querySelectorAll(".bar-row").forEach(row=>{
+    const d = datos[+row.dataset.i];
+    row.addEventListener("mousemove", e=>mostrarTip(opts.tip?opts.tip(d):`<div class="tk">${esc(d.n)}</div><div class="tr"><span>Valor</span><b>${fmt(d.v)}</b></div>`, e));
+    row.addEventListener("mouseleave", ocultarTip);
+  });
+}
+
+/* ---------------- AVISOS Y ERRORES ---------------- */
+function toast(tipo, ico, t, d, ms=5200){
+  const el=document.createElement("div");
+  el.className="toast "+tipo;
+  el.innerHTML=`<span class="ti">${IC[ico]||IC.check}</span><div><div class="tt">${esc(t)}</div><div class="td">${esc(d)}</div></div>`;
+  document.getElementById("toasts").appendChild(el);
+  setTimeout(()=>{ el.style.opacity="0"; el.style.transition="opacity .3s"; setTimeout(()=>el.remove(),320); }, ms);
+}
+function avisarError(e, donde){
+  if(e && e.status === 401) return toast("risk","candado","Se cerró tu sesión","Vuelve a entrar.", 6000);
+  if(e && e.status === 403) return toast("risk","candado","No tienes permiso","Tu rol en esta empresa no tiene acceso a esta acción (este panel exige líder de área o admin_tenant, y una membresía sin área a cargo).", 7000);
+  console.error(donde, e);
+  toast("risk","alerta","No se pudo conectar", (e&&e.message)?String(e.message):"Revisa que el backend esté corriendo.", 7000);
+}
+
+/* =========================================================
+   MARCADO DE «NO CONECTADO» — misma regla que los otros paneles
+   ========================================================= */
+function widgetNC(titulo, razon){
+  return `<div class="card nc" style="margin-top:12px">
+    <div class="row g8" style="margin-bottom:10px"><h3>${esc(titulo)}</h3></div>
+    <div class="nc-body"><span class="chip nc-chip">${IC.enchufe} Sin conectar</span><p>${esc(razon)}</p></div>
+  </div>`;
+}
+function pintarSeccionesNC(){
+  $("#ncSecciones").innerHTML = `
+    <div class="sec-h"><h2>Historial de patrones ya cerrados</h2><span class="sub">help_signal_history — la otra mitad de la enmienda del 01/09</span></div>
+    ${widgetNC("Historial de patrones ya cerrados",
+      "Resuelto en parte el 15/09: ya puedes ver «¿ya hablé con esta persona?» (botón «Ver historial» en cada tarjeta de arriba, tabla help_interactions, nuevo GET /lider/ayuda/historial). Lo que sigue sin endpoint es help_signal_history — el registro de CUÁNDO se cerró un patrón y POR QUÉ (mejoró vs. la ventana de 3 semanas rodó), que es la otra mitad de lo que la enmienda del 01/09 prometía. Anotado para LVL-013.")}
+
+    <div class="sec-h" style="margin-top:22px"><h2>Vista previa de lo que ve la persona</h2><span class="sub">Simetría de la salvaguarda 4</span></div>
+    ${widgetNC("Vista previa de lo que ve la persona",
+      "El Maestro exige que la persona vea exactamente el mismo aviso que su líder. Pero ningún endpoint de este backend devuelve el texto literal que renderiza la app del empleado — reconstruirlo aquí sería inventar contenido de otra superficie, exactamente lo que este proyecto evita. Falta el endpoint (o una fuente compartida de copy) antes de poder mostrarlo con honestidad.")}
+
+    <div class="sec-h" style="margin-top:22px"><h2>Desafío entre áreas</h2><span class="sub">LVL-045</span></div>
+    ${widgetNC("Desafío entre áreas",
+      "Cotizado (LVL-045, 4,5 semanas-fundador) pero nunca construido. Necesita estado compartido entre áreas, votación y marcador en tiempo real — no hay backend ni endpoint todavía.")}
+  `;
+}
+
+/* =========================================================
+   LOGIN — mismo patrón que los otros tres paneles (14–15/09/26).
+   ========================================================= */
+const A = $("#auth");
+function pintarLogin(error){
+  const tenantEnURL = new URLSearchParams(location.search).get("tenant");
+  A.innerHTML = `
+    <div class="auth-card">
+      <div class="brand"><span class="brand-mark">L</span>Levelop<em>!</em></div>
+      <h1>Líder de área</h1>
+      <p class="sub">Con una cuenta que tenga rol de líder de área (y un área a su cargo).</p>
+      ${error?`<div class="auth-err" style="margin-top:16px">${esc(error)}</div>`:""}
+      <form class="auth-f" id="loginform">
+        <div class="field"><label>Correo</label>
+          <input id="lemail" type="email" autocomplete="username" required placeholder="tu@empresa.com"></div>
+        <div class="field"><label>Contraseña</label>
+          <input id="lpass" type="password" autocomplete="current-password" required minlength="8"></div>
+        ${tenantEnURL?`<div class="note">Se va a usar el tenant de la dirección: <b class="num">${esc(tenantEnURL.slice(0,8))}…</b></div>`:""}
+        <button class="btn gold wide" id="lbtn" type="submit">Entrar</button>
+      </form>
+    </div>`;
+  $("#loginform").addEventListener("submit", async ev=>{
+    ev.preventDefault();
+    const btn = $("#lbtn");
+    btn.disabled = true; btn.textContent = "Entrando…";
+    try{
+      const r = await LevelopAPI.login($("#lemail").value.trim(), $("#lpass").value);
+      await resolverTenant(r.membresias, tenantEnURL);
+    }catch(err){
+      btn.disabled = false; btn.textContent = "Entrar";
+      pintarLogin(
+        err && err.status === 401 ? "Correo o contraseña incorrectos."
+        : err && err.message ? `No se pudo entrar: ${err.message}`
+        : "No se pudo conectar con el servidor. ¿Está corriendo el backend?"
+      );
+    }
+  });
+}
+async function resolverTenant(membresias, tenantEnURL){
+  if(Array.isArray(membresias)){
+    if(membresias.length === 0){ LevelopAPI.logout(); return pintarLogin("Tu cuenta existe pero no está activa en ninguna empresa."); }
+    if(membresias.length === 1) return entrar(membresias[0]);
+    return pintarPicker(membresias);
+  }
+  const id = tenantEnURL || LevelopAPI.sesion.getTenantId();
+  if(id){ LevelopAPI.fijarTenant(id); return entrar({tenantId:id, tenantNombre:"(sin confirmar)", rol:"?"}, true); }
+  A.innerHTML = `<div class="auth-card"><div class="brand"><span class="brand-mark">L</span>Levelop<em>!</em></div>
+    <h1>Falta un dato</h1><div class="auth-err" style="margin-top:14px">Entraste bien, pero este backend todavía no tiene <b>GET /auth/mis-membresias</b>. Reinícialo y vuelve a entrar.</div></div>`;
+}
+function pintarPicker(membresias){
+  A.innerHTML = `<div class="auth-card"><div class="brand"><span class="brand-mark">L</span>Levelop<em>!</em></div>
+    <h1>¿Cuál empresa?</h1><p class="sub">Tu cuenta está activa en más de una.</p>
+    <div class="auth-pick" style="margin-top:18px">
+      ${membresias.map((m,i)=>`<button data-pick="${i}">
+        <span style="flex:1; min-width:0"><span style="display:block; font-size:14px; font-weight:600">${esc(m.tenantNombre)}</span>
+        <span style="font-size:12px; color:var(--ink-3)">${esc(m.rol)}</span></span></button>`).join("")}
+    </div></div>`;
+  A.querySelectorAll("[data-pick]").forEach(b=>{
+    b.addEventListener("click", ()=>{ const m = membresias[+b.dataset.pick]; LevelopAPI.fijarTenant(m.tenantId); entrar(m); });
+  });
+}
+function entrar(membresia, sinConfirmar){
+  D.membresia = membresia;
+  A.classList.add("hide");
+  $("#app").classList.remove("hide");
+  $("#tagRol").textContent = `Panel · ${({empleado:"colaborador",lider_area:"líder de área",gerencia:"gerencia",admin_tenant:"administrador"})[membresia.rol]||"líder de área"}`;
+  $("#empresaNombre").textContent = membresia.tenantNombre || "Tu área";
+  if(sinConfirmar) toast("risk","alerta","Entraste sin confirmar la empresa","Reinicia el backend para que esto deje de pasar.", 8000);
+  cargarTodo();
+}
+
+/* =========================================================
+   CARGA Y RENDER
+   ========================================================= */
+async function cargarTodo(){
+  $("#tiles").innerHTML = `<div class="cargando">Cargando…</div>`;
+  try{
+    const [ayuda, historial, colaboracion, ausencias, resumenArea, demanda] = await Promise.all([
+      LevelopAPI.lider.ayuda(),
+      LevelopAPI.lider.historialInteracciones(),
+      LevelopAPI.lider.colaboracion(),
+      LevelopAPI.lider.ausencias(),
+      LevelopAPI.lider.resumenArea(),
+      LevelopAPI.lider.loQuePideTuArea(),
+    ]);
+    D.ayuda = Array.isArray(ayuda)?ayuda:[];
+    D.historial = Array.isArray(historial)?historial:[];
+    D.colaboracion = Array.isArray(colaboracion)?colaboracion:[];
+    D.ausencias = Array.isArray(ausencias)?ausencias:[];
+    D.resumenArea = Array.isArray(resumenArea)?resumenArea:[];
+    D.demanda = Array.isArray(demanda)?demanda:[];
+    D.cargado = true;
+    render();
+  }catch(e){
+    avisarError(e,"cargarTodo");
+    $("#tiles").innerHTML="";
+    if(e && e.status===403) $("#tiles").innerHTML = `<div class="card" style="grid-column:1/-1"><p class="sub">Esta membresía no lidera ningún área todavía — el backend la rechaza con 403 antes de calcular nada (así está escrito en <code>lider.controller.ts</code>, método <code>misAreas</code>).</p></div>`;
+  }
+}
+
+function nombreArea(areaId){ const a = D.resumenArea.find(x=>x.areaId===areaId); return a ? a.nombreArea : areaId; }
+
+function render(){
+  pintarSelector();
+  pintarTiles();
+  pintarPatrones();
+  pintarColaboracion();
+  pintarAusencias();
+  pintarDemanda();
+  pintarSeccionesNC();
+}
+
+function pintarSelector(){
+  if(D.resumenArea.length <= 1){
+    $("#areasel").innerHTML = D.resumenArea.length
+      ? `<button aria-pressed="true">${esc(D.resumenArea[0].nombreArea)}</button>` : "";
+    $("#h1").textContent = D.resumenArea.length ? D.resumenArea[0].nombreArea : "Tu área";
+    return;
+  }
+  $("#areasel").innerHTML = `<button data-area="" aria-pressed="${areaSel===null}">Todas</button>` +
+    D.resumenArea.map(a=>`<button data-area="${a.areaId}" aria-pressed="${areaSel===a.areaId}">${esc(a.nombreArea)}</button>`).join("");
+  $("#h1").textContent = areaSel ? nombreArea(areaSel) : `Tus ${D.resumenArea.length} áreas`;
+}
+
+function pintarTiles(){
+  const areas = areaSel ? D.resumenArea.filter(a=>a.areaId===areaSel) : D.resumenArea;
+  const miembros = areas.reduce((a,x)=>a+Number(x.miembrosActivos||0),0);
+  const ayuda = areaSel ? D.ayuda.filter(x=>x.areaId===areaSel) : D.ayuda;
+  const ausencias = areaSel ? D.ausencias.filter(x=>x.areaId===areaSel) : D.ausencias;
+  const tiles = [
+    {l: D.resumenArea.length>1 ? "Áreas a tu cargo" : "Miembros activos", v: D.resumenArea.length>1 ? D.resumenArea.length : miembros, d: D.resumenArea.length>1 ? `${miembros} miembros activos en total` : "con la capa de juego prendida"},
+    {l:"Necesitan una mano", v: ayuda.length, d: ayuda.length?"con patrón sostenido detectado por el servidor":"nadie ahora mismo"},
+    {l:"Ausencias registradas", v: ausencias.length, d:"ya canjeadas y ganadas"},
+    {l:"Áreas con desempeño visible", v:`${areas.filter(a=>a.mostrarDesempeno).length}/${areas.length}`, d:"piso de 4 miembros activos (R-07)"}
+  ];
+  $("#tiles").innerHTML = tiles.map(t=>`<div class="tile"><div class="l">${esc(t.l)}</div><div class="v">${esc(t.v)}</div><div class="d">${esc(t.d)}</div></div>`).join("");
+}
+
+function pintarPatrones(){
+  $("#notaNombres").innerHTML = `<b>15/09/26 — ya muestra nombres reales.</b> Hasta hoy el rol de base de
+    datos de este panel no tenía permiso para leer la tabla de usuarios y solo se podía mostrar un id de
+    membresía. Decisión de Alim: el líder sí necesita el nombre para poder ayudar/incentivar — se agregó un
+    permiso nuevo, limitado a columna (id + nombre, nunca correo ni contraseña). Si en algún momento ves un
+    id en vez de un nombre, es que el backend todavía corre la versión vieja de esta migración.`;
+  const casos = (areaSel ? D.ayuda.filter(x=>x.areaId===areaSel) : D.ayuda);
+  if(!casos.length){
+    $("#patrones").innerHTML = `<div class="pat"><div class="pat-body">
+      <b>Nadie tiene un patrón sostenido registrado ahora mismo.</b> El servidor ordena esta lista solo por
+      hace cuánto empezó cada patrón (salvaguarda 2) — no hay ranking de peor a mejor.
+    </div></div>`;
+    return;
+  }
+  $("#patrones").innerHTML = casos.map(c=>{
+    const cp = COPY_PATRON[c.patron] || {tag:c.patron, nivel:"t0", lee:"Patrón sin descripción todavía en el frontend.", haz:"Revísalo con la persona."};
+    const sem = semanas(c.detectadoDesde);
+    const previas = D.historial.filter(h=>h.membershipId===c.membershipId);
+    return `<div class="pat">
+      <div class="pat-h">
+        <span class="pat-who">
+          <span style="min-width:0"><span class="n">${esc(nombreDe(c))}</span>
+            <span class="r" style="display:block">${nombreArea(c.areaId)} · detectado hace ${sem} semana${sem===1?"":"s"}</span></span>
+        </span>
+        <span class="pat-tag ${cp.nivel}">${esc(cp.tag)}</span>
+      </div>
+      <div class="pat-sig">
+        <div><div class="sl">Detectado desde</div><div class="sv">${fechaCorta(c.detectadoDesde)}</div></div>
+        <div><div class="sl">Última evaluación</div><div class="sv">${fechaCorta(c.ultimaEvaluacion)}</div></div>
+      </div>
+      <div class="pat-body">${cp.lee}</div>
+      <div class="pat-do"><div class="dt">Qué hacer</div>${cp.haz}</div>
+      ${previas.length ? `<div class="note" style="margin-top:12px">Ya registraste ${previas.length} interacción${previas.length===1?"":"es"} con ${esc(nombreDe(c))} antes. La más reciente: <b>${esc(TIPO_INTERACCION[previas[0].tipo]||previas[0].tipo)}</b>, ${fechaCorta(previas[0].createdAt)}.</div>` : ""}
+      <div class="pat-f">
+        <button class="btn gold" data-registrar="${c.id}" data-mid="${c.membershipId}">${IC.chat} Registrar qué hiciste</button>
+        ${previas.length ? `<button class="btn ghost" data-historial="${c.membershipId}">Ver historial (${previas.length})</button>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function modalRegistrar(signalId, membershipId, nombre){
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">${esc(nombre)}</span>
+        <h2 style="margin-top:4px; font-size:19px">Registrar qué hiciste</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="note">Esto queda visible para ${esc(nombre)} exactamente igual que para ti
+          (simetría, salvaguarda 1 de la enmienda del 01/09) y caduca solo a los 90 días. Gerencia nunca lo ve.</div>
+        <div class="field"><label>Qué pasó</label>
+          <select id="riTipo">${Object.entries(TIPO_INTERACCION).map(([v,n])=>`<option value="${v}">${n}</option>`).join("")}</select></div>
+        <div class="field"><label>Nota (opcional)</label><textarea id="riNota" rows="3" placeholder="Solo si quieres dejar algo escrito."></textarea></div>
+        <div class="auth-err hide" id="riError"></div>
+      </div>
+      <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Cancelar</button>
+        <button class="btn gold" style="flex:1" id="riGuardar">Guardar</button></div>
+    </div></div>`;
+}
+
+function modalHistorial(membershipId, nombre){
+  const filas = D.historial.filter(h=>h.membershipId===membershipId);
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">${esc(nombre)}</span>
+        <h2 style="margin-top:4px; font-size:19px">Historial de interacciones</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="note">Solo lo que TÚ registraste con ${esc(nombre)}. ${esc(nombre)} ve exactamente lo mismo desde su lado (simetría). Se borra solo a los 90 días.</div>
+        ${filas.map(f=>`<div class="pat-do"><div class="dt">${fechaCorta(f.createdAt)} · ${esc(TIPO_INTERACCION[f.tipo]||f.tipo)}</div>${f.nota?esc(f.nota):`<span style="color:var(--ink-3)">Sin nota.</span>`}</div>`).join("")}
+      </div>
+      <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Cerrar</button></div>
+    </div></div>`;
+}
+
+function pintarColaboracion(){
+  if(!D.colaboracion.length){ $("#colab").innerHTML = `<p class="sub">Sin datos todavía.</p>`; $("#colabNota").innerHTML=""; return; }
+  const ord = [...D.colaboracion].sort((a,b)=>Number(a.colaboradores)-Number(b.colaboradores));
+  barrasHorizontales($("#colab"), ord.map(x=>({n:nombreDe(x), v:Number(x.colaboradores||0)})), {
+    color: d => d.v<=1 ? "var(--risk)" : "var(--s2)",
+    extra: () => "personas distintas",
+    tip: d => `<div class="tk">${esc(d.n)}</div><div class="tr"><span>Colaboradores distintos</span><b>${d.v}</b></div>`
+  });
+  const solos = ord.filter(x=>Number(x.colaboradores)<=1);
+  $("#colabNota").innerHTML = (solos.length
+    ? `<b>Trabajando en solitario o casi:</b> ${solos.length} persona${solos.length===1?"":"s"} con 0 o 1 colaborador distinto este período. A veces está bien y a veces es un aviso.`
+    : `Nadie está trabajando completamente en solitario en este período.`)
+    + ` Este endpoint (<code>GET /lider/colaboracion</code>) solo cuenta cuántas personas distintas, no cuáles ni en qué misión, y no distingue por área cuando lideras más de una — no hay mapa de relaciones ni detalle de misión compartida disponible todavía.`;
+}
+
+function pintarAusencias(){
+  const filas = (areaSel ? D.ausencias.filter(x=>x.areaId===areaSel) : D.ausencias)
+    .slice().sort((a,b)=> new Date(a.desde) - new Date(b.desde));
+  const t = $("#tblAusencias");
+  if(!filas.length){ t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">Sin ausencias registradas todavía.</td></tr></tbody>`; return; }
+  t.innerHTML = `<thead><tr><th>Desde</th><th>Persona</th>${D.resumenArea.length>1?"<th>Área</th>":""}</tr></thead>
+    <tbody>${filas.map(x=>`<tr><td>${fechaCorta(x.desde)}</td><td>${esc(nombreDe(x))}</td>${D.resumenArea.length>1?`<td>${esc(nombreArea(x.areaId))}</td>`:""}</tr>`).join("")}</tbody>`;
+}
+
+function pintarDemanda(){
+  const areas = areaSel ? D.demanda.filter(a=>a.areaId===areaSel) : D.demanda;
+  if(!areas.length){ $("#demanda").innerHTML = `<div class="card"><p class="sub">Sin datos todavía.</p></div>`; return; }
+  $("#demanda").innerHTML = areas.map(a=>{
+    if(!a.mostrarDemanda){
+      return `<div class="sec-h" style="margin-top:14px"><h2 style="font-size:15px">${esc(a.nombreArea)}</h2></div>
+        <div class="note">Menos de 4 miembros activos: por R-07 no se muestra desglose de demanda para esta área todavía.</div>`;
+    }
+    if(!a.masPedido.length){
+      return `<div class="sec-h" style="margin-top:14px"><h2 style="font-size:15px">${esc(a.nombreArea)}</h2></div>
+        <div class="note">Sin canjes en los últimos 30 días.</div>`;
+    }
+    const pedido = [...a.masPedido].sort((x,y)=>y.canjes-x.canjes);
+    const dif = [...a.masPedido].map(x=>({n:x.nombreItem, v:Math.round((x.canjes-x.promedioOtrasAreas)*10)/10, a:x.canjes, r:x.promedioOtrasAreas}))
+      .sort((x,y)=>Math.abs(y.v)-Math.abs(x.v));
+    return `<div class="sec-h" style="margin-top:14px"><h2 style="font-size:15px">${esc(a.nombreArea)}</h2><span class="sub">${a.miembrosActivos} miembros activos · últimos 30 días</span></div>
+      <div class="grid2">
+        <div class="card"><div class="chart-h"><div><h3>Más pedido</h3></div></div><div id="pedido-${esc(a.areaId)}"></div></div>
+        <div class="card"><div class="chart-h"><div><h3>Contra el promedio de otras áreas</h3></div></div><div id="dif-${esc(a.areaId)}"></div></div>
+      </div>`;
+  }).join("");
+  areas.forEach(a=>{
+    if(!a.mostrarDemanda || !a.masPedido.length) return;
+    const pedido = [...a.masPedido].sort((x,y)=>y.canjes-x.canjes);
+    barrasHorizontales($("#pedido-"+a.areaId), pedido.map(x=>({n:x.nombreItem, v:x.canjes})), {
+      color:"var(--s2)", extra:()=>"canjes",
+      tip: d => `<div class="tk">${esc(d.n)}</div><div class="tr"><span>Canjes (30 días)</span><b>${d.v}</b></div>`
+    });
+    const dif = a.masPedido.map(x=>({n:x.nombreItem, v:Math.round((x.canjes-x.promedioOtrasAreas)*10)/10, a:x.canjes, r:x.promedioOtrasAreas}))
+      .sort((x,y)=>Math.abs(y.v)-Math.abs(x.v));
+    barrasHorizontales($("#dif-"+a.areaId), dif, {
+      color: d => d.v>0 ? "var(--gold-solid)" : "var(--s4)",
+      fmtv: d => (d.v>0?"+":"")+d.v,
+      extra: d => d.v>0 ? "más que el resto" : "menos que el resto",
+      tip: d => `<div class="tk">${esc(d.n)}</div><div class="tr"><span>Tu área</span><b>${d.a}</b></div><div class="tr"><span>Promedio del resto</span><b>${d.r}</b></div>`
+    });
+  });
+}
+
+function abrirModal(html){ $("#modal").innerHTML = html; }
+function cerrarModal(){ $("#modal").innerHTML = ""; signalEnModal = null; }
+
+document.addEventListener("click", async e=>{
+  const areaBtn = e.target.closest("[data-area]");
+  if(areaBtn){
+    areaSel = areaBtn.dataset.area || null;
+    render();
+    return;
+  }
+  const t = e.target.closest("[data-cerrar],[data-stop],[data-registrar],[data-historial]");
+  if(t){
+    if(t.hasAttribute("data-stop")) return;
+    if(t.hasAttribute("data-cerrar")){ cerrarModal(); return; }
+    if(t.dataset.registrar){
+      const c = D.ayuda.find(x=>x.id===t.dataset.registrar);
+      signalEnModal = {id:t.dataset.registrar, membershipId:t.dataset.mid};
+      abrirModal(modalRegistrar(t.dataset.registrar, t.dataset.mid, c?nombreDe(c):idCorto(t.dataset.mid)));
+      return;
+    }
+    if(t.dataset.historial){
+      const c = D.ayuda.find(x=>x.membershipId===t.dataset.historial);
+      abrirModal(modalHistorial(t.dataset.historial, c?nombreDe(c):idCorto(t.dataset.historial)));
+      return;
+    }
+  }
+  if(e.target.id === "riGuardar"){
+    if(!signalEnModal) return;
+    const c = D.ayuda.find(x=>x.id===signalEnModal.id);
+    const nombre = c ? nombreDe(c) : idCorto(signalEnModal.membershipId);
+    const dto = { membershipId: signalEnModal.membershipId, tipo: $("#riTipo").value, nota: $("#riNota").value.trim() || undefined };
+    e.target.disabled = true; e.target.textContent = "Guardando…";
+    try{
+      const guardado = await LevelopAPI.lider.registrarInteraccion(dto);
+      D.historial.unshift(guardado);
+      cerrarModal();
+      pintarPatrones();
+      toast("ok","check","Registrado", `Quedó guardado para ${nombre}. Podés verlo de nuevo con «Ver historial».`, 6000);
+    }catch(err){
+      e.target.disabled = false; e.target.textContent = "Guardar";
+      $("#riError").classList.remove("hide"); $("#riError").textContent = (err&&err.message)||"No se pudo guardar.";
+    }
+  }
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") cerrarModal(); });
+
+/* ---------------- TEMA / SALIR ---------------- */
+$("#themebtn").innerHTML = IC.tema;
+$("#themebtn").addEventListener("click", ()=>{
+  const cur = document.documentElement.getAttribute("data-theme")||"dark";
+  const nuevo = cur==="dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", nuevo);
+  try{ localStorage.setItem("lvl-tema", nuevo); }catch(err){}
+});
+$("#logoutbtn").innerHTML = IC.salir;
+$("#logoutbtn").addEventListener("click", ()=>{ LevelopAPI.salir(); });
+
+/* =========================================================
+   ARRANQUE — si ya había sesión en esta pestaña, se reusa.
+   ========================================================= */
+(async function arrancar(){
+  if(LevelopAPI.sesion.haySesion()){
+    try{
+      const ms = await LevelopAPI.misMembresias();
+      const fijado = LevelopAPI.sesion.getTenantId();
+      const m = (Array.isArray(ms) && (ms.find(x=>x.tenantId===fijado) || (ms.length===1?ms[0]:null))) || null;
+      if(m){ LevelopAPI.fijarTenant(m.tenantId); return entrar(m); }
+      if(Array.isArray(ms) && ms.length>1) return pintarPicker(ms);
+    }catch(e){ /* sesión vencida o backend caído: se pide login otra vez */ }
+    LevelopAPI.logout();
+  }
+  pintarLogin();
+})();
+
+})();
+</script>

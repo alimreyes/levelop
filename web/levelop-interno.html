@@ -1,0 +1,869 @@
+<title>Levelop por dentro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+<script>
+try{ document.documentElement.setAttribute("data-theme", localStorage.getItem("lvl-tema") || "dark"); }
+catch(e){ document.documentElement.setAttribute("data-theme","dark"); }
+</script>
+<style>
+:root{
+  --ground:#EAEAE4; --surface:#FFFFFF; --surface-2:#F1F1EB; --surface-3:#DFDFD7;
+  --line:#D0D0C8; --line-strong:#ABABA1;
+  --ink:#0B0B0C; --ink-2:#4A4A47; --ink-3:#7A7A75;
+  --grid:rgba(11,11,12,.055);
+  --gold:#4E6606; --gold-ink:#3C5004; --gold-bg:#E7F7B7; --gold-line:#C4E273; --gold-solid:#C3F03A;
+  --xp:#0B0B0C;   --xp-bg:#E2E2DB;   --xp-line:#BEBEB4;  --xp-solid:#0B0B0C;
+  --ok:#0A6B7A;   --ok-bg:#D7EFF4;   --ok-line:#9BD2DE;
+  --risk:#C0361F; --risk-bg:#FADFD9; --risk-line:#EEAE9F;
+  --sync:#4A38C4; --sync-bg:#E2DEFA; --sync-line:#B4ABF0;
+  --s1:#6E8F06; --s2:#0090A8;
+  --cut:0px;
+  --shadow-sm:none;
+  --shadow:4px 4px 0 rgba(11,11,12,.10);
+  --shadow-lg:8px 8px 0 rgba(11,11,12,.18);
+  --display:'Silkscreen','Courier New',monospace;
+  --body:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --mono:'Space Mono','SFMono-Regular',Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --ground:#08080A; --surface:#121215; --surface-2:#1A1A1E; --surface-3:#26262C;
+  --line:#2A2A31; --line-strong:#43434E;
+  --ink:#EDEDE7; --ink-2:#9B9B95; --ink-3:#6A6A66;
+  --grid:rgba(237,237,231,.045);
+  --gold:#C3F03A; --gold-ink:#D6F871; --gold-bg:#2A3607; --gold-line:#4A5F0D; --gold-solid:#C3F03A;
+  --xp:#EDEDE7;   --xp-bg:#26262C;   --xp-line:#43434E;  --xp-solid:#EDEDE7;
+  --ok:#4FD8E8;   --ok-bg:#0A2C33;   --ok-line:#18505C;
+  --risk:#FF6A52; --risk-bg:#331310; --risk-line:#57241D;
+  --sync:#A79AFF; --sync-bg:#1D1846; --sync-line:#332B70;
+  --s1:#7FA30E; --s2:#1E9AAB;
+  --shadow-sm:none;
+  --shadow:4px 4px 0 rgba(0,0,0,.5);
+  --shadow-lg:8px 8px 0 rgba(0,0,0,.6);
+}}
+:root[data-theme="dark"]{
+  --ground:#08080A; --surface:#121215; --surface-2:#1A1A1E; --surface-3:#26262C;
+  --line:#2A2A31; --line-strong:#43434E;
+  --ink:#EDEDE7; --ink-2:#9B9B95; --ink-3:#6A6A66;
+  --grid:rgba(237,237,231,.045);
+  --gold:#C3F03A; --gold-ink:#D6F871; --gold-bg:#2A3607; --gold-line:#4A5F0D; --gold-solid:#C3F03A;
+  --xp:#EDEDE7;   --xp-bg:#26262C;   --xp-line:#43434E;  --xp-solid:#EDEDE7;
+  --ok:#4FD8E8;   --ok-bg:#0A2C33;   --ok-line:#18505C;
+  --risk:#FF6A52; --risk-bg:#331310; --risk-line:#57241D;
+  --sync:#A79AFF; --sync-bg:#1D1846; --sync-line:#332B70;
+  --s1:#7FA30E; --s2:#1E9AAB;
+  --shadow-sm:none;
+  --shadow:4px 4px 0 rgba(0,0,0,.5);
+  --shadow-lg:8px 8px 0 rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--ground); color:var(--ink); font-family:var(--body);
+  font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased}
+button{font:inherit; color:inherit; border:0; background:none; cursor:pointer}
+:focus-visible{outline:2px solid var(--xp-solid); outline-offset:2px}
+p{margin:0}
+figure{margin:0}
+h1,h2,h3{margin:0; font-family:var(--display); text-wrap:balance}
+h1{font-weight:700; text-transform:uppercase; line-height:1.02; font-size:40px; letter-spacing:0}
+h2{font-weight:700; text-transform:uppercase; letter-spacing:0; line-height:1.05; font-size:19px}
+h3{font-weight:700; line-height:1.12; font-size:16px; text-transform:uppercase}
+.num{font-family:var(--mono); font-variant-numeric:tabular-nums}
+
+.topbar{position:sticky; top:0; z-index:40; background:var(--surface); box-shadow:inset 0 -1px 0 var(--line)}
+.topbar-in{max-width:1160px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.brand{display:flex; align-items:center; gap:8px; font-family:var(--display); font-weight:700;
+  font-size:22px; text-transform:uppercase; line-height:1}
+.brand em{font-style:normal; color:var(--gold)}
+.brand-mark{width:25px; height:25px; display:grid; place-items:center; font-size:13px; font-weight:700;
+  font-family:var(--display); color:var(--ground); background:var(--gold-solid);
+  clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.tag-int{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+  padding:4px 9px; color:var(--sync); background:var(--sync-bg); box-shadow:inset 0 0 0 1px var(--sync-line);}
+.spacer{flex:1}
+.iconbtn{width:33px; height:33px; display:grid; place-items:center; color:var(--ink-3);
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line);}
+.iconbtn svg{width:18px; height:18px; display:block}
+.wrap{max-width:1160px; margin:0 auto; padding:24px 20px 70px}
+
+.eyebrow{display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:10px;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--ink-3)}
+.eyebrow::after{content:""; width:24px; height:1px; background:var(--line-strong)}
+.lead{color:var(--ink-2); font-size:16px; max-width:66ch; margin-top:10px}
+.sub{color:var(--ink-2); font-size:13px}
+.sec-h{display:flex; align-items:center; gap:12px; margin:34px 0 14px}
+.sec-h h2{flex:none}
+.sec-h .sub{order:3; text-align:right; flex:none; max-width:44%}
+.sec-h::before{content:""; order:2; flex:1; height:1px; background:var(--line); min-width:18px}
+@media (max-width:700px){ .sec-h{flex-wrap:wrap} .sec-h .sub{flex:1 0 100%; max-width:100%; text-align:left; order:3} }
+
+.card{background:var(--surface); box-shadow:var(--shadow-sm), inset 0 0 0 1px var(--line); padding:17px 18px;}
+.note{padding:11px 13px; font-size:12.5px; line-height:1.5; background:var(--surface-2);
+  box-shadow:inset 0 0 0 1px var(--line); color:var(--ink-2);}
+.note b{font-weight:700}
+.note.gold{background:var(--gold-bg); box-shadow:inset 0 0 0 1px var(--gold-line); color:var(--gold-ink)}
+.note.sync{background:var(--sync-bg); box-shadow:inset 0 0 0 1px var(--sync-line); color:var(--sync)}
+.chip{display:inline-flex; align-items:center; gap:6px; padding:3px 9px; font-family:var(--mono); font-size:11px;
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); color:var(--ink-2); white-space:nowrap;}
+.chip i{width:9px; height:9px; border-radius:0; display:block}
+.row{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+
+.tiles{display:grid; gap:1px; background:var(--line); box-shadow:inset 0 0 0 1px var(--line);
+  grid-template-columns:repeat(2,1fr); margin-bottom:16px;}
+@media(min-width:720px){.tiles{grid-template-columns:repeat(4,1fr)}}
+.tile{background:var(--surface); padding:14px 15px}
+.tile .l{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3)}
+.tile .v{font-family:var(--display); font-weight:700; font-size:38px; line-height:.92; margin-top:4px; font-variant-numeric:tabular-nums}
+.tile .d{font-family:var(--mono); font-size:11px; margin-top:5px; color:var(--ink-3)}
+
+/* ---- grafo ---- */
+.graph-layout{display:grid; gap:12px; grid-template-columns:1fr}
+@media(min-width:960px){.graph-layout{grid-template-columns:1fr 296px}}
+.graph-box{background:var(--surface); box-shadow:var(--shadow-sm), inset 0 0 0 1px var(--line); padding:8px;}
+.graph-box svg{width:100%; height:auto; display:block}
+.gn{cursor:pointer}
+.gn circle{transition:r .15s ease}
+.panel{background:var(--surface); box-shadow:var(--shadow-sm), inset 0 0 0 1px var(--line); padding:15px 16px;}
+.panel h3{margin-bottom:3px}
+.panel .meta{font-family:var(--mono); font-size:11px; color:var(--ink-3); margin-bottom:12px}
+.nb{display:flex; justify-content:space-between; gap:10px; padding:7px 0; font-size:12.5px;
+  background-image:linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px);
+  background-size:8px 2px; background-repeat:repeat-x; background-position:bottom}
+.nb:last-child{background-image:none}
+.nb b{font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.nb span{font-family:var(--mono); font-size:10.5px; color:var(--ink-3); flex:none}
+.ranklist{display:flex; flex-direction:column; gap:7px}
+.ranklist div{display:flex; justify-content:space-between; gap:10px; font-size:12.5px}
+.ranklist .num{font-size:11.5px; color:var(--ink-3)}
+
+/* ---- diagramas ---- */
+.figs{display:grid; gap:12px; grid-template-columns:1fr}
+@media(min-width:1000px){.figs{grid-template-columns:1fr 1fr}}
+figure svg{width:100%; height:auto; max-width:100%}
+figcaption{font-size:12.5px; color:var(--ink-2); margin-top:12px; line-height:1.5}
+.dlabel{font-family:var(--mono); font-size:9px; fill:var(--ink-3); letter-spacing:0}
+.dname{font-family:var(--display); font-weight:700; font-size:14px; fill:var(--ink); text-transform:uppercase}
+.dsub{font-family:var(--mono); font-size:8.5px; fill:var(--ink-3)}
+
+.cols{display:grid; gap:12px; grid-template-columns:1fr}
+@media(min-width:760px){.cols{grid-template-columns:1fr 1fr}}
+.lst{list-style:none; padding:0; margin:10px 0 0}
+.lst li{padding:8px 0; font-size:13.5px; display:flex; gap:9px; align-items:flex-start;
+  background-image:linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px);
+  background-size:8px 2px; background-repeat:repeat-x; background-position:bottom}
+.lst li:last-child{background-image:none}
+.lst .m{font-family:var(--mono); font-size:11px; flex:none; margin-top:2px}
+#tip{position:fixed; z-index:90; pointer-events:none; opacity:0; transition:opacity .12s;
+  background:var(--surface); box-shadow:0 18px 40px -18px rgba(0,0,0,.8), inset 0 0 0 1px var(--line-strong);
+  padding:9px 11px; font-size:12.5px; max-width:250px;}
+#tip .tk{font-family:var(--display); font-weight:700; font-size:15px; text-transform:uppercase; line-height:1.1}
+#tip .tr{display:flex; justify-content:space-between; gap:14px; font-family:var(--mono); font-size:11px;
+  color:var(--ink-2); margin-top:4px}
+
+/* ---------- capa arcade ---------- */
+body{background-color:var(--ground);
+  background-image:linear-gradient(var(--grid) 1px, transparent 1px),
+                   linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:32px 32px}
+h1,h2,h3{text-transform:uppercase; letter-spacing:.01em}
+.card,.panel,.graph-box{box-shadow:none !important; border:1px solid var(--line)}
+.tile{border:0}
+.chip,.btn,.iconbtn,.note{border-radius:0}
+.note{border-left-width:4px}
+.eyebrow::after{height:4px; width:22px; background:none;
+  background-image:linear-gradient(90deg,var(--line-strong) 0 4px,transparent 4px 8px); background-size:8px 4px}
+.sec-h::before{height:4px; background:none;
+  background-image:linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px); background-size:8px 4px}
+.tag-int{border-radius:0}
+.gn circle{shape-rendering:geometricPrecision}
+#tip{border-radius:0}
+
+/* =========================================================
+   CIFRAS SIEMPRE EN REGULAR 400
+   Silkscreen y Space Mono en 700 engordan el dígito y le
+   quitan el contraforma. Los números se leen mejor en 400,
+   así que ningún número del sistema va en negrita — ni los
+   grandes ni los de una tabla. La jerarquía la hace el
+   tamaño, no el peso.
+   ========================================================= */
+.num, .hud .num, .score, .seal b, .stat .v, .stat b, .tile .v, .price b,
+.rank-pos, .rank-v, .bv, .bar-row .bv, .w-h .c, .paso-n, .chip.num,
+td.n, #tip .tr b, #tip .tr span, .pat-sig .sv, .plist .pr b, .fstep .fn,
+.duelo-s .av, .duel-side .av2, .cal .dn, .cal-more, .mini-bar + span,
+.ranklist b, .lote .bv, .meter-v, .gauge-v{
+  font-weight:400 !important;
+}
+
+/* =========================================================
+   AÑADIDO EN LA CONEXIÓN AL BACKEND (15/09/26) — ver el
+   comentario largo al inicio del segundo <script>, al final
+   del archivo, para el porqué de esta sección completa.
+   ========================================================= */
+.nc{position:relative; border-style:dashed; border-color:var(--line-strong)}
+.nc h2, .nc h3{color:var(--ink-3)}
+.nc-chip{background:var(--surface-3); border-color:var(--line-strong); color:var(--ink-3)}
+.nc-body{display:flex; flex-direction:column; gap:8px; align-items:flex-start}
+.nc-body p{font-size:12.5px; line-height:1.5; color:var(--ink-3)}
+.auth-inline{max-width:360px}
+.auth-f{display:flex; flex-direction:column; gap:12px; margin-top:14px}
+.hide{display:none !important}
+.auth-err{padding:11px 12px; font-size:12.5px; line-height:1.5; background:var(--risk-bg);
+  border:1px solid var(--risk-line); border-left:4px solid var(--risk); color:var(--risk)}
+.field{display:flex; flex-direction:column; gap:6px}
+.field label{font-family:var(--mono); font-size:8.5px; text-transform:uppercase; letter-spacing:.01em; color:var(--ink-3)}
+.field input, .field select{padding:10px 12px; border:1px solid var(--line); background:var(--surface-2);
+  font-size:14px; font-family:var(--body)}
+.field input:focus, .field select:focus{outline:none; border-color:var(--gold-solid); background:var(--surface)}
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 14px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); color:var(--ink); cursor:pointer}
+.btn:hover{box-shadow:inset 0 0 0 1px var(--line-strong)}
+.btn.gold{background:var(--gold-solid); color:#0B0B0C; box-shadow:none; font-weight:700}
+.btn[disabled]{opacity:.5; cursor:default}
+.tbl-wrap{overflow-x:auto; background:var(--surface); box-shadow:inset 0 0 0 1px var(--line)}
+table{border-collapse:collapse; width:100%; min-width:640px}
+th{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);
+  text-align:left; padding:11px 12px; white-space:nowrap}
+td{padding:10px 12px; font-size:13px; border-top:1px solid var(--line); white-space:nowrap}
+td.n{font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right}
+th.n{text-align:right}
+tbody tr:hover{background:var(--surface-2)}
+.cargando{padding:40px 18px; text-align:center; color:var(--ink-3); font-family:var(--mono);
+  font-size:10px; text-transform:uppercase}
+.chip.ok{background:var(--ok-bg); box-shadow:inset 0 0 0 1px var(--ok-line); color:var(--ok)}
+.chip.risk{background:var(--risk-bg); box-shadow:inset 0 0 0 1px var(--risk-line); color:var(--risk)}
+.toasts{position:fixed; left:12px; right:12px; bottom:20px; z-index:70; display:flex; flex-direction:column;
+  gap:8px; align-items:center; pointer-events:none}
+@media (min-width:960px){.toasts{left:auto; right:20px; align-items:flex-end}}
+.toast{pointer-events:auto; max-width:400px; width:100%; padding:11px 13px; background:var(--surface);
+  border:2px solid var(--ink); box-shadow:var(--shadow); display:flex; gap:10px; align-items:flex-start}
+.toast .ti{flex:none; width:17px; height:17px; margin-top:2px; color:var(--ink-2)}
+.toast .tt{font-family:var(--display); font-size:15px; font-weight:700; text-transform:uppercase; line-height:1.15}
+.toast .td{font-size:12.5px; color:var(--ink-2); margin-top:2px; line-height:1.5}
+.toast.risk{border-color:var(--risk)} .toast.risk .td, .toast.risk .ti{color:var(--risk)}
+.toast.ok{border-color:var(--ok)} .toast.ok .td, .toast.ok .ti{color:var(--ok)}
+</style>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><span class="brand-mark">L</span>Levelop<em>!</em></div>
+    <span class="tag-int">Vista interna · producto</span>
+    <div class="spacer"></div>
+    <button class="iconbtn" id="themebtn" title="Cambiar tema" aria-label="Cambiar tema"></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <span class="eyebrow">Cómo está hecho esto</span>
+  <h1 style="margin-top:8px">Levelop<br>por dentro</h1>
+  <p class="lead">Esta página no es para el empleado ni para el gerente: es para nosotros. Tiene dos mitades. La primera es el <b>mapa del código</b>, sacado con graphify de las fuentes reales del prototipo — no lo dibujé yo, lo extrajo el árbol sintáctico. La segunda son los <b>mecanismos del producto</b>: los cuatro sitios donde se decide si Levelop es honesto o no.</p>
+
+  <div class="sec-h"><h2>El mapa del código</h2><span class="sub">Extraído con graphify · AST, sin LLM</span></div>
+  <div class="tiles" id="tiles"></div>
+
+  <div class="graph-layout">
+    <div class="graph-box">
+      <div class="row" style="padding:8px 8px 12px">
+        <span class="chip"><i style="background:var(--s1)"></i>App del empleado</span>
+        <span class="chip"><i style="background:var(--s2)"></i>BackOffice</span>
+        <span class="chip"><i style="background:var(--sync); height:2px; width:14px; border-radius:0"></i>Llamada entre comunidades</span>
+        <span class="chip" style="color:var(--ink-3)">Tamaño = conexiones</span>
+      </div>
+      <div id="grafo"></div>
+    </div>
+    <div class="panel" id="panel"></div>
+  </div>
+  <div class="note sync" style="margin-top:12px"><b>Cómo leerlo.</b> Cada burbuja es una función real del prototipo. Las nubes son <i>comunidades</i>: grupos que se llaman mucho entre sí y poco con el resto, detectados por el algoritmo, no agrupados a mano. Las líneas moradas son las llamadas que cruzan de una nube a otra — esas son las costuras del sistema, y son donde más duele un cambio. Toca cualquier burbuja.</div>
+
+  <div class="sec-h"><h2>Los cuatro mecanismos</h2><span class="sub">Lo que graphify no puede ver</span></div>
+  <p class="lead" style="margin-bottom:16px">El grafo de arriba dice cómo se llama el código. No dice si el producto es justo. Eso vive en estos cuatro diagramas, y son los que hay que defender en cualquier revisión.</p>
+
+  <div class="figs">
+
+    <div class="card">
+      <figure>
+        <svg viewBox="0 0 520 300" role="img" aria-label="Ciclo de una misión: de abierta a pendiente de sincronizar, y de ahí a sincronizada con XP y Oro acreditados, o a rechazada con el Oro devuelto al pozo.">
+          <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs>
+          <g stroke="currentColor" fill="none" stroke-width="1.6" marker-end="url(#ar)" opacity=".55">
+            <path d="M112 46 H196"/>
+            <path d="M300 46 H384"/>
+            <path d="M248 74 V150 H384"/>
+            <path d="M248 178 V246 H196" />
+          </g>
+          <g class="dlabel" text-anchor="middle" fill="currentColor">
+            <text x="154" y="18">se marca lista</text>
+            <text x="342" y="18">servidor OK</text>
+            <text x="316" y="142">servidor rechaza</text>
+            <text x="240" y="204" text-anchor="end">vuelve a intentar</text>
+          </g>
+          <g>
+            <rect x="16" y="26" width="96" height="42" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="64" y="52" class="dname" text-anchor="middle">Abierta</text>
+
+            <rect x="196" y="26" width="104" height="42" fill="var(--sync-bg)" stroke="var(--sync-line)"/>
+            <text x="248" y="46" class="dname" text-anchor="middle" fill="var(--sync)">Pendiente</text>
+            <text x="248" y="60" class="dsub" text-anchor="middle" fill="var(--sync)">XP y Oro apartados</text>
+
+            <rect x="384" y="26" width="120" height="42" fill="var(--ok-bg)" stroke="var(--ok-line)"/>
+            <text x="444" y="46" class="dname" text-anchor="middle" fill="var(--ok)">Sincronizada</text>
+            <text x="444" y="60" class="dsub" text-anchor="middle" fill="var(--ok)">+XP +Oro en cuenta</text>
+
+            <rect x="384" y="130" width="120" height="42" fill="var(--risk-bg)" stroke="var(--risk-line)"/>
+            <text x="444" y="150" class="dname" text-anchor="middle" fill="var(--risk)">Rechazada</text>
+            <text x="444" y="164" class="dsub" text-anchor="middle" fill="var(--risk)">Oro vuelve al pozo</text>
+
+            <rect x="112" y="226" width="168" height="42" fill="var(--surface-2)" stroke="var(--line-strong)" stroke-dasharray="4 3"/>
+            <text x="196" y="246" class="dname" text-anchor="middle">Sin señal</text>
+            <text x="196" y="260" class="dsub" text-anchor="middle">se guarda en el teléfono</text>
+          </g>
+          <text x="16" y="292" class="dlabel" fill="var(--ink-3)">El empleado puede seguir trabajando en todos los estados.</text>
+        </svg>
+        <figcaption><b>El ciclo de una misión.</b> El estado que casi nadie diseña es <i>Pendiente</i>: la XP y el Oro se apartan pero no se acreditan. Si el servidor rechaza el cierre, lo que se devuelve salió del pozo, nunca del saldo que la persona ya tenía. Nadie ve un descuento sin explicación.</figcaption>
+      </figure>
+    </div>
+
+    <div class="card">
+      <figure>
+        <svg viewBox="0 0 520 300" role="img" aria-label="Ciclo de un canje: pedido, y de ahí a rechazado si el cupo se agotó en carrera, o a en proceso; en proceso termina en activo con código, o en indeterminado cuando el aliado no honra el cupo, que a las 48 horas devuelve el Oro completo.">
+          <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs>
+          <g stroke="currentColor" fill="none" stroke-width="1.6" marker-end="url(#ar2)" opacity=".55">
+            <path d="M120 44 H184"/>
+            <path d="M296 44 H384"/>
+            <path d="M68 64 V110"/>
+            <path d="M240 64 V110"/>
+            <path d="M372 132 H430 V68"/>
+            <path d="M284 154 V214"/>
+          </g>
+          <g class="dlabel" fill="currentColor">
+            <text x="152" y="18" text-anchor="middle">sale el Oro</text>
+            <text x="340" y="18" text-anchor="middle">aliado confirma</text>
+            <text x="76" y="92">no queda cupo</text>
+            <text x="248" y="92">el aliado no honra el cupo</text>
+            <text x="436" y="112">revisar</text>
+            <text x="292" y="190">48 h más</text>
+          </g>
+          <g>
+            <rect x="16" y="24" width="104" height="40" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="68" y="49" class="dname" text-anchor="middle">Pedido</text>
+
+            <rect x="184" y="24" width="112" height="40" fill="var(--gold-bg)" stroke="var(--gold-line)"/>
+            <text x="240" y="49" class="dname" text-anchor="middle" fill="var(--gold-ink)">En proceso</text>
+
+            <rect x="384" y="24" width="120" height="40" fill="var(--ok-bg)" stroke="var(--ok-line)"/>
+            <text x="444" y="43" class="dname" text-anchor="middle" fill="var(--ok)">Activo</text>
+            <text x="444" y="56" class="dsub" text-anchor="middle" fill="var(--ok)">con código</text>
+
+            <rect x="16" y="110" width="158" height="44" fill="var(--risk-bg)" stroke="var(--risk-line)"/>
+            <text x="95" y="130" class="dname" text-anchor="middle" fill="var(--risk)">Rechazado</text>
+            <text x="95" y="144" class="dsub" text-anchor="middle" fill="var(--risk)">cupo agotado en carrera</text>
+
+            <rect x="196" y="110" width="176" height="44" fill="var(--sync-bg)" stroke="var(--sync-line)"/>
+            <text x="284" y="130" class="dname" text-anchor="middle" fill="var(--sync)">Indeterminado</text>
+            <text x="284" y="144" class="dsub" text-anchor="middle" fill="var(--sync)">no sabemos si pasó</text>
+
+            <rect x="196" y="214" width="176" height="44" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="284" y="234" class="dname" text-anchor="middle">Devuelto</text>
+            <text x="284" y="248" class="dsub" text-anchor="middle">el Oro vuelve completo</text>
+          </g>
+          <text x="16" y="288" class="dlabel" fill="var(--ink-3)">Seis estados, no cinco. Ninguno termina en un «listo» que no sea verdad.</text>
+        </svg>
+        <figcaption><b>El ciclo de un canje.</b> <i>Rechazado por cupo agotado en carrera</i> va a ser el estado más frecuente del producto: dos personas piden el último cupo el mismo día. <i>Indeterminado</i> no es un timeout — es lo que pasa cuando el aliado físico no honra el cupo que la empresa ya contrató. En los dos casos el Oro vuelve completo, y el texto dice qué falló, no que el usuario falló.</figcaption>
+      </figure>
+    </div>
+
+    <div class="card">
+      <figure>
+        <svg viewBox="0 0 520 300" role="img" aria-label="De dónde sale el Oro: la misión produce XP según urgencia, importancia y esfuerzo; el Oro es XP por cero coma cuatro, con tope diario; la XP sube el nivel y el nivel abre catálogo.">
+          <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs>
+          <g stroke="currentColor" fill="none" stroke-width="1.6" marker-end="url(#ar3)" opacity=".55">
+            <path d="M124 62 H176"/>
+            <path d="M300 62 H352"/>
+            <path d="M232 90 V150 H176"/>
+            <path d="M424 90 V150 H352"/>
+            <path d="M124 171 H176"/>
+            <path d="M264 192 V244 H190"/>
+          </g>
+          <g class="dlabel" text-anchor="middle" fill="currentColor">
+            <text x="150" y="30">× multiplicadores</text>
+            <text x="326" y="30">× 0,4</text>
+            <text x="240" y="118" text-anchor="start">acumula</text>
+            <text x="432" y="118" text-anchor="start">gasta</text>
+            <text x="150" y="163">abre</text>
+          </g>
+          <g>
+            <rect x="16" y="42" width="108" height="40" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="70" y="60" class="dname" text-anchor="middle">Misión</text>
+            <text x="70" y="74" class="dsub" text-anchor="middle">urg · imp · esfuerzo</text>
+
+            <rect x="176" y="42" width="124" height="40" fill="var(--xp-bg)" stroke="var(--xp-line)"/>
+            <text x="238" y="60" class="dname" text-anchor="middle" fill="var(--xp)">XP</text>
+            <text x="238" y="74" class="dsub" text-anchor="middle" fill="var(--xp)">base 40 · solo sube</text>
+
+            <rect x="352" y="42" width="152" height="40" fill="var(--gold-bg)" stroke="var(--gold-line)"/>
+            <text x="428" y="60" class="dname" text-anchor="middle" fill="var(--gold-ink)">Oro</text>
+            <text x="428" y="74" class="dsub" text-anchor="middle" fill="var(--gold-ink)">tope 150 al día</text>
+
+            <rect x="16" y="150" width="108" height="42" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="70" y="170" class="dname" text-anchor="middle">Nivel</text>
+            <text x="70" y="184" class="dsub" text-anchor="middle">y rango</text>
+
+            <rect x="176" y="150" width="176" height="42" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="264" y="170" class="dname" text-anchor="middle">Catálogo abierto</text>
+            <text x="264" y="184" class="dsub" text-anchor="middle">qué puedes pedir</text>
+
+            <rect x="190" y="224" width="180" height="42" fill="var(--ok-bg)" stroke="var(--ok-line)"/>
+            <text x="280" y="244" class="dname" text-anchor="middle" fill="var(--ok)">Cupo</text>
+            <text x="280" y="258" class="dsub" text-anchor="middle" fill="var(--ok)">lo que la empresa contrató</text>
+          </g>
+          <text x="16" y="290" class="dlabel" fill="var(--ink-3)">El Oro nunca sale del sistema: se convierte en cupo, no en plata.</text>
+        </svg>
+        <figcaption><b>De dónde sale el Oro.</b> Toda la economía cabe en dos multiplicaciones publicadas en pantalla. Lo que impide que esto se vuelva un salario en la sombra es el último bloque: el Oro solo se cambia por cupos que la empresa ya contrató, nunca por dinero.</figcaption>
+      </figure>
+    </div>
+
+    <div class="card">
+      <figure>
+        <svg viewBox="0 0 520 300" role="img" aria-label="Qué abre un beneficio: cuatro condiciones independientes — nivel personal, medalla de equipo, zona y cupo — que se combinan para decidir si un beneficio se puede pedir.">
+          <defs><marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs>
+          <g stroke="currentColor" fill="none" stroke-width="1.6" marker-end="url(#ar4)" opacity=".55">
+            <path d="M186 42 H236 V128 H272"/>
+            <path d="M186 100 H236 V128 H272"/>
+            <path d="M186 158 H236 V128 H272"/>
+            <path d="M186 216 H236 V128 H272"/>
+            <path d="M400 128 H448"/>
+          </g>
+          <g>
+            <rect x="16" y="24" width="170" height="36" fill="var(--xp-bg)" stroke="var(--xp-line)"/>
+            <text x="101" y="47" class="dname" text-anchor="middle" fill="var(--xp)">Tu nivel</text>
+
+            <rect x="16" y="82" width="170" height="36" fill="var(--xp-bg)" stroke="var(--xp-line)"/>
+            <text x="101" y="105" class="dname" text-anchor="middle" fill="var(--xp)">Medalla del equipo</text>
+
+            <rect x="16" y="140" width="170" height="36" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="101" y="163" class="dname" text-anchor="middle">Tu zona</text>
+
+            <rect x="16" y="198" width="170" height="36" fill="var(--gold-bg)" stroke="var(--gold-line)"/>
+            <text x="101" y="221" class="dname" text-anchor="middle" fill="var(--gold-ink)">Cupo que queda</text>
+
+            <rect x="272" y="104" width="128" height="48" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="336" y="124" class="dname" text-anchor="middle">¿Se puede</text>
+            <text x="336" y="142" class="dname" text-anchor="middle">pedir?</text>
+
+            <rect x="448" y="108" width="56" height="40" fill="var(--ok-bg)" stroke="var(--ok-line)"/>
+            <text x="476" y="133" class="dname" text-anchor="middle" fill="var(--ok)">Sí</text>
+          </g>
+          <g class="dlabel" fill="currentColor">
+            <text x="16" y="266">Si falla una sola condición el beneficio igual se ve,</text>
+            <text x="16" y="282">con el motivo exacto escrito encima. Nunca desaparece.</text>
+          </g>
+        </svg>
+        <figcaption><b>Qué abre un beneficio.</b> Cuatro condiciones independientes, y una regla que las gobierna a todas: <b>nada se esconde</b>. Un beneficio bloqueado se ve igual, con su precio y con la razón por la que está cerrado. Esconderlo convertiría el catálogo en una caja de sorpresas, y una economía no puede serlo.</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <div class="sec-h"><h2>Qué se apaga y qué no</h2><span class="sub">El opt-out, en la práctica</span></div>
+  <div class="cols">
+    <div class="card">
+      <h3 style="color:var(--risk)">Se apaga</h3>
+      <ul class="lst">
+        <li><span class="m" style="color:var(--risk)">—</span><span>XP, niveles y rangos</span></li>
+        <li><span class="m" style="color:var(--risk)">—</span><span>Oro nuevo (el acumulado queda intacto)</span></li>
+        <li><span class="m" style="color:var(--risk)">—</span><span>Trofeos y medallas de equipo</span></li>
+        <li><span class="m" style="color:var(--risk)">—</span><span>Todas las tablas: sales del ranking</span></li>
+        <li><span class="m" style="color:var(--risk)">—</span><span>Rachas y avisos de juego</span></li>
+        <li><span class="m" style="color:var(--risk)">—</span><span>Dos de las cinco pestañas de la app</span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--ok)">Sigue igual</h3>
+      <ul class="lst">
+        <li><span class="m" style="color:var(--ok)">+</span><span>Misiones, fechas y asignaciones</span></li>
+        <li><span class="m" style="color:var(--ok)">+</span><span>Quién está metido en cada misión</span></li>
+        <li><span class="m" style="color:var(--ok)">+</span><span>Los hilos de mensajes completos</span></li>
+        <li><span class="m" style="color:var(--ok)">+</span><span>Tu historial de trabajo</span></li>
+        <li><span class="m" style="color:var(--ok)">+</span><span>Los beneficios que ya pediste</span></li>
+        <li><span class="m" style="color:var(--ok)">+</span><span>Tu saldo de Oro: lo puedes gastar, y vence a los 90 días como el de todos</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="note gold" style="margin-top:12px"><b>Por qué esto es una decisión de producto y no una casilla.</b> «Participación voluntaria» es el reclamo más fuerte que podemos hacer, y es el único que no depende de terceros. Si el interruptor no cambia la app de verdad, el reclamo se cae en la primera demo. Por eso apagarlo cambia la navegación, no solo unos números.</div>
+
+  <div class="sec-h" style="margin-top:40px"><h2>Datos operativos por tenant</h2><span class="sub">Añadido al conectar el backend — ver nota abajo</span></div>
+  <div class="note sync" style="margin-bottom:14px">
+    <b>Esta sección no la diseñó el PD.</b> Las dos mitades de arriba (mapa del código, mecanismos) son el
+    diseño original de esta página. LVL-013 §4 esperaba que <code>levelop-interno.html</code> fuera un
+    panel de datos (usuarios con nombre, gate de lanzamiento, canjes agregados) — pero el archivo que
+    existe hoy nunca tuvo eso: es un ensayo de arquitectura, sin login ni datos de tenant. Los tres
+    endpoints de <code>interno.controller.ts</code> (<code>/interno/usuarios</code>,
+    <code>/interno/gate-lanzamiento</code>, <code>/interno/canjes-agregados</code>) sí existen y sí
+    funcionan — así que en vez de dejarlos sin ninguna superficie, agrego esta sección mínima con datos
+    100% reales. Es una tabla, no un diseño: cuando el PD tenga tiempo, esto se reemplaza por lo que él
+    defina. Reportado a Alim como hallazgo, no decidido en solitario.
+  </div>
+  <div id="internoAuth"></div>
+  <div class="hide" id="internoApp">
+    <div class="row g8" style="margin-bottom:14px; gap:12px">
+      <div class="field" style="min-width:220px"><label>Tenant</label><select id="filtroTenant"></select></div>
+      <button class="btn" id="internoLogout" style="align-self:flex-end">Salir</button>
+    </div>
+    <div class="tiles" id="internoTiles"><div class="cargando">Cargando…</div></div>
+
+    <!-- 16/09/26 — alta de empresas. Es el arranque del onboarding real:
+         Levelop crea la empresa y le manda al dueño un link de invitación
+         con rol administrador; él pone su contraseña, nunca nosotros. -->
+    <div class="sec-h"><h2 style="font-size:16px">Empresas</h2><span class="sub">Alta de clientes. Cada empresa nace con una invitación de administrador para su dueño/gerente</span></div>
+    <div class="card" style="margin-bottom:12px">
+      <form class="auth-f" id="tenantForm" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; align-items:end">
+        <div class="field"><label>Nombre de la empresa</label><input id="tNombre" required minlength="2" placeholder="Inversiones Demo C.A."></div>
+        <div class="field"><label>RIF (opcional)</label><input id="tRif" placeholder="J-12345678-9"></div>
+        <div class="field"><label>Zona por defecto</label><input id="tZona" required minlength="2" placeholder="Caracas"></div>
+        <div class="field"><label>Correo del administrador</label><input id="tAdmin" type="email" required placeholder="dueno@empresa.com"></div>
+        <button class="btn gold" id="tCrear" type="submit">Crear empresa + invitación</button>
+      </form>
+      <div class="auth-err hide" id="tError" style="margin-top:10px"></div>
+      <div id="tLinkBox" class="hide" style="margin-top:12px">
+        <div class="field"><label>Link de administrador — compártelo con el cliente</label><input id="tLink" readonly onclick="this.select()"></div>
+        <div class="sub" style="margin-top:6px">Vence en 14 días y sirve una vez. El cliente lo abre, escribe su nombre y elige su contraseña. Al entrar ve el BackOffice de gerencia (rol administrador) y desde ahí invita a su gente.</div>
+      </div>
+    </div>
+    <div class="tbl-wrap" style="margin-bottom:18px"><table id="tblTenants"></table></div>
+
+    <div class="sec-h"><h2 style="font-size:16px">Usuarios</h2><span class="sub">v_resumen_usuario_interno — el único lugar del sistema con nombre + desempeño en la misma fila</span></div>
+    <div class="tbl-wrap"><table id="tblUsuarios"></table></div>
+    <div class="sec-h"><h2 style="font-size:16px">Canjes agregados</h2><span class="sub">Solo estado CONFIRMADO, agrupado por familia y mes</span></div>
+    <div class="tbl-wrap"><table id="tblCanjes"></table></div>
+  </div>
+
+  <div class="note" style="margin-top:22px">Prototipo MVP · Levelop! v0.3 · El mapa del código se regenera con <span class="num">graphify update .</span> sobre las fuentes del prototipo. Los datos del producto son de ejemplo.</div>
+</main>
+<div id="tip"></div>
+<div class="toasts" id="toasts"></div>
+
+<script src="levelop-config.js"></script>
+<script src="levelop-api.js"></script>
+<script>
+
+const G = {"nodes":[{"id":"app_source_cerrarmodal","l":"cerrarModal()","c":0,"cn":"render · App","f":"app-source.js","loc":"L1124","d":2,"x":552.3,"y":154.3},{"id":"app_source_completar","l":"completar()","c":0,"cn":"render · App","f":"app-source.js","loc":"L1129","d":4,"x":500.0,"y":28.0},{"id":"app_source_contarhasta","l":"contarHasta()","c":0,"cn":"render · App","f":"app-source.js","loc":"L406","d":1,"x":447.7,"y":154.3},{"id":"app_source_pedir","l":"pedir()","c":0,"cn":"render · App","f":"app-source.js","loc":"L1150","d":3,"x":552.3,"y":49.7},{"id":"app_source_pintarchrome","l":"pintarChrome()","c":0,"cn":"render · App","f":"app-source.js","loc":"L418","d":1,"x":426.0,"y":102.0},{"id":"app_source_pintarhud","l":"pintarHud()","c":0,"cn":"render · App","f":"app-source.js","loc":"L422","d":3,"x":574.0,"y":102.0},{"id":"app_source_pintarnav","l":"pintarNav()","c":0,"cn":"render · App","f":"app-source.js","loc":"L393","d":1,"x":447.7,"y":49.7},{"id":"app_source_render","l":"render()","c":0,"cn":"render · App","f":"app-source.js","loc":"L1117","d":5,"x":500.0,"y":102.0},{"id":"app_source_toast","l":"toast()","c":0,"cn":"render · App","f":"app-source.js","loc":"L359","d":2,"x":500.0,"y":176.0},{"id":"app_source_gateabierto","l":"gateAbierto()","c":1,"cn":"nivelDe","f":"app-source.js","loc":"L367","d":2,"x":810.3,"y":232.6},{"id":"app_source_gatetexto","l":"gateTexto()","c":1,"cn":"nivelDe","f":"app-source.js","loc":"L373","d":1,"x":705.7,"y":232.6},{"id":"app_source_meter","l":"meter()","c":1,"cn":"nivelDe","f":"app-source.js","loc":"L353","d":5,"x":758.0,"y":106.3},{"id":"app_source_misionesfiltradas","l":"misionesFiltradas()","c":1,"cn":"nivelDe","f":"app-source.js","loc":"L556","d":1,"x":684.0,"y":180.3},{"id":"app_source_modaltrofeo","l":"modalTrofeo()","c":1,"cn":"nivelDe","f":"app-source.js","loc":"L1050","d":1,"x":705.7,"y":128.0},{"id":"app_source_nivelde","l":"nivelDe()","c":1,"cn":"nivelDe","f":"app-source.js","loc":"L163","d":7,"x":758.0,"y":180.3},{"id":"app_source_vistamisiones","l":"vistaMisiones()","c":1,"cn":"nivelDe","f":"app-source.js","loc":"L584","d":4,"x":810.3,"y":128.0},{"id":"app_source_vistaperfil","l":"vistaPerfil()","c":1,"cn":"nivelDe","f":"app-source.js","loc":"L935","d":2,"x":758.0,"y":254.3},{"id":"app_source_vistatienda","l":"vistaTienda()","c":1,"cn":"nivelDe","f":"app-source.js","loc":"L714","d":4,"x":832.0,"y":180.3},{"id":"app_source_abrirmodal","l":"abrirModal()","c":2,"cn":"abrirModal","f":"app-source.js","loc":"L1123","d":0,"x":821.7,"y":356.3},{"id":"app_source_modalavisos","l":"modalAvisos()","c":2,"cn":"abrirModal","f":"app-source.js","loc":"L1070","d":0,"x":821.7,"y":282.3},{"id":"app_source_modalnueva","l":"modalNueva()","c":2,"cn":"abrirModal","f":"app-source.js","loc":"L1088","d":0,"x":885.8,"y":319.3},{"id":"app_source_modalpedir","l":"modalPedir()","c":2,"cn":"abrirModal","f":"app-source.js","loc":"L779","d":0,"x":885.8,"y":393.3},{"id":"app_source_modalreglas","l":"modalReglas()","c":2,"cn":"abrirModal","f":"app-source.js","loc":"L801","d":0,"x":821.7,"y":430.3},{"id":"app_source_modalzona","l":"modalZona()","c":2,"cn":"abrirModal","f":"app-source.js","loc":"L825","d":0,"x":757.6,"y":393.3},{"id":"app_source_previewnueva","l":"previewNueva()","c":2,"cn":"abrirModal","f":"app-source.js","loc":"L1284","d":0,"x":757.6,"y":319.3},{"id":"backoffice_source_barrasapiladas","l":"barrasApiladas()","c":3,"cn":"render · BackOffice","f":"backoffice-source.js","loc":"L146","d":2,"x":713.6,"y":474.5},{"id":"backoffice_source_barrashorizontales","l":"barrasHorizontales()","c":3,"cn":"render · BackOffice","f":"backoffice-source.js","loc":"L130","d":2,"x":686.7,"y":557.3},{"id":"backoffice_source_lineas","l":"lineas()","c":3,"cn":"render · BackOffice","f":"backoffice-source.js","loc":"L168","d":2,"x":599.7,"y":557.3},{"id":"backoffice_source_mostrartip","l":"mostrarTip()","c":3,"cn":"render · BackOffice","f":"backoffice-source.js","loc":"L118","d":3,"x":643.2,"y":423.4},{"id":"backoffice_source_pintartabla","l":"pintarTabla()","c":3,"cn":"render · BackOffice","f":"backoffice-source.js","loc":"L219","d":1,"x":572.8,"y":474.5},{"id":"backoffice_source_render","l":"render()","c":3,"cn":"render · BackOffice","f":"backoffice-source.js","loc":"L241","d":4,"x":643.2,"y":497.4},{"id":"app_source_alt","l":"alt()","c":4,"cn":"vistaRanking","f":"app-source.js","loc":"L864","d":1,"x":414.8,"y":497.4},{"id":"app_source_filarank","l":"filaRank()","c":4,"cn":"vistaRanking","f":"app-source.js","loc":"L856","d":1,"x":356.8,"y":555.4},{"id":"app_source_tablaordenada","l":"tablaOrdenada()","c":4,"cn":"vistaRanking","f":"app-source.js","loc":"L851","d":1,"x":298.8,"y":497.4},{"id":"app_source_vistaranking","l":"vistaRanking()","c":4,"cn":"vistaRanking","f":"app-source.js","loc":"L877","d":4,"x":356.8,"y":439.4},{"id":"app_source_detallemision","l":"detalleMision()","c":5,"cn":"restante","f":"app-source.js","loc":"L627","d":1,"x":135.8,"y":380.8},{"id":"app_source_restante","l":"restante()","c":5,"cn":"restante","f":"app-source.js","loc":"L335","d":3,"x":178.3,"y":307.3},{"id":"app_source_tarjetamision","l":"tarjetaMision()","c":5,"cn":"restante","f":"app-source.js","loc":"L563","d":2,"x":220.7,"y":380.8},{"id":"app_source_selectorperiodo","l":"selectorPeriodo()","c":6,"cn":"vistaInicio","f":"app-source.js","loc":"L436","d":1,"x":284.4,"y":204.8},{"id":"app_source_vistainicio","l":"vistaInicio()","c":6,"cn":"vistaInicio","f":"app-source.js","loc":"L447","d":4,"x":242.0,"y":131.3},{"id":"app_source_widget","l":"widget()","c":6,"cn":"vistaInicio","f":"app-source.js","loc":"L440","d":1,"x":199.6,"y":204.8}],"links":[{"s":"app_source_completar","t":"app_source_cerrarmodal","r":"calls","cross":false,"inf":false},{"s":"app_source_completar","t":"app_source_toast","r":"calls","cross":false,"inf":false},{"s":"app_source_completar","t":"app_source_nivelde","r":"calls","cross":true,"inf":false},{"s":"app_source_completar","t":"app_source_render","r":"calls","cross":false,"inf":false},{"s":"app_source_detallemision","t":"app_source_restante","r":"calls","cross":false,"inf":false},{"s":"app_source_gateabierto","t":"app_source_nivelde","r":"calls","cross":false,"inf":false},{"s":"app_source_modaltrofeo","t":"app_source_meter","r":"calls","cross":false,"inf":false},{"s":"app_source_pedir","t":"app_source_cerrarmodal","r":"calls","cross":false,"inf":false},{"s":"app_source_pedir","t":"app_source_toast","r":"calls","cross":false,"inf":false},{"s":"app_source_pedir","t":"app_source_render","r":"calls","cross":false,"inf":false},{"s":"app_source_pintarhud","t":"app_source_nivelde","r":"calls","cross":true,"inf":false},{"s":"app_source_pintarhud","t":"app_source_contarhasta","r":"calls","cross":false,"inf":false},{"s":"app_source_render","t":"app_source_pintarchrome","r":"calls","cross":false,"inf":false},{"s":"app_source_render","t":"app_source_pintarhud","r":"calls","cross":false,"inf":false},{"s":"app_source_render","t":"app_source_pintarnav","r":"calls","cross":false,"inf":false},{"s":"app_source_tarjetamision","t":"app_source_restante","r":"calls","cross":false,"inf":false},{"s":"app_source_vistainicio","t":"app_source_nivelde","r":"calls","cross":true,"inf":false},{"s":"app_source_vistainicio","t":"app_source_restante","r":"calls","cross":true,"inf":false},{"s":"app_source_vistainicio","t":"app_source_selectorperiodo","r":"calls","cross":false,"inf":false},{"s":"app_source_vistainicio","t":"app_source_widget","r":"calls","cross":false,"inf":false},{"s":"app_source_vistamisiones","t":"app_source_misionesfiltradas","r":"calls","cross":false,"inf":false},{"s":"app_source_vistamisiones","t":"app_source_nivelde","r":"calls","cross":false,"inf":false},{"s":"app_source_vistamisiones","t":"app_source_meter","r":"calls","cross":false,"inf":false},{"s":"app_source_vistaperfil","t":"app_source_nivelde","r":"calls","cross":false,"inf":false},{"s":"app_source_vistaperfil","t":"app_source_meter","r":"calls","cross":false,"inf":false},{"s":"app_source_vistaranking","t":"app_source_tablaordenada","r":"calls","cross":false,"inf":false},{"s":"app_source_vistaranking","t":"app_source_meter","r":"calls","cross":true,"inf":false},{"s":"app_source_vistaranking","t":"app_source_filarank","r":"calls","cross":false,"inf":false},{"s":"app_source_vistaranking","t":"app_source_alt","r":"calls","cross":false,"inf":false},{"s":"app_source_vistatienda","t":"app_source_nivelde","r":"calls","cross":false,"inf":false},{"s":"app_source_vistatienda","t":"app_source_gateabierto","r":"calls","cross":false,"inf":false},{"s":"app_source_vistatienda","t":"app_source_meter","r":"calls","cross":false,"inf":false},{"s":"app_source_vistatienda","t":"app_source_gatetexto","r":"calls","cross":false,"inf":false},{"s":"backoffice_source_barrasapiladas","t":"backoffice_source_mostrartip","r":"calls","cross":false,"inf":false},{"s":"backoffice_source_barrashorizontales","t":"backoffice_source_mostrartip","r":"calls","cross":false,"inf":false},{"s":"backoffice_source_lineas","t":"backoffice_source_mostrartip","r":"calls","cross":false,"inf":false},{"s":"backoffice_source_render","t":"backoffice_source_lineas","r":"calls","cross":false,"inf":false},{"s":"backoffice_source_render","t":"backoffice_source_barrashorizontales","r":"calls","cross":false,"inf":false},{"s":"backoffice_source_render","t":"backoffice_source_barrasapiladas","r":"calls","cross":false,"inf":false},{"s":"backoffice_source_render","t":"backoffice_source_pintartabla","r":"calls","cross":false,"inf":false},{"s":"app_source_vistamisiones","t":"app_source_tarjetamision","r":"indirect_call","cross":true,"inf":true}],"comms":[{"c":0,"n":"render · App","x":500.0,"y":102.0,"count":9,"r":74},{"c":1,"n":"nivelDe","x":758.0,"y":180.3,"count":9,"r":74},{"c":2,"n":"abrirModal","x":821.7,"y":356.3,"count":7,"r":74},{"c":3,"n":"render · BackOffice","x":643.2,"y":497.4,"count":6,"r":74},{"c":4,"n":"vistaRanking","x":356.8,"y":497.4,"count":4,"r":58},{"c":5,"n":"restante","x":178.3,"y":356.3,"count":3,"r":49},{"c":6,"n":"vistaInicio","x":242.0,"y":180.3,"count":3,"r":49}],"stats":{"n":41,"e":41,"c":7}};
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+const byId = {};
+G.nodes.forEach(n=>byId[n.id]=n);
+const vecinos = {};
+G.links.forEach(l=>{
+  (vecinos[l.s] = vecinos[l.s]||[]).push({id:l.t, r:l.r, dir:"→"});
+  (vecinos[l.t] = vecinos[l.t]||[]).push({id:l.s, r:l.r, dir:"←"});
+});
+const colorDe = n => n.f.indexOf("backoffice")===0 ? "var(--s2)" : "var(--s1)";
+const radio   = n => Math.min(11, 4.2 + n.d*0.85);
+
+/* ---- tiles ---- */
+const cruces = G.links.filter(l=>l.cross).length;
+$("#tiles").innerHTML = [
+  {l:"Funciones", v:G.stats.n, d:"nodos extraídos del AST"},
+  {l:"Llamadas", v:G.stats.e, d:"entre funciones, del AST"},
+  {l:"Comunidades", v:G.stats.c, d:"detectadas, no agrupadas a mano"},
+  {l:"Costuras", v:cruces, d:"llamadas que cruzan comunidades"}
+].map(t=>`<div class="tile"><div class="l">${t.l}</div><div class="v">${t.v}</div><div class="d">${t.d}</div></div>`).join("");
+
+/* ---- tooltip ---- */
+const tip = $("#tip");
+function mostrarTip(html, e){
+  tip.innerHTML = html; tip.style.opacity = "1";
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if(x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if(y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  tip.style.left = x+"px"; tip.style.top = y+"px";
+}
+const ocultarTip = ()=>{ tip.style.opacity="0"; };
+document.addEventListener("scroll", ocultarTip, true);
+
+/* ---- grafo ---- */
+function pintarGrafo(sel){
+  const conectados = new Set();
+  if(sel){ conectados.add(sel); (vecinos[sel]||[]).forEach(v=>conectados.add(v.id)); }
+  const activo = id => !sel || conectados.has(id);
+
+  const lineas = G.links.map(l=>{
+    const a = byId[l.s], b = byId[l.t];
+    const on = !sel || (conectados.has(l.s) && conectados.has(l.t));
+    const col = l.cross ? "var(--sync)" : "var(--line-strong)";
+    return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${col}"
+      stroke-width="${l.cross?1.5:1}" stroke-dasharray="${l.inf?"4 3":""}"
+      opacity="${on ? (l.cross?.75:.5) : .07}"/>`;
+  }).join("");
+
+  const etiquetas = G.comms.map(c=>`
+    <text x="${c.x}" y="${c.y - c.r - 16}" text-anchor="middle"
+      font-family="var(--mono)" font-size="10.5" letter-spacing="1.4"
+      fill="var(--ink-3)" opacity="${sel?.35:.9}">${esc(c.n.toUpperCase())}</text>`).join("");
+
+  const puntos = G.nodes.map(n=>`
+    <g class="gn" data-id="${n.id}" opacity="${activo(n.id)?1:.13}">
+      <circle cx="${n.x}" cy="${n.y}" r="${radio(n)}" fill="${colorDe(n)}"
+        stroke="var(--surface)" stroke-width="2"/>
+      ${(n.d>=4||n.id===sel)?`<text x="${n.x}" y="${n.y + radio(n) + 11}" text-anchor="middle"
+        font-family="var(--mono)" font-size="9.5" fill="var(--ink-2)">${esc(n.l.replace("()",""))}</text>`:""}
+    </g>`).join("");
+
+  $("#grafo").innerHTML = `<svg viewBox="0 0 1000 660" role="img"
+    aria-label="Mapa de llamadas entre las ${G.stats.n} funciones del prototipo, agrupadas en ${G.stats.c} comunidades">
+    <g>${lineas}</g>${etiquetas}<g>${puntos}</g></svg>`;
+
+  $("#grafo").querySelectorAll(".gn").forEach(g=>{
+    const n = byId[g.dataset.id];
+    g.addEventListener("mousemove", e=>mostrarTip(
+      `<div class="tk">${esc(n.l)}</div>
+       <div class="tr"><span>Comunidad</span><b>${esc(n.cn)}</b></div>
+       <div class="tr"><span>Conexiones</span><b>${n.d}</b></div>
+       <div class="tr"><span>Archivo</span><b>${esc(n.f)} ${esc(n.loc)}</b></div>`, e));
+    g.addEventListener("mouseleave", ocultarTip);
+    g.addEventListener("click", ()=>{ pintarGrafo(n.id===sel ? null : n.id); });
+  });
+  pintarPanel(sel);
+}
+
+function pintarPanel(sel){
+  if(!sel){
+    const top = [...G.nodes].sort((a,b)=>b.d-a.d).slice(0,8);
+    const puentes = G.links.filter(l=>l.cross).slice(0,6);
+    $("#panel").innerHTML = `
+      <h3>Las piezas centrales</h3>
+      <div class="meta">Las funciones con más conexiones. Si una se rompe, se nota en todos lados.</div>
+      <div class="ranklist">${top.map(n=>
+        `<div><span>${esc(n.l)}</span><span class="num">${n.d}</span></div>`).join("")}</div>
+      <div class="meta" style="margin:18px 0 8px">Las costuras</div>
+      <div class="ranklist">${puentes.map(l=>
+        `<div><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(byId[l.s].l)} → ${esc(byId[l.t].l)}</span></div>`).join("")}</div>
+      <div class="note" style="margin-top:16px">Toca una burbuja del mapa para aislar sus conexiones.</div>`;
+    return;
+  }
+  const n = byId[sel], vs = (vecinos[sel]||[]);
+  $("#panel").innerHTML = `
+    <h3>${esc(n.l)}</h3>
+    <div class="meta">${esc(n.cn)} · ${esc(n.f)} ${esc(n.loc)} · ${n.d} conexiones</div>
+    ${vs.length ? vs.map(v=>`<div class="nb"><b>${v.dir} ${esc(byId[v.id].l)}</b><span>${esc(v.r)}</span></div>`).join("")
+                : `<div class="note">Sin conexiones registradas.</div>`}
+    <button class="chip" style="margin-top:14px; cursor:pointer" id="limpiar">Ver todo el mapa</button>`;
+  const b = $("#limpiar");
+  if(b) b.addEventListener("click", ()=>pintarGrafo(null));
+}
+
+pintarGrafo(null);
+
+/* ---- tema ---- */
+$("#themebtn").innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor" stroke="none"/></svg>`;
+$("#themebtn").addEventListener("click", ()=>{
+  const cur = document.documentElement.getAttribute("data-theme")||"dark";
+  const nuevo = cur==="dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", nuevo);
+  try{ localStorage.setItem("lvl-tema", nuevo); }catch(err){}
+});
+})();
+</script>
+
+<script>
+/* =========================================================
+   LEVELOP! — sección «Datos operativos por tenant», conectada
+   al backend real (15/09/26). IIFE aparte de la de arriba a
+   propósito: la de arriba es 100% del PD (el mapa del código y
+   los cuatro diagramas) y no se toca. Esto es nuevo.
+
+   POR QUÉ EXISTE ESTO — hallazgo real, no cosmético:
+   LVL-013 §4 (escrito 14/09) daba por hecho que este archivo
+   era un panel de datos: "Usuarios por tenant, con nombre",
+   "Gate de lanzamiento", "Canjes agregados", con su propio login
+   (`POST /auth/interno/login`, InternalUser, no Membership). Al
+   abrir el archivo real para conectarlo, no había nada de eso:
+   es "Levelop por dentro", un ensayo de arquitectura (grafo de
+   llamadas extraído con graphify + cuatro diagramas de los
+   mecanismos del producto), sin una sola línea de login ni de
+   datos de tenant. Las dos cosas son ciertas a la vez: el
+   archivo que el PD entregó bajo ese nombre nunca fue el panel
+   que LVL-013 describía, y los tres endpoints de
+   `interno.controller.ts` sí están construidos y verificados.
+
+   Reportado a Alim como hallazgo. Mientras se resuelve qué
+   superficie visual le corresponde a esto, agrego la tabla más
+   simple y honesta posible con datos reales — nunca inventados —
+   para que los tres endpoints tengan al menos una forma de
+   verse, sin fingir que esto es el diseño final del PD.
+   ========================================================= */
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const fmt = n => Number(n||0).toLocaleString("es-VE");
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const idCorto = id => String(id||"").slice(0,8);
+const FAMILIAS = {tiempo:"Tiempo", impulsos:"Impulsos", consumo:"Consumo", aliados:"Aliados"};
+
+const DI = { gates:[], usuarios:[], canjes:[], filtro:"" };
+
+function toast(tipo, t, d, ms=6000){
+  const el=document.createElement("div");
+  el.className="toast "+tipo;
+  el.innerHTML=`<div><div class="tt">${esc(t)}</div><div class="td">${esc(d)}</div></div>`;
+  document.getElementById("toasts").appendChild(el);
+  setTimeout(()=>{ el.style.opacity="0"; el.style.transition="opacity .3s"; setTimeout(()=>el.remove(),320); }, ms);
+}
+function avisarError(e, donde){
+  console.error(donde, e);
+  if(e && e.status===401) return toast("risk","Se cerró tu sesión","Vuelve a entrar.");
+  toast("risk","No se pudo conectar", (e&&e.message)?String(e.message):"Revisa que el backend esté corriendo.");
+}
+
+const IA = $("#internoAuth");
+function pintarLoginInterno(error){
+  IA.innerHTML = `<div class="card auth-inline">
+    <h3>Entrar como equipo Levelop</h3>
+    <p class="sub" style="margin-top:4px">Cuenta interna (InternalUser), no una membresía de tenant.</p>
+    ${error?`<div class="auth-err" style="margin-top:12px">${esc(error)}</div>`:""}
+    <form class="auth-f" id="iform">
+      <div class="field"><label>Correo</label><input id="iemail" type="email" required autocomplete="username"></div>
+      <div class="field"><label>Contraseña</label><input id="ipass" type="password" required autocomplete="current-password" minlength="8"></div>
+      <button class="btn gold" id="ibtn" type="submit">Entrar</button>
+    </form>
+  </div>`;
+  $("#iform").addEventListener("submit", async ev=>{
+    ev.preventDefault();
+    const btn = $("#ibtn"); btn.disabled = true; btn.textContent = "Entrando…";
+    try{
+      await LevelopAPI.loginInterno($("#iemail").value.trim(), $("#ipass").value);
+      entrarInterno();
+    }catch(err){
+      btn.disabled = false; btn.textContent = "Entrar";
+      pintarLoginInterno(err && err.status===401 ? "Correo o contraseña incorrectos." : (err&&err.message) || "No se pudo conectar con el servidor.");
+    }
+  });
+}
+function entrarInterno(){
+  IA.classList.add("hide"); IA.innerHTML = "";
+  $("#internoApp").classList.remove("hide");
+  cargarInterno();
+}
+
+async function cargarInterno(){
+  $("#internoTiles").innerHTML = `<div class="cargando">Cargando…</div>`;
+  try{
+    DI.gates = await LevelopAPI.interno.gateLanzamiento() || [];
+    pintarSelectorTenant();
+    await cargarFiltrado();
+  }catch(e){ avisarError(e, "gateLanzamiento"); $("#internoTiles").innerHTML=""; }
+  await cargarTenants();
+}
+
+/* ---- Empresas (16/09) ---- */
+DI.tenants = [];
+async function cargarTenants(){
+  const t = $("#tblTenants");
+  try{
+    DI.tenants = await LevelopAPI.interno.tenants() || [];
+  }catch(e){
+    t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">${e && e.status===404 ? "El backend no tiene todavía la ruta de empresas — falta correr la migración <b>InvitacionesYOnboarding</b> y reiniciar." : esc((e&&e.message)||"No se pudo cargar.")}</td></tr></tbody>`;
+    return;
+  }
+  if(!DI.tenants.length){ t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">Sin empresas todavía.</td></tr></tbody>`; return; }
+  t.innerHTML = `<thead><tr><th>Empresa</th><th>RIF</th><th>Zona</th><th>Estado</th><th class="n">Activos</th><th class="n">Invitaciones vivas</th><th>Creada</th><th></th></tr></thead>
+    <tbody>${DI.tenants.map(x=>`<tr>
+      <td>${esc(x.nombre)}</td><td class="sub">${esc(x.rif||"—")}</td><td>${esc(x.zonaDefault)}</td>
+      <td><span class="chip ${x.lanzadoAt?"ok":""}">${x.lanzadoAt?"Lanzada":esc(x.estado)}</span></td>
+      <td class="n">${fmt(x.miembrosActivos)}</td><td class="n">${fmt(x.invitacionesVigentes)}</td>
+      <td class="sub">${esc(new Date(x.createdAt).toLocaleDateString("es-VE"))}</td>
+      <td><button class="btn" data-ver-inv="${esc(x.id)}">Ver invitaciones</button></td>
+    </tr>`).join("")}</tbody>`;
+}
+$("#tenantForm").addEventListener("submit", async ev=>{
+  ev.preventDefault();
+  const b = $("#tCrear"), err = $("#tError"); err.classList.add("hide");
+  const dto = { nombre: $("#tNombre").value.trim(), zonaDefault: $("#tZona").value.trim(), adminEmail: $("#tAdmin").value.trim() };
+  if($("#tRif").value.trim()) dto.rif = $("#tRif").value.trim();
+  b.disabled = true; b.textContent = "Creando…";
+  try{
+    const r = await LevelopAPI.interno.crearTenant(dto);
+    $("#tLink").value = LevelopAPI.linkInvitacion(r.invitacion.token);
+    $("#tLinkBox").classList.remove("hide");
+    toast("ok", `Empresa creada: ${r.tenant.nombre}`, `Invitación de administrador para ${r.invitacion.email}. Copia el link de abajo.`);
+    $("#tenantForm").reset();
+    await cargarTenants();
+    DI.gates = await LevelopAPI.interno.gateLanzamiento() || []; pintarSelectorTenant();
+  }catch(e){
+    err.classList.remove("hide"); err.textContent = (e&&e.message)||"No se pudo crear.";
+  }finally{ b.disabled = false; b.textContent = "Crear empresa + invitación"; }
+});
+document.addEventListener("click", async e=>{
+  const b = e.target.closest("[data-ver-inv]"); if(!b) return;
+  try{
+    const lista = await LevelopAPI.interno.invitaciones(b.dataset.verInv);
+    const vivas = lista.filter(i=>i.vigente);
+    if(!lista.length) return toast("ok","Sin invitaciones","Esta empresa no tiene invitaciones registradas.");
+    const primera = vivas[0] || lista[0];
+    $("#tLink").value = primera.vigente ? LevelopAPI.linkInvitacion(primera.token) : "(la última invitación ya fue usada o venció)";
+    $("#tLinkBox").classList.remove("hide");
+    toast("ok", `${lista.length} invitación(es), ${vivas.length} viva(s)`, primera.vigente ? `Link de ${primera.email} listo abajo.` : `La de ${primera.email} ${primera.aceptadaAt?"ya fue aceptada":"venció"}.`);
+    $("#tLinkBox").scrollIntoView({behavior:"smooth", block:"center"});
+  }catch(err){ avisarError(err, "invitaciones"); }
+});
+async function cargarFiltrado(){
+  try{
+    const [usuarios, canjes] = await Promise.all([
+      LevelopAPI.interno.usuarios(DI.filtro || undefined),
+      LevelopAPI.interno.canjesAgregados(DI.filtro || undefined),
+    ]);
+    DI.usuarios = Array.isArray(usuarios) ? usuarios : [];
+    DI.canjes = Array.isArray(canjes) ? canjes : [];
+    render();
+  }catch(e){ avisarError(e, "cargarFiltrado"); }
+}
+
+function nombreTenant(id){ const g = DI.gates.find(x=>x.tenantId===id); return g ? g.nombre : idCorto(id); }
+
+function pintarSelectorTenant(){
+  const sel = $("#filtroTenant");
+  sel.innerHTML = `<option value="">Todos los tenants (${DI.gates.length})</option>` +
+    DI.gates.map(g=>`<option value="${esc(g.tenantId)}">${esc(g.nombre)} ${g.lanzado?"· lanzado":"· sin lanzar"}</option>`).join("");
+  sel.value = DI.filtro;
+  // onchange (no addEventListener): se repinta después de crear una empresa, y no queremos dos listeners.
+  sel.onchange = ()=>{ DI.filtro = sel.value; cargarFiltrado(); };
+}
+
+function render(){
+  const lanzados = DI.gates.filter(g=>g.lanzado).length;
+  const oroTotal = DI.canjes.reduce((a,c)=>a+Number(c.oro_total||0),0);
+  const canjesTotal = DI.canjes.reduce((a,c)=>a+Number(c.total||0),0);
+  $("#internoTiles").innerHTML = [
+    {l:"Tenants", v: DI.filtro ? 1 : DI.gates.length, d: DI.filtro ? nombreTenant(DI.filtro) : `${lanzados} lanzados de ${DI.gates.length}`},
+    {l:"Usuarios en la vista", v: fmt(DI.usuarios.length), d:"v_resumen_usuario_interno"},
+    {l:"Canjes confirmados", v: fmt(canjesTotal), d:"agrupado por familia+mes"},
+    {l:"Oro en canjes confirmados", v: fmt(oroTotal), d:"suma de oro_total"}
+  ].map(t=>`<div class="tile"><div class="l">${esc(t.l)}</div><div class="v">${esc(t.v)}</div><div class="d">${esc(t.d)}</div></div>`).join("");
+
+  const tu = $("#tblUsuarios");
+  if(!DI.usuarios.length){ tu.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">Sin usuarios todavía.</td></tr></tbody>`; }
+  else tu.innerHTML = `<thead><tr><th>Nombre</th>${DI.filtro?"":"<th>Tenant</th>"}<th>Área</th><th class="n">Oro disponible</th><th class="n">Oro ganado (año)</th><th class="n">Tareas (año)</th></tr></thead>
+    <tbody>${DI.usuarios.map(u=>`<tr><td>${esc(u.nombre)}</td>${DI.filtro?"":`<td>${esc(nombreTenant(u.tenantId))}</td>`}<td>${esc(idCorto(u.areaId))}</td><td class="n">${fmt(u.oroDisponible)}</td><td class="n">${fmt(u.oroGanadoAnio)}</td><td class="n">${fmt(u.tareasCumplidasAnio)}</td></tr>`).join("")}</tbody>`;
+
+  const tc = $("#tblCanjes");
+  if(!DI.canjes.length){ tc.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">Sin canjes confirmados todavía.</td></tr></tbody>`; }
+  else tc.innerHTML = `<thead><tr><th>Mes</th>${DI.filtro?"":"<th>Tenant</th>"}<th>Familia</th><th class="n">Canjes</th><th class="n">Oro total</th></tr></thead>
+    <tbody>${DI.canjes.map(c=>`<tr><td>${esc(String(c.mes).slice(0,7))}</td>${DI.filtro?"":`<td>${esc(nombreTenant(c.tenantId))}</td>`}<td>${esc(FAMILIAS[c.familia]||c.familia)}</td><td class="n">${fmt(c.total)}</td><td class="n">${fmt(c.oro_total)}</td></tr>`).join("")}</tbody>`;
+}
+
+$("#internoLogout").addEventListener("click", ()=>{ LevelopAPI.logout(); location.reload(); });
+
+(async function arrancarInterno(){
+  if(LevelopAPI.sesion.haySesion() && LevelopAPI.sesion.getTipoSesion()==="interno"){
+    try{ entrarInterno(); return; }catch(e){ /* cae a login */ }
+  }
+  pintarLoginInterno();
+})();
+})();
+</script>

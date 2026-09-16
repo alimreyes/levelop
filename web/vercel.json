@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": false,
+  "rewrites": [
+    { "source": "/app", "destination": "/levelop-mvp.html" },
+    { "source": "/lider", "destination": "/levelop-lider.html" },
+    { "source": "/gerencia", "destination": "/levelop-backoffice.html" },
+    { "source": "/levelop-interno", "destination": "/levelop-interno.html" },
+    { "source": "/levelop-interno/", "destination": "/levelop-interno.html" },
+    { "source": "/levelop-interno/levelop-config.js", "destination": "/levelop-config.js" },
+    { "source": "/levelop-interno/levelop-api.js", "destination": "/levelop-api.js" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ]
+}

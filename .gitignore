@@ -1,0 +1,23 @@
+# --- Sistema ---
+.DS_Store
+Thumbs.db
+
+# --- Dependencias y build ---
+node_modules/
+dist/
+*.tsbuildinfo
+
+# --- SECRETOS: nunca al repositorio ---
+# Contiene DATABASE_URL, las 4 URLs de los roles de Postgres y JWT_SECRET.
+# En producción esas variables viven en Railway, no en un archivo.
+.env
+.env.*
+!.env.example
+
+# --- Vercel (config local del CLI) ---
+.vercel/
+
+# --- Respaldos de base de datos: nunca al repositorio ---
+*.backup
+*.dump
+*.sql.gz

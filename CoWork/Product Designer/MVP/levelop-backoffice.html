@@ -1,0 +1,829 @@
+<title>Levelop BackOffice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quantico:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+
+<script>
+try{ document.documentElement.setAttribute("data-theme", localStorage.getItem("lvl-tema") || "dark"); }
+catch(e){ document.documentElement.setAttribute("data-theme","dark"); }
+</script>
+
+<style>
+/* ---------- TOKENS ---------- */
+:root{
+  --ground:#EAEAE4; --surface:#FFFFFF; --surface-2:#F1F1EB; --surface-3:#DFDFD7;
+  --line:#D0D0C8; --line-strong:#ABABA1;
+  --ink:#0B0B0C; --ink-2:#4A4A47; --ink-3:#7A7A75;
+  --grid:rgba(11,11,12,.055);
+  --gold:#4E6606; --gold-ink:#3C5004; --gold-bg:#E7F7B7; --gold-line:#C4E273; --gold-solid:#C3F03A;
+  --xp:#0B0B0C;   --xp-bg:#E2E2DB;   --xp-line:#BEBEB4;  --xp-solid:#0B0B0C;
+  --ok:#0A6B7A;   --ok-bg:#D7EFF4;   --ok-line:#9BD2DE;
+  --risk:#C0361F; --risk-bg:#FADFD9; --risk-line:#EEAE9F;
+  --sync:#4A38C4; --sync-bg:#E2DEFA; --sync-line:#B4ABF0;
+  /* series — validadas con el validador de paleta (claro, superficie #FFFFFF) */
+  --s1:#6E8F06; --s2:#0090A8; --s3:#5B4ED6; --s4:#C24430; --s5:#1F6FB5; --s6:#B03E7C;
+  --chart-grid:#D0D0C8;
+  --shadow-sm:none;
+  --shadow:4px 4px 0 rgba(11,11,12,.10);
+  --shadow-lg:8px 8px 0 rgba(11,11,12,.18);
+  --cut:0px;
+  --display:'Silkscreen','Courier New',monospace;
+  --body:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --mono:'Space Mono','SFMono-Regular',Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#08080A; --surface:#121215; --surface-2:#1A1A1E; --surface-3:#26262C;
+    --line:#2A2A31; --line-strong:#43434E;
+    --ink:#EDEDE7; --ink-2:#9B9B95; --ink-3:#6A6A66;
+    --grid:rgba(237,237,231,.045);
+    --gold:#C3F03A; --gold-ink:#D6F871; --gold-bg:#2A3607; --gold-line:#4A5F0D; --gold-solid:#C3F03A;
+    --xp:#EDEDE7;   --xp-bg:#26262C;   --xp-line:#43434E;  --xp-solid:#EDEDE7;
+    --ok:#4FD8E8;   --ok-bg:#0A2C33;   --ok-line:#18505C;
+    --risk:#FF6A52; --risk-bg:#331310; --risk-line:#57241D;
+    --sync:#A79AFF; --sync-bg:#1D1846; --sync-line:#332B70;
+    --s1:#7FA30E; --s2:#1E9AAB; --s3:#8078EE; --s4:#E05C48; --s5:#3390D6; --s6:#CB5694;
+    --chart-grid:#2A2A31;
+    --shadow-sm:none;
+    --shadow:4px 4px 0 rgba(0,0,0,.5);
+    --shadow-lg:8px 8px 0 rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#08080A; --surface:#121215; --surface-2:#1A1A1E; --surface-3:#26262C;
+  --line:#2A2A31; --line-strong:#43434E;
+  --ink:#EDEDE7; --ink-2:#9B9B95; --ink-3:#6A6A66;
+  --grid:rgba(237,237,231,.045);
+  --gold:#C3F03A; --gold-ink:#D6F871; --gold-bg:#2A3607; --gold-line:#4A5F0D; --gold-solid:#C3F03A;
+  --xp:#EDEDE7;   --xp-bg:#26262C;   --xp-line:#43434E;  --xp-solid:#EDEDE7;
+  --ok:#4FD8E8;   --ok-bg:#0A2C33;   --ok-line:#18505C;
+  --risk:#FF6A52; --risk-bg:#331310; --risk-line:#57241D;
+  --sync:#A79AFF; --sync-bg:#1D1846; --sync-line:#332B70;
+  --s1:#7FA30E; --s2:#1E9AAB; --s3:#8078EE; --s4:#E05C48; --s5:#3390D6; --s6:#CB5694;
+  --chart-grid:#2A2A31;
+  --shadow-sm:none;
+  --shadow:4px 4px 0 rgba(0,0,0,.5);
+  --shadow-lg:8px 8px 0 rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+body{margin:0; background:var(--ground); color:var(--ink); font-family:var(--body);
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased}
+button{font:inherit; color:inherit; border:0; background:none; cursor:pointer}
+:focus-visible{outline:2px solid var(--xp-solid); outline-offset:2px}
+p{margin:0}
+svg{display:block}
+h1,h2,h3,h4{margin:0; font-family:var(--display); text-wrap:balance}
+h1{font-weight:700; text-transform:uppercase; line-height:1; font-size:40px; letter-spacing:0}
+h2{font-weight:700; text-transform:uppercase; letter-spacing:0; line-height:1.05; font-size:19px}
+h3{font-weight:700; line-height:1.12; font-size:16px}
+.num{font-family:var(--mono); font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+
+.topbar{position:sticky; top:0; z-index:40; background:var(--surface); box-shadow:inset 0 -1px 0 var(--line)}
+.topbar-in{max-width:1320px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.brand{display:flex; align-items:center; gap:8px; font-family:var(--display); font-weight:700;
+  font-size:22px; text-transform:uppercase; line-height:1}
+.brand em{font-style:normal; color:var(--gold)}
+.brand-mark{width:25px; height:25px; display:grid; place-items:center; font-size:13px; font-weight:700;
+  font-family:var(--display); color:var(--ground); background:var(--gold-solid);
+  clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.tag-int{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+  padding:4px 9px; color:var(--risk); background:var(--risk-bg); box-shadow:inset 0 0 0 1px var(--risk-line);
+  clip-path:polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))}
+.spacer{flex:1}
+.wrap{max-width:1320px; margin:0 auto; padding:22px 20px 60px}
+
+.eyebrow{display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:10px;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--ink-3)}
+.eyebrow::after{content:""; width:24px; height:1px; background:var(--line-strong)}
+.sub{color:var(--ink-2); font-size:13px}
+.sec-h{display:flex; align-items:center; gap:12px; margin:28px 0 12px}
+.sec-h h2{flex:none}
+.sec-h .sub{order:3; text-align:right; flex:none; max-width:44%}
+.sec-h::before{content:""; order:2; flex:1; height:1px; background:var(--line); min-width:18px}
+
+.card{background:var(--surface); box-shadow:var(--shadow-sm), inset 0 0 0 1px var(--line); padding:16px 17px;}
+.row{display:flex; align-items:center}
+.g8{gap:8px} .g12{gap:12px}
+.wrapf{flex-wrap:wrap}
+
+.seg{display:inline-flex; background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); padding:3px; gap:2px}
+.seg button{padding:6px 13px; font-family:var(--mono); font-size:11.5px; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--ink-3); white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--ink); color:var(--surface)}
+.seg-sm{flex:none} .seg-sm button{padding:5px 10px; font-size:10.5px}
+.iconbtn{width:33px; height:33px; display:grid; place-items:center; color:var(--ink-3);
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line);
+  clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))}
+.iconbtn svg{width:18px; height:18px}
+.chip{display:inline-flex; align-items:center; gap:5px; padding:3px 9px; font-family:var(--mono); font-size:11px;
+  white-space:nowrap; background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); color:var(--ink-2)}
+.chip.ok{background:var(--ok-bg); box-shadow:inset 0 0 0 1px var(--ok-line); color:var(--ok)}
+.chip.risk{background:var(--risk-bg); box-shadow:inset 0 0 0 1px var(--risk-line); color:var(--risk)}
+.chip.gold{background:var(--gold-bg); box-shadow:inset 0 0 0 1px var(--gold-line); color:var(--gold-ink)}
+.chip.sync{background:var(--sync-bg); box-shadow:inset 0 0 0 1px var(--sync-line); color:var(--sync)}
+.note{padding:11px 13px; font-size:12.5px; line-height:1.5; background:var(--surface-2);
+  box-shadow:inset 0 0 0 1px var(--line); color:var(--ink-2)}
+.note b{color:var(--ink)}
+.note.gold{background:var(--gold-bg); box-shadow:inset 0 0 0 1px var(--gold-line); color:var(--gold-ink)}
+.note.gold b{color:var(--gold-ink)}
+
+/* ---------- TILES ---------- */
+.tiles{display:grid; gap:2px; background:var(--line); border:2px solid var(--line);
+  grid-template-columns:repeat(2,1fr)}
+.tile{background:var(--surface); padding:14px 15px; min-width:0}
+.tile:nth-child(5){grid-column:1 / -1}
+@media(min-width:760px){
+  .tiles{grid-template-columns:repeat(5,1fr)}
+  .tile:nth-child(5){grid-column:auto}
+  .tile .v{font-size:29px}
+}
+@media(min-width:1120px){.tile .v{font-size:40px}}
+.tile .l{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3)}
+.tile .v{font-family:var(--display); font-weight:700; font-size:40px; line-height:.92; margin-top:4px;
+  font-variant-numeric:tabular-nums}
+.tile .d{font-family:var(--mono); font-size:11px; margin-top:5px; color:var(--ink-3)}
+.tile .d.up{color:var(--ok)} .tile .d.down{color:var(--risk)}
+
+/* ---------- GRÁFICOS ---------- */
+.charts{display:grid; gap:12px; grid-template-columns:1fr}
+@media(min-width:1000px){.charts{grid-template-columns:1fr 1fr}}
+.chart-h{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px}
+.chart-h h3{text-transform:uppercase}
+.chart-h .sub{margin-top:3px}
+
+.legend{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:13px}
+.legend span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--ink-2)}
+.legend i{width:11px; height:11px; border-radius:0; display:block}
+
+/* barras horizontales */
+.bars{display:flex; flex-direction:column; gap:9px}
+.bar-row{display:grid; grid-template-columns:104px 1fr auto; gap:11px; align-items:center}
+.bar-row .bl{font-size:12.5px; color:var(--ink-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.bar-track{display:block; height:16px; background:var(--surface-2); position:relative}
+.bar-fill{display:block; height:100%; border-radius:0 4px 4px 0; transition:width .5s cubic-bezier(.2,.8,.25,1)}
+.bar-row .bv{font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums; color:var(--ink);
+  min-width:52px; text-align:right}
+.bar-row .bx{font-family:var(--mono); font-size:10.5px; color:var(--ink-3)}
+
+/* barras apiladas */
+.stack-row{display:grid; grid-template-columns:118px 1fr auto; gap:11px; align-items:center}
+.stack-track{display:flex; gap:2px; height:18px}
+.stack-seg{display:block; transition:width .5s cubic-bezier(.2,.8,.25,1)}
+.stack-seg:last-child{border-radius:0 4px 4px 0}
+
+/* tabla */
+.tbl-wrap{overflow-x:auto; background:var(--surface); box-shadow:inset 0 0 0 1px var(--line);}
+table{border-collapse:collapse; width:100%; min-width:760px}
+th{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);
+  text-align:left; padding:12px 13px; white-space:nowrap; cursor:pointer; user-select:none}
+th:hover{color:var(--ink)}
+th[aria-sort]{color:var(--gold)}
+td{padding:11px 13px; font-size:13px; border-top:1px solid var(--line); white-space:nowrap}
+td.n{font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right}
+th.n{text-align:right}
+tbody tr:hover{background:var(--surface-2)}
+.who{display:flex; align-items:center; gap:9px}
+.av{width:26px; height:26px; flex:none; display:grid; place-items:center; font-family:var(--mono); font-size:9.5px;
+  color:#fff; clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.mini-bar{width:60px; height:6px; background:var(--surface-2); display:inline-block; vertical-align:middle}
+.mini-bar i{display:block; height:100%; border-radius:0 2px 2px 0}
+
+/* tooltip */
+#tip{position:fixed; z-index:90; pointer-events:none; opacity:0; transition:opacity .12s;
+  background:var(--surface); box-shadow:0 18px 40px -18px rgba(0,0,0,.8), inset 0 0 0 1px var(--line-strong);
+  padding:9px 11px; font-size:12.5px; max-width:240px}
+#tip .tk{font-family:var(--display); font-weight:700; font-size:13px; text-transform:uppercase; line-height:1.15}
+#tip .tr{display:flex; justify-content:space-between; gap:14px; font-family:var(--mono); font-size:11.5px;
+  color:var(--ink-2); margin-top:4px}
+#tip .tr b{color:var(--ink); font-weight:500}
+#tip .sw{display:inline-block; width:9px; height:9px; border-radius:0; margin-right:6px}
+
+.hide{display:none !important}
+
+@media (max-width:700px){
+  .sec-h{flex-wrap:wrap}
+  .sec-h .sub{flex:1 0 100%; max-width:100%; text-align:left; order:3}
+}
+
+/* ---------- RETO DE LA EMPRESA ---------- */
+.reto-h{display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap}
+.reto-prem{flex:none; width:74px; height:74px; display:grid; place-items:center; font-size:32px;
+  background:var(--gold-bg); box-shadow:inset 0 0 0 1px var(--gold-line);
+  clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.reto-t{font-family:var(--display); font-weight:700; font-size:20px; text-transform:uppercase; line-height:1.1}
+.prop{background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); padding:14px 15px}
+.prop + .prop{margin-top:9px}
+.prop-t{font-family:var(--display); font-weight:700; font-size:15px; text-transform:uppercase; line-height:1.15}
+.prop-w{font-family:var(--mono); font-size:9.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--gold)}
+.prop-b{font-size:13px; line-height:1.5; color:var(--ink-2); margin-top:8px}
+.prop-b b{color:var(--ink)}
+.gauge{display:flex; gap:2px; margin-top:11px}
+.gauge i{flex:1; height:8px; background:var(--surface-3)}
+.gauge i.on{background:var(--gold-solid)}
+.gauge i.hot{background:var(--risk)}
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 14px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); color:var(--ink); cursor:pointer}
+.btn.gold{background:var(--gold-solid); color:#0B0B0C; box-shadow:none; font-weight:700}
+.btn.ghost{background:none}
+
+/* ---------- MODALES ---------- */
+.veil{position:fixed; inset:0; z-index:100; background:rgba(0,0,0,.62); display:grid; place-items:center;
+  padding:18px; overflow:auto}
+.sheet{background:var(--surface); box-shadow:0 30px 70px -30px rgba(0,0,0,.9), inset 0 0 0 2px var(--line-strong);
+  width:100%; max-width:520px; max-height:92vh; overflow:auto}
+.sheet-h{display:flex; align-items:flex-start; gap:12px; padding:16px 17px 13px; box-shadow:inset 0 -1px 0 var(--line)}
+.sheet-b{padding:16px 17px; display:flex; flex-direction:column; gap:12px}
+.sheet-f{padding:13px 17px; display:flex; gap:9px; box-shadow:inset 0 1px 0 var(--line)}
+.closebtn{width:30px; height:30px; display:grid; place-items:center; flex:none; color:var(--ink-3);
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line)}
+.closebtn svg{width:15px; height:15px}
+.mirror{background:var(--ground); box-shadow:inset 0 0 0 2px var(--line-strong); padding:15px}
+.mirror .mh{font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-3); margin-bottom:9px}
+
+/* ---------- capa arcade ---------- */
+body{background-color:var(--ground);
+  background-image:linear-gradient(var(--grid) 1px, transparent 1px),
+                   linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:32px 32px}
+h1,h2,h3,h4{text-transform:uppercase; letter-spacing:.01em}
+.card,.panel,.graph-box,.tbl-wrap,.w,.altboard{box-shadow:none !important; border:1px solid var(--line)}
+.tiles{box-shadow:none !important}
+.tile{border:0}
+.chip,.btn,.seg,.iconbtn,.note,.fchip{border-radius:0}
+.seg button[aria-pressed="true"]{background:var(--gold-solid); color:#0B0B0C; font-weight:600}
+.eyebrow::after{height:4px; width:22px; background:none;
+  background-image:linear-gradient(90deg,var(--line-strong) 0 4px,transparent 4px 8px); background-size:8px 4px}
+.sec-h::before{height:4px; background:none;
+  background-image:linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px); background-size:8px 4px}
+.note{border-left-width:4px}
+.tag-int{border-radius:0}
+.bar-fill{border-radius:0 !important; transition:width .3s steps(8)}
+.mini-bar i{border-radius:0 !important}
+.legend i{border-radius:0}
+#tip{border-radius:0}
+
+/* =========================================================
+   CIFRAS SIEMPRE EN REGULAR 400
+   Silkscreen y Space Mono en 700 engordan el dígito y le
+   quitan el contraforma. Los números se leen mejor en 400,
+   así que ningún número del sistema va en negrita — ni los
+   grandes ni los de una tabla. La jerarquía la hace el
+   tamaño, no el peso.
+   ========================================================= */
+
+/* SIGNO % EN QUANTICO — Silkscreen pierde la forma del '%',
+   así que en cualquier valor con Silkscreen se aísla el signo
+   en .pct para que se lea con Quantico en su lugar. */
+.pct{font-family:'Quantico','Courier New',monospace; font-weight:400}
+.num, .hud .num, .score, .seal b, .stat .v, .stat b, .tile .v, .price b,
+.rank-pos, .rank-v, .bv, .bar-row .bv, .w-h .c, .paso-n, .chip.num,
+td.n, #tip .tr b, #tip .tr span, .pat-sig .sv, .plist .pr b, .fstep .fn,
+.duelo-s .av, .duel-side .av2, .cal .dn, .cal-more, .mini-bar + span,
+.ranklist b, .lote .bv, .meter-v, .gauge-v{
+  font-weight:400 !important;
+}
+</style>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><span class="brand-mark">L</span>Levelop<em>!</em></div>
+    <span class="tag-int">Vista interna · gerencia</span>
+    <div class="spacer"></div>
+    <div class="seg" id="periodo">
+      <button data-p="mes" aria-pressed="true">Este mes</button>
+      <button data-p="trim" aria-pressed="false">Trimestre</button>
+    </div>
+    <button class="iconbtn" id="themebtn" title="Cambiar tema" aria-label="Cambiar tema"></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div style="margin-bottom:20px">
+    <span class="eyebrow">Panel de equipos</span>
+    <h1 style="margin-top:6px">BackOffice</h1>
+    <p class="sub" style="margin-top:8px; max-width:64ch">Lo que un líder necesita para decidir: dónde se está atascando el trabajo, cómo está repartida la carga y qué beneficios de verdad se usan. Datos de mentira, estructura real.</p>
+  </div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="sec-h"><h2>Cómo se mueve el trabajo</h2><span class="sub">Misiones creadas contra cerradas, y cómo se reparte</span></div>
+  <div class="charts">
+    <div class="card">
+      <div class="chart-h"><div><h3>Movimiento semanal</h3><div class="sub">Si la línea de creadas se despega de la de cerradas, se está acumulando trabajo.</div></div></div>
+      <div class="legend">
+        <span><i style="background:var(--s2)"></i>Creadas</span>
+        <span><i style="background:var(--s1)"></i>Cerradas</span>
+      </div>
+      <div id="lineas"></div>
+    </div>
+    <div class="card">
+      <div class="chart-h"><div><h3>Desempeño por área</h3><div class="sub">Misiones cerradas en el período. A la derecha, cuántas salieron a tiempo.</div></div></div>
+      <div id="porArea"></div>
+    </div>
+    <div class="card" style="grid-column:1 / -1">
+      <div class="chart-h"><div><h3>Cómo está repartida la carga</h3><div class="sub">Qué parte del trabajo cerró cada tramo del equipo, y cuánta gente hay en cada uno. Sin nombres, a propósito.</div></div></div>
+      <div id="carga"></div>
+      <div class="note" style="margin-top:14px" id="cargaNota"></div>
+    </div>
+  </div>
+
+  <div class="sec-h"><h2>Qué se pide en la Tienda</h2><span class="sub">Y cuánto cupo queda de lo contratado</span></div>
+  <div class="charts">
+    <div class="card">
+      <div class="chart-h"><div><h3>Lo más pedido</h3><div class="sub">Pedidos por beneficio.</div></div>
+        <div class="seg seg-sm" id="ventana">
+          <button data-v="sem" aria-pressed="false">Semana</button>
+          <button data-v="mes" aria-pressed="true">Mes</button>
+        </div></div>
+      <div id="tienda"></div>
+    </div>
+    <div class="card">
+      <div class="chart-h"><div><h3>Salud de los canjes</h3><div class="sub">Cada canje termina en uno de estos cuatro estados.</div></div></div>
+      <div id="canjes"></div>
+      <div class="note" style="margin-top:14px"><b>Los indeterminados no son errores.</b> Son canjes que el aliado no confirmó a tiempo. A las 48 horas el Oro vuelve solo. Si este número pasa del 3%, hay que hablar con el aliado, no con la gente.</div>
+    </div>
+  </div>
+
+  <div class="sec-h"><h2>Reto de la empresa</h2><span class="sub">Un premio que no está en la Tienda, para un objetivo que sí importa</span></div>
+  <div id="reto"></div>
+
+  <div class="note gold" style="margin-top:20px">
+    <b>Lo que este panel NO muestra, a propósito:</b> ninguna tabla de personas, ni ordenable ni fija. Tampoco el contenido de los hilos de misión, quién apagó la capa de juego, ni qué beneficio pidió cada quien. Un líder necesita ver el trabajo, no vigilar a la gente. Si un dato solo sirve para señalar a alguien, no entra aquí.
+  </div>
+</main>
+
+<div id="tip"></div>
+<div id="modal"></div>
+
+<script>
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const fmt = n => n.toLocaleString("es-VE");
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SER = ["var(--s1)","var(--s2)","var(--s3)","var(--s4)","var(--s5)","var(--s6)"];
+
+/* ---------------- DATOS ---------------- */
+const D = {
+  mes: {
+    tiles:[
+      {l:"Misiones cerradas", v:87, d:"+12 contra el mes pasado", c:"up"},
+      {l:"Salieron a tiempo", v:"78%", d:"−4 pts contra el mes pasado", c:"down"},
+      {l:"Gente activa", v:"41/52", d:"79% del equipo", c:""},
+      {l:"Cupos usados", v:"63%", d:"186 de 296 contratados", c:""},
+      {l:"Oro en circulación", v:"12.480", d:"sin canjear todavía", c:""}
+    ],
+    semanas:[
+      {s:"S1", cre:23, cer:19}, {s:"S2", cre:26, cer:24}, {s:"S3", cre:31, cer:22},
+      {s:"S4", cre:28, cer:29}, {s:"S5", cre:34, cer:25}, {s:"S6", cre:29, cer:31},
+      {s:"S7", cre:25, cer:27}, {s:"S8", cre:30, cer:24}
+    ],
+    areas:[
+      {n:"Operaciones", v:24, t:88}, {n:"Ingeniería", v:19, t:74}, {n:"Diseño", v:14, t:93},
+      {n:"RRHH", v:11, t:82}, {n:"Soporte", v:9, t:67}, {n:"Producto", v:6, t:71},
+      {n:"Ventas", v:4, t:50}
+    ],
+    clientes:[
+      {n:"Cashea", tramos:[46,28,22,12,8]},
+      {n:"Distribuidora Andina", tramos:[18,34,9,16,4]},
+      {n:"Banplus", tramos:[12,9,26,7,11]},
+      {n:"Interno Levelop", tramos:[22,14,18,26,15]},
+      {n:"Farmatodo", tramos:[8,6,4,11,19]}
+    ],
+    areasCliente:["Operaciones","Ingeniería","Diseño","RRHH","Soporte"],
+    tienda:[
+      {n:"Recarga de datos", v:31, cupo:[19,50]},
+      {n:"Salida anticipada", v:26, cupo:[14,20]},
+      {n:"Almuerzo largo", v:23, cupo:[23,30]},
+      {n:"Entrada 2x1 de cine", v:19, cupo:[26,40]},
+      {n:"Bolsa de mercado", v:17, cupo:[18,40]},
+      {n:"Escudo de foco", v:14, cupo:[99,99]},
+      {n:"Transporte del mes", v:11, cupo:[7,15]},
+      {n:"Viernes flex", v:8, cupo:[6,10]}
+    ],
+    tiendaSem:[
+      {n:"Salida anticipada", v:9, cupo:[14,20]},
+      {n:"Recarga de datos", v:7, cupo:[19,50]},
+      {n:"Escudo de foco", v:6, cupo:[99,99]},
+      {n:"Almuerzo largo", v:5, cupo:[23,30]},
+      {n:"Viernes flex", v:4, cupo:[6,10]},
+      {n:"Entrada 2x1 de cine", v:3, cupo:[26,40]},
+      {n:"Bolsa de mercado", v:2, cupo:[18,40]},
+      {n:"Transporte del mes", v:1, cupo:[7,15]}
+    ],
+    canjes:[
+      {n:"Confirmados", v:171, c:"var(--s1)"},
+      {n:"En proceso", v:9, c:"var(--s2)"},
+      {n:"Indeterminados", v:4, c:"var(--s3)"},
+      {n:"Devueltos", v:2, c:"var(--s4)"}
+    ]
+  },
+  trim: {
+    tiles:[
+      {l:"Misiones cerradas", v:241, d:"+31 contra el trimestre pasado", c:"up"},
+      {l:"Salieron a tiempo", v:"81%", d:"+2 pts contra el trimestre pasado", c:"up"},
+      {l:"Gente activa", v:"47/52", d:"90% del equipo", c:""},
+      {l:"Cupos usados", v:"58%", d:"514 de 888 contratados", c:""},
+      {l:"Oro en circulación", v:"34.910", d:"sin canjear todavía", c:""}
+    ],
+    semanas:[
+      {s:"Jun 1", cre:71, cer:64}, {s:"Jun 2", cre:78, cer:70}, {s:"Jul 1", cre:84, cer:81},
+      {s:"Jul 2", cre:76, cer:79}, {s:"Ago 1", cre:88, cer:74}, {s:"Ago 2", cre:92, cer:83},
+      {s:"Ago 3", cre:81, cer:86}, {s:"Ago 4", cre:86, cer:77}
+    ],
+    areas:[
+      {n:"Operaciones", v:68, t:86}, {n:"Ingeniería", v:54, t:79}, {n:"Diseño", v:41, t:91},
+      {n:"RRHH", v:29, t:84}, {n:"Soporte", v:24, t:72}, {n:"Producto", v:17, t:76},
+      {n:"Ventas", v:8, t:63}
+    ],
+    clientes:[
+      {n:"Cashea", tramos:[128,74,61,34,21]},
+      {n:"Distribuidora Andina", tramos:[52,96,27,44,13]},
+      {n:"Banplus", tramos:[38,26,71,19,31]},
+      {n:"Interno Levelop", tramos:[61,42,53,74,41]},
+      {n:"Farmatodo", tramos:[24,18,12,31,54]}
+    ],
+    areasCliente:["Operaciones","Ingeniería","Diseño","RRHH","Soporte"],
+    tienda:[
+      {n:"Recarga de datos", v:88, cupo:[19,50]},
+      {n:"Salida anticipada", v:71, cupo:[14,20]},
+      {n:"Almuerzo largo", v:64, cupo:[23,30]},
+      {n:"Entrada 2x1 de cine", v:52, cupo:[26,40]},
+      {n:"Bolsa de mercado", v:47, cupo:[18,40]},
+      {n:"Escudo de foco", v:39, cupo:[99,99]},
+      {n:"Transporte del mes", v:31, cupo:[7,15]},
+      {n:"Viernes flex", v:22, cupo:[6,10]}
+    ],
+    tiendaSem:[
+      {n:"Salida anticipada", v:11, cupo:[14,20]},
+      {n:"Recarga de datos", v:9, cupo:[19,50]},
+      {n:"Escudo de foco", v:8, cupo:[99,99]},
+      {n:"Almuerzo largo", v:6, cupo:[23,30]},
+      {n:"Viernes flex", v:5, cupo:[6,10]},
+      {n:"Entrada 2x1 de cine", v:4, cupo:[26,40]},
+      {n:"Bolsa de mercado", v:3, cupo:[18,40]},
+      {n:"Transporte del mes", v:2, cupo:[7,15]}
+    ],
+    canjes:[
+      {n:"Confirmados", v:487, c:"var(--s1)"},
+      {n:"En proceso", v:14, c:"var(--s2)"},
+      {n:"Indeterminados", v:9, c:"var(--s3)"},
+      {n:"Devueltos", v:4, c:"var(--s4)"}
+    ]
+  }
+};
+
+const AV = ["#0C6E78","#B23E33","#5B4ED6","#2A7047","#9C6D0E","#7A3E8C","#1F5FA8","#A0522D","#3E7B7B","#8A2F5B"];
+const gente = [
+  {n:"María Bracho",     a:"Operaciones", lvl:8, mis:96, tiempo:88, colab:51, canjes:7, act:"hoy"},
+  {n:"Ninoska Ruiz",     a:"Finanzas",    lvl:7, mis:84, tiempo:91, colab:33, canjes:4, act:"hoy"},
+  {n:"Daniela Ochoa",    a:"Diseño",      lvl:6, mis:71, tiempo:93, colab:44, canjes:6, act:"hoy"},
+  {n:"Yorbelis Rangel",  a:"RRHH",        lvl:6, mis:63, tiempo:84, colab:39, canjes:5, act:"ayer"},
+  {n:"Kevin Salas",      a:"Ingeniería",  lvl:5, mis:52, tiempo:74, colab:18, canjes:1, act:"hoy"},
+  {n:"Génesis Uzcátegui",a:"Producto",    lvl:5, mis:49, tiempo:81, colab:31, canjes:3, act:"hoy"},
+  {n:"Luis Farías",      a:"Soporte",     lvl:5, mis:44, tiempo:67, colab:27, canjes:2, act:"ayer"},
+  {n:"Andrés Petit",     a:"Ingeniería",  lvl:5, mis:41, tiempo:72, colab:16, canjes:0, act:"hace 4 d"},
+  {n:"Alim Reyes",       a:"Producto",    lvl:6, mis:38, tiempo:79, colab:22, canjes:4, act:"hoy"},
+  {n:"José Nieves",      a:"Ventas",      lvl:4, mis:29, tiempo:50, colab:11, canjes:1, act:"hace 6 d"},
+  {n:"Rafael Colmenares",a:"Producto",    lvl:4, mis:26, tiempo:77, colab:14, canjes:2, act:"ayer"},
+  {n:"Carla Mendoza",    a:"Marketing",   lvl:3, mis:22, tiempo:69, colab:9,  canjes:0, act:"hace 9 d"}
+];
+gente.forEach((p,i)=>{ p.color=AV[i%AV.length]; p.ini=p.n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase(); });
+
+/* =========================================================
+   RETO DE LA EMPRESA
+   El premio NO sale de la Tienda: es inventario aparte y
+   por eso es pasivo financiero (R-04, revisión CFO + CTO).
+   Las propuestas salen de cuatro señales propias y una ajena:
+     1. qué se pide más y no alcanza el cupo
+     2. dónde se está atascando el trabajo
+     3. qué medallas de equipo están a punto de caer
+     4. cómo va el cumplimiento contra el mes pasado
+     5. el rango de otras empresas del mismo tamaño, anonimizado
+   ========================================================= */
+const RETO_VIVO = {
+  t:"Que ninguna misión del trimestre se venza sin avisar",
+  premio:"🚲", premioN:"Una bicicleta para cada quien del área que llegue",
+  arranco:"12 de agosto", cierra:"30 de septiembre",
+  meta:60, va:41,
+  dentro:47, total:52, fuera:5
+};
+
+const PROPUESTAS = [
+  {
+    t:"Bajar los vencimientos sin aviso a la mitad",
+    dificultad:3,
+    porque:`Es el atasco más caro que tiene la empresa ahorita: <b>1 de cada 5 misiones</b> se vence
+      sin que nadie diga nada. Mover eso al 10% es exigente pero no absurdo — <b>dos áreas ya están
+      ahí</b> sin proponérselo.`,
+    señal:"Sale de: dónde se atasca el trabajo + rango de empresas parecidas",
+    premio:"Algo que no esté en la Tienda. Si está en la Tienda, no es un reto: es una compra."
+  },
+  {
+    t:"Cerrar la medalla «Nadie solo» en las dos áreas que faltan",
+    dificultad:2,
+    porque:`Cuatro de las seis áreas ya la tienen y las otras dos están <b>a tres misiones
+      compartidas</b>. Es el reto más barato de ganar que hay disponible, y por eso sirve para
+      arrancar: <b>un reto que nadie gana la primera vez no se vuelve a jugar</b>.`,
+    señal:"Sale de: medallas de equipo a punto de caer",
+    premio:"Suficiente con algo simbólico. Guarda el premio grande para el reto de arriba."
+  },
+  {
+    t:"Que el 80% del equipo canjee al menos un beneficio",
+    dificultad:4,
+    porque:`Hoy va en <b>63%</b>. Sube el uso de lo que la empresa <b>ya pagó</b>, así que se paga
+      solo. Pero ojo: <b>el cupo de «Salida anticipada» se agota antes de fin de mes</b>. Si empujas
+      esto sin ampliar cupo, el reto termina en gente que no pudo cobrar lo que se ganó.`,
+    señal:"Sale de: lo más pedido + cupo restante",
+    premio:"Ninguno. Este no debería ser un reto con premio, debería ser una compra de cupo."
+  }
+];
+
+/* ---------------- TOOLTIP ---------------- */
+const tip = $("#tip");
+function mostrarTip(html, e){
+  tip.innerHTML = html; tip.style.opacity = "1";
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if(x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if(y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+}
+const ocultarTip = () => { tip.style.opacity = "0"; };
+document.addEventListener("scroll", ocultarTip, true);
+
+/* ---------------- GRÁFICOS ---------------- */
+function barrasHorizontales(cont, datos, opts={}){
+  const max = Math.max(...datos.map(d=>d.v));
+  cont.innerHTML = `<div class="bars">` + datos.map((d,i)=>`
+    <div class="bar-row" data-i="${i}">
+      <span class="bl" title="${esc(d.n)}">${esc(d.n)}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${(d.v/max*100).toFixed(1)}%; background:${opts.color||"var(--s1)"}"></span></span>
+      <span class="bv">${opts.fmtv?opts.fmtv(d):fmt(d.v)}${opts.extra?`<span class="bx"> ${opts.extra(d)}</span>`:""}</span>
+    </div>`).join("") + `</div>`;
+  cont.querySelectorAll(".bar-row").forEach(row=>{
+    const d = datos[+row.dataset.i];
+    row.addEventListener("mousemove", e=>mostrarTip(opts.tip ? opts.tip(d) :
+      `<div class="tk">${esc(d.n)}</div><div class="tr"><span>Valor</span><b>${fmt(d.v)}</b></div>`, e));
+    row.addEventListener("mouseleave", ocultarTip);
+  });
+}
+
+function lineas(cont, datos){
+  const W=560, HT=230, ml=38, mr=22, mt=16, mb=30;
+  const iw=W-ml-mr, ih=HT-mt-mb;
+  const max = Math.ceil(Math.max(...datos.flatMap(d=>[d.cre,d.cer]))/10)*10;
+  const x = i => ml + (datos.length===1?iw/2:i*iw/(datos.length-1));
+  const y = v => mt + ih - (v/max)*ih;
+  const ticks = [0, max/4, max/2, max*.75, max];
+  const linea = k => datos.map((d,i)=>`${i?"L":"M"}${x(i).toFixed(1)} ${y(d[k]).toFixed(1)}`).join(" ");
+
+  cont.innerHTML = `
+  <svg viewBox="0 0 ${W} ${HT}" style="width:100%; height:auto; overflow:visible" role="img"
+       aria-label="Misiones creadas contra cerradas por semana">
+    ${ticks.map(t=>`<line x1="${ml}" x2="${W-mr}" y1="${y(t)}" y2="${y(t)}" stroke="var(--grid)" stroke-width="1"/>
+      <text x="${ml-8}" y="${y(t)+4}" text-anchor="end" font-family="var(--mono)" font-size="10" fill="var(--ink-3)">${t}</text>`).join("")}
+    ${datos.map((d,i)=>`<text x="${x(i)}" y="${HT-9}" text-anchor="middle" font-family="var(--mono)" font-size="10" fill="var(--ink-3)">${d.s}</text>`).join("")}
+    <path d="${linea("cre")}" fill="none" stroke="var(--s2)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="${linea("cer")}" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${datos.map((d,i)=>`<circle cx="${x(i)}" cy="${y(d.cre)}" r="3.4" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"/>`).join("")}
+    ${datos.map((d,i)=>`<circle cx="${x(i)}" cy="${y(d.cer)}" r="3.4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/>`).join("")}
+    <line id="cross" x1="0" x2="0" y1="${mt}" y2="${mt+ih}" stroke="var(--line-strong)" stroke-width="1" opacity="0"/>
+    <rect id="hit" x="${ml}" y="${mt}" width="${iw}" height="${ih}" fill="transparent" style="cursor:crosshair"/>
+  </svg>`;
+
+  const svg = cont.querySelector("svg"), cross = cont.querySelector("#cross"), hit = cont.querySelector("#hit");
+  hit.addEventListener("mousemove", e=>{
+    const r = svg.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width * W;
+    let i = Math.round((px - ml) / (iw/(datos.length-1)));
+    i = Math.max(0, Math.min(datos.length-1, i));
+    cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i)); cross.setAttribute("opacity", "1");
+    const d = datos[i], pend = d.cre - d.cer;
+    mostrarTip(`<div class="tk">${esc(d.s)}</div>
+      <div class="tr"><span><span class="sw" style="background:var(--s2)"></span>Creadas</span><b>${d.cre}</b></div>
+      <div class="tr"><span><span class="sw" style="background:var(--s1)"></span>Cerradas</span><b>${d.cer}</b></div>
+      <div class="tr" style="margin-top:6px"><span>${pend>0?"Se acumularon":"Se descargaron"}</span><b>${Math.abs(pend)}</b></div>`, e);
+  });
+  hit.addEventListener("mouseleave", ()=>{ cross.setAttribute("opacity","0"); ocultarTip(); });
+}
+
+/* ---------------- REPARTO DE LA CARGA (sin nombres — C-3 / R-07) ---------------- */
+const TRAMOS = [
+  {n:"Más de 80",      test:v=>v>80},
+  {n:"Entre 50 y 80", test:v=>v>=50 && v<=80},
+  {n:"Entre 30 y 49", test:v=>v>=30 && v<50},
+  {n:"Menos de 30",   test:v=>v<30}
+];
+function pintarCarga(){
+  const vals = gente.map(p=>p.mis);
+  const total = vals.reduce((a,b)=>a+b,0);
+  const filas = TRAMOS.map(t=>{
+    const g = vals.filter(t.test);
+    const sum = g.reduce((a,b)=>a+b,0);
+    return {n:t.n, v: total?Math.round(sum/total*100):0, gente:g.length, sum};
+  });
+  barrasHorizontales($("#carga"), filas, {
+    color:"var(--s3)",
+    fmtv: x => x.v + "%",
+    extra: x => `· ${x.gente} ${x.gente===1?"persona":"personas"}`,
+    tip: x => `<div class="tk">${esc(x.n)} misiones cerradas</div>
+      <div class="tr"><span>Personas en el tramo</span><b>${x.gente}</b></div>
+      <div class="tr"><span>Parte del trabajo cerrado</span><b>${x.v}%</b></div>`
+  });
+  const orden = [...vals].sort((a,b)=>b-a);
+  const cuarto = Math.max(1, Math.round(orden.length/4));
+  const arriba = orden.slice(0,cuarto).reduce((a,b)=>a+b,0);
+  const pct = total ? Math.round(arriba/total*100) : 0;
+  $("#cargaNota").innerHTML = `<b>El cuarto más cargado cerró el ${pct}% del trabajo.</b> ` +
+    (pct>=40
+      ? "Eso es concentración: si esas personas se enferman o se van, el equipo no cierra el mes. "
+      : "El reparto está razonable. ") +
+    "Este panel no dice quién, y no es un descuido: quién carga qué ya está en la lista de misiones, " +
+    "que es donde se puede hacer algo. Una tabla de personas ordenable aquí sería un ranking individual, " +
+    "y eso es exactamente lo que no medimos.";
+}
+
+/* ---------------- RETO ---------------- */
+function pintarReto(){
+  const R = RETO_VIVO;
+  const pct = Math.round(R.va/R.meta*100);
+  $("#reto").innerHTML = `
+  <div class="card">
+    <div class="reto-h">
+      <div class="reto-prem">${R.premio}</div>
+      <div style="flex:1; min-width:0">
+        <span class="eyebrow">Corriendo · cierra el ${esc(R.cierra)}</span>
+        <div class="reto-t" style="margin-top:6px">${esc(R.t)}</div>
+        <div class="sub" style="margin-top:5px">${esc(R.premioN)}</div>
+      </div>
+      <div style="text-align:right; flex:none">
+        <div class="tile" style="padding:0; background:none">
+          <div class="l">Va en</div><div class="v" style="font-size:34px">${pctify(R.va+"%")}</div>
+          <div class="d">de la meta de ${R.meta}%</div>
+        </div>
+      </div>
+    </div>
+    <div class="gauge" style="margin-top:14px">
+      ${Array.from({length:20},(_,i)=>`<i class="${i < Math.round(pct/5) ? "on":""}"></i>`).join("")}
+    </div>
+    <div class="row g12 wrapf" style="margin-top:14px">
+      <span class="chip">${R.dentro} de ${R.total} adentro</span>
+      <span class="chip">${R.fuera} se salieron</span>
+    </div>
+    <div class="note" style="margin-top:14px"><b>Todo el mundo entró solo, y salirse toma un toque.</b>
+      Los ${R.fuera} que se salieron no aparecen por nombre acá ni le llegan a ningún líder — solo el
+      número, y solo para que sepas si el reto está calando o no. Un reto del que no te puedes salir
+      sin que se note es una orden con disfraz.</div>
+    <div class="row g8 wrapf" style="margin-top:13px">
+      <button class="btn ghost" data-anuncio>Ver el anuncio que salió</button>
+    </div>
+  </div>
+
+  <div class="sec-h" style="margin-top:26px"><h2 style="font-size:16px">Qué proponer después</h2>
+    <span class="sub">Calculado contra tus propios datos</span></div>
+  ${PROPUESTAS.map((x,i)=>`
+    <div class="prop">
+      <div class="row g12 wrapf" style="justify-content:space-between; align-items:flex-start">
+        <div style="flex:1; min-width:220px">
+          <div class="prop-t">${esc(x.t)}</div>
+          <div class="prop-w" style="margin-top:5px">${esc(x.señal)}</div>
+        </div>
+        <div style="flex:none; text-align:right">
+          <div class="prop-w" style="color:var(--ink-3)">Qué tan duro</div>
+          <div class="gauge" style="width:96px; margin-top:5px">
+            ${Array.from({length:5},(_,k)=>`<i class="${k<x.dificultad?(x.dificultad>=4?"hot":"on"):""}"></i>`).join("")}
+          </div>
+        </div>
+      </div>
+      <div class="prop-b">${x.porque}</div>
+      <div class="prop-b" style="margin-top:9px"><b>Sobre el premio:</b> ${esc(x.premio)}</div>
+      <div class="row g8 wrapf" style="margin-top:12px">
+        <button class="btn ${i===0?"gold":"ghost"}" data-lanzar="${i}">Armar este reto</button>
+      </div>
+    </div>`).join("")}
+
+  <div class="note" style="margin-top:12px"><b>De dónde sale «qué tan duro».</b> De cuatro cosas tuyas
+    —lo que más se pide, dónde se atasca el trabajo, qué medallas están por caer y cómo vas contra tu
+    propio mes pasado— y de una quinta prestada: <b>el rango en el que se mueven otras empresas del mismo
+    tamaño que usan Levelop</b>. Ese rango nunca nombra a nadie, nunca sale de menos de cinco empresas,
+    y se muestra como banda, jamás como cifra exacta. Si con menos de cinco no se puede anonimizar,
+    entonces no se muestra: la confidencialidad de un cliente no se negocia contra una barrita.</div>
+
+  <div class="note gold" style="margin-top:12px"><b>El premio es plata de verdad y no vive en la Tienda.</b>
+    Por eso cualquier reto con premio material <b>pasa por Finanzas y por Tecnología antes de anunciarse</b>,
+    igual que cualquier cupo. Levelop no aprueba retos: los propone y los mide.</div>`;
+}
+
+function modalAnuncio(){
+  const R = RETO_VIVO;
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Salió por Levelop y por correo</span>
+        <h2 style="margin-top:4px; font-size:19px">El anuncio, tal cual lo leyeron</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="mirror">
+          <div class="mh">Para todo el equipo · ${esc(R.arranco)}</div>
+          <div class="reto-t">${esc(R.t)}</div>
+          <div class="prop-b" style="margin-top:10px">
+            Si llegamos al <b>${R.meta}%</b> antes del ${esc(R.cierra)}, <b>${esc(R.premioN.toLowerCase())}</b>.
+            Ya estás adentro, no tienes que inscribirte en nada.
+          </div>
+          <div class="prop-b" style="margin-top:10px">
+            <b>Y si no quieres estar, te sales con un toque</b>, cuando quieras, sin dar explicaciones.
+            No se le avisa a nadie y no cambia nada de tu trabajo ni de tus beneficios.
+          </div>
+          <div class="row g8 wrapf" style="margin-top:12px">
+            <span class="btn gold">Ver cómo va</span>
+            <span class="btn ghost">Salirme del reto</span>
+          </div>
+        </div>
+        <div class="note"><b>Por qué el botón de salirse va en el mismo mensaje</b> y no escondido en
+          ajustes: si hay que buscarlo, la participación deja de ser voluntaria aunque técnicamente lo sea.</div>
+      </div>
+      <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Cerrar</button></div>
+    </div></div>`;
+}
+
+/* ---------------- RENDER ---------------- */
+const pctify = s => String(s).replace(/%/g, '<span class="pct">%</span>');
+let periodo = "mes";
+let ventana = "mes";
+function render(){
+  const d = D[periodo];
+
+  $("#tiles").innerHTML = d.tiles.map(t=>`<div class="tile">
+    <div class="l">${t.l}</div><div class="v">${pctify(t.v)}</div><div class="d ${t.c}">${t.d}</div></div>`).join("");
+
+  lineas($("#lineas"), d.semanas);
+
+  barrasHorizontales($("#porArea"), d.areas, {
+    color:"var(--s1)",
+    extra: x => `· ${x.t}% a tiempo`,
+    tip: x => `<div class="tk">${esc(x.n)}</div>
+      <div class="tr"><span>Misiones cerradas</span><b>${x.v}</b></div>
+      <div class="tr"><span>Salieron a tiempo</span><b>${x.t}%</b></div>`
+  });
+
+  pintarCarga();
+  pintarReto();
+
+
+  barrasHorizontales($("#tienda"), ventana==="sem" ? d.tiendaSem : d.tienda, {
+    color:"var(--s2)",
+    extra: x => x.cupo[1]>=99 ? "· sin tope" : `· quedan ${x.cupo[0]} de ${x.cupo[1]}`,
+    tip: x => `<div class="tk">${esc(x.n)}</div>
+      <div class="tr"><span>Pedidos</span><b>${x.v}</b></div>
+      <div class="tr"><span>Cupo</span><b>${x.cupo[1]>=99?"sin tope":`${x.cupo[0]} de ${x.cupo[1]}`}</b></div>`
+  });
+
+  const totC = d.canjes.reduce((a,b)=>a+b.v,0);
+  $("#canjes").innerHTML = `<div class="bars">` + d.canjes.map(c=>`
+    <div class="bar-row">
+      <span class="bl">${c.n}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${(c.v/totC*100).toFixed(1)}%; background:${c.c}"></span></span>
+      <span class="bv">${c.v}<span class="bx"> · ${(c.v/totC*100).toFixed(1)}%</span></span>
+    </div>`).join("") + `</div>`;
+
+}
+
+$("#periodo").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-p]"); if(!b) return;
+  periodo = b.dataset.p;
+  $("#periodo").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  render();
+});
+$("#ventana").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-v]"); if(!b) return;
+  ventana = b.dataset.v;
+  $("#ventana").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  render();
+});
+document.addEventListener("click", e=>{
+  const t = e.target.closest("[data-anuncio],[data-lanzar],[data-cerrar],[data-stop]");
+  if(!t) return;
+  if(t.hasAttribute("data-stop")) return;
+  if(t.hasAttribute("data-cerrar")){ cerrarModal(); return; }
+  if(t.hasAttribute("data-anuncio")){ abrirModal(modalAnuncio()); return; }
+  if(t.dataset.lanzar!==undefined){ abrirModal(modalAnuncio()); return; }
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") cerrarModal(); });
+
+$("#themebtn").innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor" stroke="none"/></svg>`;
+$("#themebtn").addEventListener("click", ()=>{
+  const cur = document.documentElement.getAttribute("data-theme")||"dark";
+  const nuevo = cur==="dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", nuevo);
+  try{ localStorage.setItem("lvl-tema", nuevo); }catch(err){}
+});
+
+render();
+})();
+</script>

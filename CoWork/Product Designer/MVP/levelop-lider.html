@@ -1,0 +1,1138 @@
+<title>Levelop · Líder de Área</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quantico:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+
+<script>
+try{ document.documentElement.setAttribute("data-theme", localStorage.getItem("lvl-tema") || "dark"); }
+catch(e){ document.documentElement.setAttribute("data-theme","dark"); }
+</script>
+
+<style>
+/* ---------- TOKENS ---------- */
+:root{
+  --ground:#EAEAE4; --surface:#FFFFFF; --surface-2:#F1F1EB; --surface-3:#DFDFD7;
+  --line:#D0D0C8; --line-strong:#ABABA1;
+  --ink:#0B0B0C; --ink-2:#4A4A47; --ink-3:#7A7A75;
+  --grid:rgba(11,11,12,.055);
+  --gold:#4E6606; --gold-ink:#3C5004; --gold-bg:#E7F7B7; --gold-line:#C4E273; --gold-solid:#C3F03A;
+  --xp:#0B0B0C;   --xp-bg:#E2E2DB;   --xp-line:#BEBEB4;  --xp-solid:#0B0B0C;
+  --ok:#0A6B7A;   --ok-bg:#D7EFF4;   --ok-line:#9BD2DE;
+  --risk:#C0361F; --risk-bg:#FADFD9; --risk-line:#EEAE9F;
+  --sync:#4A38C4; --sync-bg:#E2DEFA; --sync-line:#B4ABF0;
+  /* series — validadas con el validador de paleta (claro, superficie #FFFFFF) */
+  --s1:#6E8F06; --s2:#0090A8; --s3:#5B4ED6; --s4:#C24430; --s5:#1F6FB5; --s6:#B03E7C;
+  --chart-grid:#D0D0C8;
+  --shadow-sm:none;
+  --shadow:4px 4px 0 rgba(11,11,12,.10);
+  --shadow-lg:8px 8px 0 rgba(11,11,12,.18);
+  --cut:0px;
+  --display:'Silkscreen','Courier New',monospace;
+  --body:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --mono:'Space Mono','SFMono-Regular',Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#08080A; --surface:#121215; --surface-2:#1A1A1E; --surface-3:#26262C;
+    --line:#2A2A31; --line-strong:#43434E;
+    --ink:#EDEDE7; --ink-2:#9B9B95; --ink-3:#6A6A66;
+    --grid:rgba(237,237,231,.045);
+    --gold:#C3F03A; --gold-ink:#D6F871; --gold-bg:#2A3607; --gold-line:#4A5F0D; --gold-solid:#C3F03A;
+    --xp:#EDEDE7;   --xp-bg:#26262C;   --xp-line:#43434E;  --xp-solid:#EDEDE7;
+    --ok:#4FD8E8;   --ok-bg:#0A2C33;   --ok-line:#18505C;
+    --risk:#FF6A52; --risk-bg:#331310; --risk-line:#57241D;
+    --sync:#A79AFF; --sync-bg:#1D1846; --sync-line:#332B70;
+    --s1:#7FA30E; --s2:#1E9AAB; --s3:#8078EE; --s4:#E05C48; --s5:#3390D6; --s6:#CB5694;
+    --chart-grid:#2A2A31;
+    --shadow-sm:none;
+    --shadow:4px 4px 0 rgba(0,0,0,.5);
+    --shadow-lg:8px 8px 0 rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#08080A; --surface:#121215; --surface-2:#1A1A1E; --surface-3:#26262C;
+  --line:#2A2A31; --line-strong:#43434E;
+  --ink:#EDEDE7; --ink-2:#9B9B95; --ink-3:#6A6A66;
+  --grid:rgba(237,237,231,.045);
+  --gold:#C3F03A; --gold-ink:#D6F871; --gold-bg:#2A3607; --gold-line:#4A5F0D; --gold-solid:#C3F03A;
+  --xp:#EDEDE7;   --xp-bg:#26262C;   --xp-line:#43434E;  --xp-solid:#EDEDE7;
+  --ok:#4FD8E8;   --ok-bg:#0A2C33;   --ok-line:#18505C;
+  --risk:#FF6A52; --risk-bg:#331310; --risk-line:#57241D;
+  --sync:#A79AFF; --sync-bg:#1D1846; --sync-line:#332B70;
+  --s1:#7FA30E; --s2:#1E9AAB; --s3:#8078EE; --s4:#E05C48; --s5:#3390D6; --s6:#CB5694;
+  --chart-grid:#2A2A31;
+  --shadow-sm:none;
+  --shadow:4px 4px 0 rgba(0,0,0,.5);
+  --shadow-lg:8px 8px 0 rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+body{margin:0; background:var(--ground); color:var(--ink); font-family:var(--body);
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased}
+button{font:inherit; color:inherit; border:0; background:none; cursor:pointer}
+:focus-visible{outline:2px solid var(--xp-solid); outline-offset:2px}
+p{margin:0}
+svg{display:block}
+h1,h2,h3,h4{margin:0; font-family:var(--display); text-wrap:balance}
+h1{font-weight:700; text-transform:uppercase; line-height:1; font-size:40px; letter-spacing:0}
+h2{font-weight:700; text-transform:uppercase; letter-spacing:0; line-height:1.05; font-size:19px}
+h3{font-weight:700; line-height:1.12; font-size:16px}
+.num{font-family:var(--mono); font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+
+.topbar{position:sticky; top:0; z-index:40; background:var(--surface); box-shadow:inset 0 -1px 0 var(--line)}
+.topbar-in{max-width:1320px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.brand{display:flex; align-items:center; gap:8px; font-family:var(--display); font-weight:700;
+  font-size:22px; text-transform:uppercase; line-height:1}
+.brand em{font-style:normal; color:var(--gold)}
+.brand-mark{width:25px; height:25px; display:grid; place-items:center; font-size:13px; font-weight:700;
+  font-family:var(--display); color:var(--ground); background:var(--gold-solid);
+  clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.tag-int{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+  padding:4px 9px; color:var(--risk); background:var(--risk-bg); box-shadow:inset 0 0 0 1px var(--risk-line);
+  clip-path:polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))}
+.spacer{flex:1}
+.wrap{max-width:1320px; margin:0 auto; padding:22px 20px 60px}
+
+.eyebrow{display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:10px;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--ink-3)}
+.eyebrow::after{content:""; width:24px; height:1px; background:var(--line-strong)}
+.sub{color:var(--ink-2); font-size:13px}
+.sec-h{display:flex; align-items:center; gap:12px; margin:28px 0 12px}
+.sec-h h2{flex:none}
+.sec-h .sub{order:3; text-align:right; flex:none; max-width:44%}
+.sec-h::before{content:""; order:2; flex:1; height:1px; background:var(--line); min-width:18px}
+
+.card{background:var(--surface); box-shadow:var(--shadow-sm), inset 0 0 0 1px var(--line); padding:16px 17px;}
+.row{display:flex; align-items:center}
+.g8{gap:8px} .g12{gap:12px}
+.wrapf{flex-wrap:wrap}
+
+.seg{display:inline-flex; background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); padding:3px; gap:2px}
+.seg button{padding:6px 13px; font-family:var(--mono); font-size:11.5px; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--ink-3); white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--ink); color:var(--surface)}
+.seg-sm{flex:none} .seg-sm button{padding:5px 10px; font-size:10.5px}
+.iconbtn{width:33px; height:33px; display:grid; place-items:center; color:var(--ink-3);
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line);
+  clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))}
+.iconbtn svg{width:18px; height:18px}
+.chip{display:inline-flex; align-items:center; gap:5px; padding:3px 9px; font-family:var(--mono); font-size:11px;
+  white-space:nowrap; background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); color:var(--ink-2)}
+.chip.ok{background:var(--ok-bg); box-shadow:inset 0 0 0 1px var(--ok-line); color:var(--ok)}
+.chip.risk{background:var(--risk-bg); box-shadow:inset 0 0 0 1px var(--risk-line); color:var(--risk)}
+.chip.gold{background:var(--gold-bg); box-shadow:inset 0 0 0 1px var(--gold-line); color:var(--gold-ink)}
+.chip.sync{background:var(--sync-bg); box-shadow:inset 0 0 0 1px var(--sync-line); color:var(--sync)}
+.note{padding:11px 13px; font-size:12.5px; line-height:1.5; background:var(--surface-2);
+  box-shadow:inset 0 0 0 1px var(--line); color:var(--ink-2)}
+.note b{color:var(--ink)}
+.note.gold{background:var(--gold-bg); box-shadow:inset 0 0 0 1px var(--gold-line); color:var(--gold-ink)}
+.note.gold b{color:var(--gold-ink)}
+
+/* ---------- TILES ---------- */
+.tiles{display:grid; gap:2px; background:var(--line); border:2px solid var(--line);
+  grid-template-columns:repeat(2,1fr)}
+.tile{background:var(--surface); padding:14px 15px; min-width:0}
+.tile:nth-child(5){grid-column:1 / -1}
+@media(min-width:760px){
+  .tiles{grid-template-columns:repeat(5,1fr)}
+  .tile:nth-child(5){grid-column:auto}
+  .tile .v{font-size:29px}
+}
+@media(min-width:1120px){.tile .v{font-size:40px}}
+.tile .l{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3)}
+.tile .v{font-family:var(--display); font-weight:700; font-size:40px; line-height:.92; margin-top:4px;
+  font-variant-numeric:tabular-nums}
+.tile .d{font-family:var(--mono); font-size:11px; margin-top:5px; color:var(--ink-3)}
+.tile .d.up{color:var(--ok)} .tile .d.down{color:var(--risk)}
+
+/* ---------- GRÁFICOS ---------- */
+.charts{display:grid; gap:12px; grid-template-columns:1fr}
+@media(min-width:1000px){.charts{grid-template-columns:1fr 1fr}}
+.chart-h{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px}
+.chart-h h3{text-transform:uppercase}
+.chart-h .sub{margin-top:3px}
+
+.legend{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:13px}
+.legend span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--ink-2)}
+.legend i{width:11px; height:11px; border-radius:0; display:block}
+
+/* barras horizontales */
+.bars{display:flex; flex-direction:column; gap:9px}
+.bar-row{display:grid; grid-template-columns:104px 1fr auto; gap:11px; align-items:center}
+.bar-row .bl{font-size:12.5px; color:var(--ink-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.bar-track{display:block; height:16px; background:var(--surface-2); position:relative}
+.bar-fill{display:block; height:100%; border-radius:0 4px 4px 0; transition:width .5s cubic-bezier(.2,.8,.25,1)}
+.bar-row .bv{font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums; color:var(--ink);
+  min-width:52px; text-align:right}
+.bar-row .bx{font-family:var(--mono); font-size:10.5px; color:var(--ink-3)}
+
+/* barras apiladas */
+.stack-row{display:grid; grid-template-columns:118px 1fr auto; gap:11px; align-items:center}
+.stack-track{display:flex; gap:2px; height:18px}
+.stack-seg{display:block; transition:width .5s cubic-bezier(.2,.8,.25,1)}
+.stack-seg:last-child{border-radius:0 4px 4px 0}
+
+/* tabla */
+.tbl-wrap{overflow-x:auto; background:var(--surface); box-shadow:inset 0 0 0 1px var(--line);}
+table{border-collapse:collapse; width:100%; min-width:760px}
+th{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);
+  text-align:left; padding:12px 13px; white-space:nowrap; cursor:pointer; user-select:none}
+th:hover{color:var(--ink)}
+th[aria-sort]{color:var(--gold)}
+td{padding:11px 13px; font-size:13px; border-top:1px solid var(--line); white-space:nowrap}
+td.n{font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right}
+th.n{text-align:right}
+tbody tr:hover{background:var(--surface-2)}
+.who{display:flex; align-items:center; gap:9px}
+.av{width:26px; height:26px; flex:none; display:grid; place-items:center; font-family:var(--mono); font-size:9.5px;
+  color:#fff; clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.mini-bar{width:60px; height:6px; background:var(--surface-2); display:inline-block; vertical-align:middle}
+.mini-bar i{display:block; height:100%; border-radius:0 2px 2px 0}
+
+/* tooltip */
+#tip{position:fixed; z-index:90; pointer-events:none; opacity:0; transition:opacity .12s;
+  background:var(--surface); box-shadow:0 18px 40px -18px rgba(0,0,0,.8), inset 0 0 0 1px var(--line-strong);
+  padding:9px 11px; font-size:12.5px; max-width:240px}
+#tip .tk{font-family:var(--display); font-weight:700; font-size:13px; text-transform:uppercase; line-height:1.15}
+#tip .tr{display:flex; justify-content:space-between; gap:14px; font-family:var(--mono); font-size:11.5px;
+  color:var(--ink-2); margin-top:4px}
+#tip .tr b{color:var(--ink); font-weight:500}
+#tip .sw{display:inline-block; width:9px; height:9px; border-radius:0; margin-right:6px}
+
+.hide{display:none !important}
+
+@media (max-width:700px){
+  .sec-h{flex-wrap:wrap}
+  .sec-h .sub{flex:1 0 100%; max-width:100%; text-align:left; order:3}
+}
+
+/* ---------- capa arcade ---------- */
+body{background-color:var(--ground);
+  background-image:linear-gradient(var(--grid) 1px, transparent 1px),
+                   linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:32px 32px}
+h1,h2,h3,h4{text-transform:uppercase; letter-spacing:.01em}
+.card,.panel,.graph-box,.tbl-wrap,.w,.altboard{box-shadow:none !important; border:1px solid var(--line)}
+.tiles{box-shadow:none !important}
+.tile{border:0}
+.chip,.btn,.seg,.iconbtn,.note,.fchip{border-radius:0}
+.seg button[aria-pressed="true"]{background:var(--gold-solid); color:#0B0B0C; font-weight:600}
+.eyebrow::after{height:4px; width:22px; background:none;
+  background-image:linear-gradient(90deg,var(--line-strong) 0 4px,transparent 4px 8px); background-size:8px 4px}
+.sec-h::before{height:4px; background:none;
+  background-image:linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px); background-size:8px 4px}
+.note{border-left-width:4px}
+.tag-int{border-radius:0}
+.bar-fill{border-radius:0 !important; transition:width .3s steps(8)}
+.mini-bar i{border-radius:0 !important}
+.legend i{border-radius:0}
+#tip{border-radius:0}
+
+/* ================= BACKOFFICE DE LÍDER DE ÁREA ================= */
+.lead{color:var(--ink-2); font-size:15px; max-width:70ch; margin-top:9px}
+.grid2{display:grid; gap:12px; grid-template-columns:1fr}
+@media(min-width:1000px){.grid2{grid-template-columns:1fr 1fr}}
+.grid-map{display:grid; gap:12px; grid-template-columns:1fr}
+@media(min-width:1040px){.grid-map{grid-template-columns:1fr 300px}}
+
+/* --- tarjetas de patrón --- */
+.pat{background:var(--surface); box-shadow:inset 0 0 0 1px var(--line); padding:15px 16px}
+.pat + .pat{margin-top:10px}
+.pat-h{display:flex; align-items:flex-start; gap:12px; flex-wrap:wrap}
+.pat-who{display:flex; align-items:center; gap:10px; flex:1; min-width:0}
+.pat-who .n{font-family:var(--display); font-weight:700; font-size:15px; text-transform:uppercase; line-height:1.1}
+.pat-who .r{font-family:var(--mono); font-size:10.5px; color:var(--ink-3)}
+.pat-tag{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
+  padding:4px 9px; white-space:nowrap}
+.pat-tag.t1{color:var(--gold-ink); background:var(--gold-bg); box-shadow:inset 0 0 0 1px var(--gold-line)}
+.pat-tag.t2{color:var(--sync); background:var(--sync-bg); box-shadow:inset 0 0 0 1px var(--sync-line)}
+.pat-tag.t3{color:var(--risk); background:var(--risk-bg); box-shadow:inset 0 0 0 1px var(--risk-line)}
+.pat-tag.t0{color:var(--ink-3); background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line)}
+.pat-sig{display:flex; gap:16px; flex-wrap:wrap; margin-top:12px}
+.pat-sig div{min-width:78px}
+.pat-sig .sl{font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.pat-sig .sv{font-family:var(--mono); font-size:17px; font-variant-numeric:tabular-nums; margin-top:2px}
+.pat-sig .sv.down{color:var(--risk)} .pat-sig .sv.up{color:var(--ok)}
+.pat-body{margin-top:13px; font-size:13.5px; line-height:1.5; color:var(--ink-2)}
+.pat-body b{color:var(--ink)}
+.pat-do{margin-top:12px; padding:12px 13px; background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line);
+  font-size:13px; line-height:1.5}
+.pat-do .dt{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--gold); margin-bottom:5px}
+.pat-f{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
+
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 14px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); color:var(--ink); cursor:pointer}
+.btn:hover{box-shadow:inset 0 0 0 1px var(--line-strong)}
+.btn.gold{background:var(--gold-solid); color:#0B0B0C; box-shadow:none; font-weight:700}
+.btn.ghost{background:none}
+.btn svg{width:14px; height:14px}
+.btn[disabled]{opacity:.5; cursor:default}
+
+/* --- mapa de relaciones --- */
+.map-box{background:var(--surface); box-shadow:inset 0 0 0 1px var(--line); padding:8px}
+.map-box svg{width:100%; height:auto; display:block}
+.gn{cursor:pointer}
+.panel{background:var(--surface); box-shadow:inset 0 0 0 1px var(--line); padding:15px 16px}
+.panel h3{margin-bottom:3px}
+.plist{display:flex; flex-direction:column; gap:0; margin-top:12px}
+.plist .pr{display:flex; justify-content:space-between; gap:10px; padding:7px 0; font-size:12.5px;
+  border-top:1px solid var(--line)}
+.plist .pr:first-child{border-top:0}
+.plist .pr b{font-family:var(--mono); font-variant-numeric:tabular-nums; color:var(--ink-2)}
+
+/* --- calendario de ausencias --- */
+.cal{display:grid; grid-template-columns:repeat(7,1fr); gap:2px; background:var(--line); border:2px solid var(--line)}
+.cal .hd{background:var(--surface-2); padding:6px 4px; text-align:center; font-family:var(--mono);
+  font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+.cal .dy{background:var(--surface); padding:6px 5px 8px; min-height:64px; min-width:0}
+.cal .dy.off{background:var(--surface-2); opacity:.55}
+.cal .dn{font-family:var(--mono); font-size:10.5px; color:var(--ink-3)}
+.cal .dy.hoy .dn{color:var(--gold); font-weight:700}
+.cal-i{display:block; margin-top:4px; font-family:var(--mono); font-size:9px; line-height:1.25;
+  padding:2px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.cal-i.full{background:var(--risk-bg); color:var(--risk); box-shadow:inset 0 0 0 1px var(--risk-line)}
+.cal-i.part{background:var(--sync-bg); color:var(--sync); box-shadow:inset 0 0 0 1px var(--sync-line)}
+.cal-more{font-family:var(--mono); font-size:8.5px; color:var(--ink-3); margin-top:3px; display:block}
+
+/* --- desafío entre áreas --- */
+.duel{display:grid; gap:2px; grid-template-columns:1fr; background:var(--line); border:2px solid var(--line)}
+@media(min-width:640px){.duel{grid-template-columns:1fr auto 1fr}}
+.duel-side{background:var(--surface); padding:16px; text-align:center}
+.duel-side .an{font-family:var(--display); font-weight:700; font-size:17px; text-transform:uppercase}
+.duel-side .av2{font-family:var(--display); font-weight:700; font-size:38px; line-height:1; margin-top:6px;
+  font-variant-numeric:tabular-nums}
+.duel-side.win .av2{color:var(--gold)}
+.duel-mid{background:var(--surface-2); display:grid; place-items:center; padding:12px 18px;
+  font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3)}
+.flow{display:flex; flex-direction:column; gap:0; margin-top:14px}
+.fstep{display:grid; grid-template-columns:26px 1fr; gap:11px; padding:9px 0; border-top:1px solid var(--line)}
+.fstep:first-child{border-top:0}
+.fstep .fn{width:22px; height:22px; display:grid; place-items:center; font-family:var(--mono); font-size:9.5px;
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); color:var(--ink-2)}
+.fstep.done .fn{background:var(--gold-solid); color:#0B0B0C; box-shadow:none}
+.fstep.now .fn{background:var(--sync-bg); color:var(--sync); box-shadow:inset 0 0 0 1px var(--sync-line)}
+.fstep .ft{font-size:13px; line-height:1.45; color:var(--ink-2)}
+.fstep .ft b{color:var(--ink)}
+
+/* --- vista previa de lo que ve la persona --- */
+.veil{position:fixed; inset:0; z-index:100; background:rgba(0,0,0,.62); display:grid; place-items:center;
+  padding:18px; overflow:auto}
+.sheet{background:var(--surface); box-shadow:0 30px 70px -30px rgba(0,0,0,.9), inset 0 0 0 2px var(--line-strong);
+  width:100%; max-width:520px; max-height:92vh; overflow:auto}
+.sheet-h{display:flex; align-items:flex-start; gap:12px; padding:16px 17px 13px;
+  box-shadow:inset 0 -1px 0 var(--line)}
+.sheet-b{padding:16px 17px; display:flex; flex-direction:column; gap:12px}
+.sheet-f{padding:13px 17px; display:flex; gap:9px; box-shadow:inset 0 1px 0 var(--line)}
+.closebtn{width:30px; height:30px; display:grid; place-items:center; flex:none; color:var(--ink-3);
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line)}
+.closebtn svg{width:15px; height:15px}
+.mirror{background:var(--ground); box-shadow:inset 0 0 0 2px var(--line-strong); padding:15px}
+.mirror .mh{font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-3); margin-bottom:9px}
+
+/* =========================================================
+   CIFRAS SIEMPRE EN REGULAR 400
+   Silkscreen y Space Mono en 700 engordan el dígito y le
+   quitan el contraforma. Los números se leen mejor en 400,
+   así que ningún número del sistema va en negrita — ni los
+   grandes ni los de una tabla. La jerarquía la hace el
+   tamaño, no el peso.
+   ========================================================= */
+
+/* SIGNO % EN QUANTICO — Silkscreen pierde la forma del '%',
+   así que en cualquier valor con Silkscreen se aísla el signo
+   en .pct para que se lea con Quantico en su lugar. */
+.pct{font-family:'Quantico','Courier New',monospace; font-weight:400}
+.num, .hud .num, .score, .seal b, .stat .v, .stat b, .tile .v, .price b,
+.rank-pos, .rank-v, .bv, .bar-row .bv, .w-h .c, .paso-n, .chip.num,
+td.n, #tip .tr b, #tip .tr span, .pat-sig .sv, .plist .pr b, .fstep .fn,
+.duelo-s .av, .duel-side .av2, .cal .dn, .cal-more, .mini-bar + span,
+.ranklist b, .lote .bv, .meter-v, .gauge-v{
+  font-weight:400 !important;
+}
+</style>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><span class="brand-mark">L</span>Levelop<em>!</em></div>
+    <span class="tag-int">Vista interna · líder de área</span>
+    <div class="spacer"></div>
+    <div class="seg" id="areasel"></div>
+    <button class="iconbtn" id="themebtn" title="Cambiar tema" aria-label="Cambiar tema"></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div style="margin-bottom:20px">
+    <span class="eyebrow">Tu área</span>
+    <h1 style="margin-top:6px" id="h1">Área</h1>
+    <p class="lead">Esto no es para vigilar a nadie. Es para que sepas <b>dónde hace falta una mano</b>,
+      <b>quién está trabajando con quién</b> y <b>quién no va a estar</b> la semana que viene. Tres cosas que
+      hoy se averiguan preguntando de escritorio en escritorio.</p>
+  </div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="sec-h"><h2>Quién necesita una mano</h2><span class="sub">Patrones sostenidos, no semanas malas</span></div>
+  <div id="patrones"></div>
+  <div class="note gold" style="margin-top:12px">
+    <b>Por qué esto no es un ranking.</b> No está ordenado de peor a mejor: está ordenado por
+    <b>cuánto lleva pasando</b>. Un patrón de cinco semanas es más urgente que uno de tres, y eso no dice
+    nada de quién rinde más. Nadie aparece acá por una semana floja, y <b>cada persona ve exactamente lo
+    mismo que estás viendo tú</b> — tócale «lo que ve» a cualquiera para comprobarlo.
+  </div>
+
+  <div class="sec-h"><h2>Quién trabaja con quién</h2><span class="sub">Sacado de las misiones del área, no de una encuesta</span></div>
+  <div class="grid-map">
+    <div class="map-box"><div id="mapa"></div></div>
+    <div class="panel">
+      <h3>Cómo leerlo</h3>
+      <div class="sub">Cada burbuja es una persona. Cada línea es una misión compartida.</div>
+      <div class="legend" style="margin-top:13px">
+        <span><i style="background:var(--gold-solid)"></i>Tu área</span>
+        <span><i style="background:var(--s2)"></i>Otras áreas</span>
+      </div>
+      <div id="mapinfo"></div>
+      <div class="note" style="margin-top:13px">Una burbuja chiquita y en la orilla no es alguien que
+        trabaja poco: es alguien que <b>trabaja solo</b>. A veces está bien y a veces es un aviso.</div>
+    </div>
+  </div>
+
+  <div class="sec-h"><h2>Quién no va a estar</h2><span class="sub">Sale de los beneficios de tiempo que ya canjearon</span></div>
+  <div class="card">
+    <div class="chart-h"><div><h3 id="calmes">Este mes</h3>
+      <div class="sub">Solo días y horas. Nunca por qué, nunca qué pidió cada quien.</div></div>
+      <div class="row g8" id="calnav"></div></div>
+    <div id="cal"></div>
+    <div class="note" style="margin-top:14px" id="calnota"></div>
+  </div>
+
+  <div class="sec-h"><h2>Lo que pide tu área</h2><span class="sub">Y en qué se diferencia del resto de la empresa</span></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="chart-h"><div><h3>Más pedido en tu área</h3><div class="sub">Últimos 30 días.</div></div></div>
+      <div id="pideArea"></div>
+    </div>
+    <div class="card">
+      <div class="chart-h"><div><h3>Dónde tu área se sale de la norma</h3><div class="sub">Contra el promedio de las demás áreas de la empresa.</div></div></div>
+      <div id="difArea"></div>
+      <div class="note" style="margin-top:14px" id="difNota"></div>
+    </div>
+  </div>
+
+  <div class="sec-h"><h2>Desafío entre áreas</h2><span class="sub">Con voto de los dos equipos, o no va</span></div>
+  <div id="desafio"></div>
+
+  <div class="note gold" style="margin-top:20px">
+    <b>Lo que este panel NO muestra, a propósito:</b> el contenido de los hilos, quién apagó la capa de juego,
+    qué beneficio pidió cada quien, ni una tabla de tu gente ordenable de mejor a peor. Tampoco guarda
+    historial de quién apareció en «necesita una mano»: si el patrón se corrige, desaparece y no queda rastro.
+    Un líder necesita ver el trabajo, no vigilar a la gente.
+  </div>
+</main>
+
+<div id="tip"></div>
+<div id="modal"></div>
+
+<script>
+const $ = q => document.querySelector(q);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = n => new Intl.NumberFormat("es-VE").format(n);
+const S = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const IC = {
+  x:S('<path d="M18 6 6 18M6 6l12 12"/>'),
+  mail:S('<rect x="3" y="5" width="18" height="14"/><path d="m3 7 9 6 9-6"/>'),
+  chat:S('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'),
+  ojo:S('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
+  bandera:S('<path d="M4 22V4h13l-2 4 2 4H4"/>'),
+  check:S('<path d="m5 13 4 4L19 7"/>'),
+  reloj:S('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  flecha:S('<path d="M5 12h14M13 6l6 6-6 6"/>')
+};
+
+/* =========================================================
+   DATOS DE EJEMPLO — estructura real, cifras de mentira
+   ========================================================= */
+const AREAS = ["Diseño","Ingeniería","Operaciones","Producto","Soporte","Marketing"];
+
+const gente = [
+  // area, ritmo = misiones/semana últimas 4 · previo = las 4 anteriores
+  // pun = % a tiempo · apr = % aprobadas sin rebote · abiertas = carga viva
+  // ayudas = veces que entró a ayudar a otro · semanas = hace cuánto arrancó el patrón
+  {id:1,  n:"Daniela Ochoa",     a:"Diseño",     ini:"DO", c:"#7FA30E", ritmo:4.2, previo:4.0, pun:93, apr:96, abiertas:5,  ayudas:6},
+  {id:2,  n:"Rafael Colmenares", a:"Diseño",     ini:"RC", c:"#1E9AAB", ritmo:3.1, previo:3.3, pun:52, apr:94, abiertas:6,  ayudas:2, semanas:5},
+  {id:3,  n:"Génesis Uzcátegui", a:"Diseño",     ini:"GU", c:"#8078EE", ritmo:3.8, previo:3.6, pun:91, apr:61, abiertas:4,  ayudas:3, semanas:2},
+  {id:4,  n:"Andrés Petit",      a:"Diseño",     ini:"AP", c:"#E05C48", ritmo:1.9, previo:3.9, pun:88, apr:92, abiertas:3,  ayudas:1, semanas:4},
+  {id:5,  n:"Yorbelis Rangel",   a:"Diseño",     ini:"YR", c:"#3390D6", ritmo:4.4, previo:4.1, pun:84, apr:90, abiertas:13, ayudas:4, semanas:3},
+  {id:6,  n:"Kevin Salas",       a:"Diseño",     ini:"KS", c:"#CB5694", ritmo:2.2, previo:3.4, pun:64, apr:70, abiertas:4,  ayudas:2, semanas:6},
+  {id:7,  n:"Luis Farías",       a:"Diseño",     ini:"LF", c:"#B0A24A", ritmo:2.6, previo:2.7, pun:81, apr:88, abiertas:4,  ayudas:14, semanas:4},
+  {id:8,  n:"Carla Mendoza",     a:"Diseño",     ini:"CM", c:"#4FD8E8", ritmo:3.3, previo:3.2, pun:86, apr:91, abiertas:5,  ayudas:5},
+  {id:9,  n:"Ismael Rondón",     a:"Diseño",     ini:"IR", c:"#8078EE", ritmo:3.6, previo:3.5, pun:89, apr:93, abiertas:6,  ayudas:3},
+  {id:10, n:"Verónica Aponte",   a:"Diseño",     ini:"VA", c:"#E05C48", ritmo:2.9, previo:2.8, pun:82, apr:87, abiertas:5,  ayudas:4},
+  {id:11, n:"Jesús Marcano",     a:"Diseño",     ini:"JM", c:"#3390D6", ritmo:4.0, previo:4.2, pun:90, apr:95, abiertas:7,  ayudas:2},
+  {id:12, n:"Alejandra Sosa",    a:"Diseño",     ini:"AS", c:"#7FA30E", ritmo:3.4, previo:3.5, pun:87, apr:89, abiertas:6,  ayudas:6},
+  // fuera del área — aparecen en el mapa, no en los patrones
+  {id:20, n:"María Bracho",      a:"Operaciones",ini:"MB", c:"#6E8F06"},
+  {id:21, n:"Ninoska Ruiz",      a:"Finanzas",   ini:"NR", c:"#0090A8"},
+  {id:22, n:"José Nieves",       a:"Ventas",     ini:"JN", c:"#C24430"},
+  {id:23, n:"Alim Reyes",        a:"Producto",   ini:"AR", c:"#5B4ED6"},
+  {id:24, n:"Sofía Delgado",     a:"Ingeniería", ini:"SD", c:"#B03E7C"},
+  {id:25, n:"Édgar Pineda",      a:"Soporte",    ini:"EP", c:"#1F6FB5"}
+];
+const dl = id => gente.find(p=>p.id===id);
+
+/* misiones del área: quiénes estuvieron dentro de cada una */
+const misiones = [
+  {t:"Rediseño del canje",        gente:[1,3,23]},
+  {t:"Sistema de iconos",         gente:[1,8]},
+  {t:"Pantalla de misión vacía",  gente:[3,7]},
+  {t:"Auditoría de contraste",    gente:[1,5,24]},
+  {t:"Copy de la Tienda",         gente:[2,8,22]},
+  {t:"Estados de sincronización", gente:[3,24,7]},
+  {t:"Onboarding Q3",             gente:[5,20,23]},
+  {t:"Plantillas de correo",      gente:[2,25]},
+  {t:"Mapa de beneficios",        gente:[5,21]},
+  {t:"Kit de marca para ventas",  gente:[8,22]},
+  {t:"Revisión de accesibilidad", gente:[1,7,3]},
+  {t:"Catálogo 2026",             gente:[5,6]},
+  {t:"Landing de Fundadores",     gente:[6,22,8]},
+  {t:"Guía de tono",              gente:[7,2]},
+  {t:"Migración de canjes",       gente:[5,24,20]},
+  {t:"Panel de cupos",            gente:[1,5,7]},
+  {t:"Encuesta de beneficios",    gente:[5,21,25]},
+  {t:"Fichas de aliado",          gente:[4,8]},
+  {t:"Reporte trimestral",        gente:[5,23]},
+  {t:"Ajustes de perfil",         gente:[3,1]},
+  {t:"Ilustración de vacíos",      gente:[9,1]},
+  {t:"Pantalla de racha",          gente:[9,12,5]},
+  {t:"Tipografía del sistema",     gente:[10,8]},
+  {t:"Íconos de misión",           gente:[10,9,3]},
+  {t:"Plantilla de reportes",      gente:[11,20]},
+  {t:"Auditoría de la Tienda",     gente:[11,12,5]},
+  {t:"Manual de marca",            gente:[12,8,22]},
+  {t:"Prototipo del líder",        gente:[9,1,23]}
+];
+
+/* ausencias derivadas de beneficios de tiempo ya canjeados */
+const AUSENCIAS = [
+  {d:3,  id:5, t:"Día libre",          full:true},
+  {d:4,  id:1, t:"Salida 2 h antes"},
+  {d:5,  id:7, t:"Entrada 1 h tarde"},
+  {d:9,  id:3, t:"Viernes flex (2 h)"},
+  {d:10, id:2, t:"Salida 2 h antes"},
+  {d:10, id:6, t:"Almuerzo largo"},
+  {d:10, id:8, t:"Salida 2 h antes"},
+  {d:11, id:4, t:"Día libre",          full:true},
+  {d:16, id:5, t:"Salida 2 h antes"},
+  {d:17, id:1, t:"Día libre",          full:true},
+  {d:18, id:6, t:"Entrada 1 h tarde"},
+  {d:23, id:7, t:"Día libre",          full:true},
+  {d:24, id:2, t:"Viernes flex (2 h)"},
+  {d:24, id:3, t:"Salida 2 h antes"},
+  {d:25, id:8, t:"Almuerzo largo"},
+  {d:25, id:5, t:"Salida 2 h antes"},
+  {d:25, id:1, t:"Entrada 1 h tarde"},
+  {d:30, id:4, t:"Salida 2 h antes"}
+];
+
+/* demanda de tienda: área vs promedio del resto */
+const DEMANDA = [
+  {n:"Salida anticipada",  area:14, resto:9},
+  {n:"Escudo de foco",     area:11, resto:4},
+  {n:"Recarga de datos",   area:9,  resto:12},
+  {n:"Día libre",          area:7,  resto:6},
+  {n:"Almuerzo largo",     area:6,  resto:7},
+  {n:"Entrada 2x1 de cine",area:4,  resto:8},
+  {n:"Viernes flex",       area:4,  resto:3},
+  {n:"Bolsa de mercado",   area:2,  resto:9}
+];
+
+/* desafío entre áreas, estado del ejemplo */
+const DESAFIO = {
+  estado:"activo",
+  retador:"Diseño", rival:"Soporte",
+  dias:7, restan:3,
+  metrica:"Mejora contra tu propio mes pasado, en misiones que salieron a tiempo",
+  marcador:{"Diseño":18, "Soporte":14},
+  votos:{"Diseño":{si:7,no:1}, "Soporte":{si:9,no:3}}
+};
+
+/* =========================================================
+   PACE — cadencia de trabajo
+   ---------------------------------------------------------
+   Reglas que el cálculo respeta, y que están escritas en pantalla:
+   · Nadie entra por una semana mala. Mínimo 3 semanas de patrón.
+   · No se compara a la gente entre sí para decidir quién entra:
+     cada quien se compara contra su propio pasado.
+     La única comparación con el equipo es la carga abierta,
+     porque cargar de más no es un defecto de la persona.
+   · Quien tiene la capa de juego apagada no entra nunca (R-03 + R-07).
+   · No hay puntaje. Hay patrón, y si no hay patrón el sistema lo dice.
+   ========================================================= */
+const MIN_SEMANAS = 3;
+const pctify = s => String(s).replace(/%/g, '<span class="pct">%</span>');
+
+const PATRONES = [
+  {
+    id:"tarde-aprobado",
+    tag:"Los tiempos no cuadran", nivel:"t1",
+    test: p => p.pun < 65 && p.apr >= 85,
+    lee: p => `Entrega tarde <b>casi siempre</b>, pero cuando entrega <b>se lo aprueban de una</b>.
+      Eso no es alguien que trabaja mal: es alguien a quien las fechas no le están calzando.
+      O está estimando de menos, o se las estamos poniendo nosotros sin preguntarle.`,
+    haz: p => `Siéntate 20 minutos con ${p.n.split(" ")[0]} y revisen <b>tres misiones cerradas</b>:
+      cuánto pensó que le iba a tomar y cuánto le tomó. Si la brecha es pareja, el problema es la
+      estimación y se arregla con un multiplicador. Si es dispersa, hay interrupciones que no estamos
+      viendo. <b>No arranques la conversación por el retraso</b>: arráncala por la fecha.`
+  },
+  {
+    id:"puntual-rebotado",
+    tag:"Corriendo para llegar", nivel:"t2",
+    test: p => p.pun >= 80 && p.apr < 70,
+    lee: p => `Llega a la fecha <b>casi siempre</b>, pero le rebotan <b>una de cada tres</b>.
+      Está entregando para cumplir el día, no para cerrar el trabajo. Eso a la larga cuesta más
+      tiempo que entregar tarde.`,
+    haz: p => `El problema no es la velocidad, es que <b>«listo» significa cosas distintas</b> para
+      ustedes dos. Escriban juntos, en la próxima misión, qué tiene que ser verdad para que esté lista —
+      antes de empezarla, no al revisarla. Y baja tú la exigencia de fecha en esa misión, para que la
+      prueba sea limpia.`
+  },
+  {
+    id:"cayo-ritmo",
+    tag:"Bajó el ritmo, no la calidad", nivel:"t2",
+    test: p => p.previo>0 && (p.previo - p.ritmo)/p.previo >= .3 && p.apr >= 85,
+    lee: p => `Está cerrando <b>bastante menos</b> que hace un mes, pero lo que entrega sigue
+      saliendo igual de bien. Cuando cae el volumen y no cae la calidad, <b>lo que cambió casi nunca
+      está en las misiones</b>.`,
+    haz: p => `Esta es la única de la lista donde <b>el sistema no sabe</b> y no va a saber.
+      Pide un 1-a-1 sin agenda de desempeño y pregunta cómo está. Si resulta ser carga de otro lado,
+      lo arreglas tú. Si es algo personal, no es asunto del panel y esta tarjeta desaparece sola
+      cuando el ritmo vuelva.`
+  },
+  {
+    id:"cargando-de-mas",
+    tag:"Cargando de más", nivel:"t3",
+    test: (p, ctx) => p.abiertas >= ctx.medianaAbiertas * 2,
+    lee: (p, ctx) => `Tiene <b>${p.abiertas} misiones abiertas</b> cuando la mitad del área anda por
+      ${ctx.medianaAbiertas}. Su ritmo se ve bien hoy, y por eso es fácil no verlo: <b>el que carga de
+      más se rompe después</b>, no ahora.`,
+    haz: p => `Esto se arregla del lado tuyo, no del suyo. Mira qué tiene abierto y <b>muévele dos
+      cosas a alguien</b> antes de hablar de ritmo. Si le preguntas primero si puede, te va a decir
+      que sí — por eso te toca a ti.`
+  },
+  {
+    id:"desbloqueando",
+    tag:"Se está gastando ayudando", nivel:"t0",
+    test: (p, ctx) => p.ayudas >= ctx.medianaAyudas * 2.5 && p.ritmo <= ctx.ritmoMediano,
+    lee: p => `Entró a ayudar en <b>${p.ayudas} misiones ajenas</b> este mes, muy por encima del resto,
+      y lo suyo va a media máquina. No está rindiendo poco: <b>está desbloqueando al equipo</b>
+      y eso no aparece en ninguna cifra de cierre.`,
+    haz: p => `Dos cosas, y la primera importa más: <b>dilo en voz alta delante del equipo</b>,
+      porque este trabajo es invisible por definición. La segunda: protégele dos bloques de la semana
+      donde no lo puedan llamar, o vas a perder al que sostiene a los demás.`
+  },
+  {
+    id:"todo-abajo",
+    tag:"El sistema no sabe", nivel:"t3",
+    test: p => p.pun < 70 && p.apr < 80 && p.previo>0 && p.ritmo < p.previo,
+    lee: p => `Bajó el ritmo, bajó la puntualidad y subieron los rebotes, <b>las tres a la vez</b>.
+      Cuando todo se mueve junto, no hay un diagnóstico que sacar de los datos: hay una conversación
+      que tener.`,
+    haz: p => `<b>No lleves este panel a esa reunión.</b> Lleva una pregunta abierta y tiempo.
+      Cualquier hipótesis que arme el sistema acá va a estar mal, y llegar con una hipótesis mala a
+      una conversación difícil es peor que llegar sin ninguna.`
+  }
+];
+
+function contexto(area){
+  const eq = gente.filter(p=>p.a===area && p.ritmo!==undefined);
+  const med = arr => { const s=[...arr].sort((a,b)=>a-b); const m=Math.floor(s.length/2);
+    return s.length%2 ? s[m] : Math.round((s[m-1]+s[m])/2); };
+  return {
+    equipo: eq,
+    medianaAbiertas: med(eq.map(p=>p.abiertas)),
+    medianaAyudas:   med(eq.map(p=>p.ayudas)),
+    ritmoMediano:    med(eq.map(p=>p.ritmo*10))/10
+  };
+}
+
+function detectar(area){
+  const ctx = contexto(area);
+  const out = [], esperando = [];
+  ctx.equipo.forEach(p=>{
+    const pat = PATRONES.find(x=>x.test(p, ctx));
+    if(!pat) return;
+    if(!p.semanas || p.semanas < MIN_SEMANAS){ esperando.push(p); return; }  // nadie entra por una semana mala
+    out.push({p, pat, ctx});
+  });
+  // ordenado por cuánto lleva pasando, NUNCA por qué tan mal está la persona
+  out.sort((a,b)=>b.p.semanas - a.p.semanas);
+  out.esperando = esperando;
+  return out;
+}
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+let area = "Diseño";
+let mesOffset = 0;
+let nodoSel = null;
+
+function pintarPatrones(){
+  const casos = detectar(area);
+  if(!casos.length){
+    $("#patrones").innerHTML = `<div class="pat"><div class="pat-body">
+      <b>Nadie tiene un patrón sostenido esta semana.</b> Eso es una buena noticia y también es
+      literal: el panel no está buscando al más lento, está buscando algo que lleve
+      ${MIN_SEMANAS} semanas o más repitiéndose. Si no lo hay, no hay nada que hacer acá.
+    </div></div>`;
+    return;
+  }
+  const espera = casos.esperando && casos.esperando.length
+    ? `<div class="note" style="margin-top:12px"><b>${casos.esperando.length}
+        ${casos.esperando.length===1?"persona tiene":"personas tienen"} algo raro esta semana, pero lleva${casos.esperando.length===1?"":"n"}
+        menos de ${MIN_SEMANAS} semanas así.</b> No aparece${casos.esperando.length===1?"":"n"} acá todavía, a propósito:
+        una racha corta puede ser un proyecto complicado, una gripe o una semana de mudanza.
+        Si sigue la semana que viene, sube sola.</div>`
+    : "";
+  $("#patrones").innerHTML = casos.map(({p,pat,ctx})=>{
+    const dRitmo = p.previo ? Math.round((p.ritmo-p.previo)/p.previo*100) : 0;
+    return `<div class="pat">
+      <div class="pat-h">
+        <span class="pat-who">
+          <span class="av" style="background:${p.c}">${p.ini}</span>
+          <span style="min-width:0"><span class="n">${esc(p.n)}</span>
+            <span class="r" style="display:block">Lleva ${p.semanas} semanas así</span></span>
+        </span>
+        <span class="pat-tag ${pat.nivel}">${esc(pat.tag)}</span>
+      </div>
+      <div class="pat-sig">
+        <div><div class="sl">Ritmo</div><div class="sv ${dRitmo<=-15?"down":dRitmo>=15?"up":""}">${p.ritmo.toFixed(1)}<span style="font-size:11px; color:var(--ink-3)">/sem ${dRitmo>0?"+":""}${dRitmo}%</span></div></div>
+        <div><div class="sl">A tiempo</div><div class="sv ${p.pun<70?"down":p.pun>=85?"up":""}">${p.pun}%</div></div>
+        <div><div class="sl">Sin rebote</div><div class="sv ${p.apr<75?"down":p.apr>=90?"up":""}">${p.apr}%</div></div>
+        <div><div class="sl">Abiertas</div><div class="sv ${p.abiertas>=ctx.medianaAbiertas*2?"down":""}">${p.abiertas}</div></div>
+        <div><div class="sl">Ayudó en</div><div class="sv ${p.ayudas>=ctx.medianaAyudas*2.5?"up":""}">${p.ayudas}</div></div>
+      </div>
+      <div class="pat-body">${typeof pat.lee==="function"?pat.lee(p,ctx):pat.lee}</div>
+      <div class="pat-do"><div class="dt">Qué hacer</div>${typeof pat.haz==="function"?pat.haz(p,ctx):pat.haz}</div>
+      <div class="pat-f">
+        <button class="btn gold" data-enviar="${p.id}">${IC.chat} Proponerle un 1-a-1</button>
+        <button class="btn ghost" data-ver="${p.id}">${IC.ojo} Lo que ve ${esc(p.n.split(" ")[0])}</button>
+      </div>
+    </div>`;
+  }).join("") + espera;
+}
+
+/* --- lo que ve la persona: exactamente lo mismo --- */
+function modalEspejo(id){
+  const casos = detectar(area);
+  const c = casos.find(x=>x.p.id===id); if(!c) return "";
+  const {p, pat, ctx} = c;
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Lo que ve ${esc(p.n.split(" ")[0])}</span>
+        <h2 style="margin-top:4px; font-size:19px">En su propia app</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="mirror">
+          <div class="mh">Aviso · apoyo</div>
+          <div style="font-family:var(--display); font-weight:700; text-transform:uppercase; font-size:15px; line-height:1.15">
+            ¿Hablamos de tus tiempos?</div>
+          <div style="font-size:13.5px; line-height:1.5; color:var(--ink-2); margin-top:8px">
+            Últimas semanas te está costando llegar a las fechas, y <b>lo que entregas se aprueba de una</b>.
+            Eso normalmente quiere decir que las fechas están mal puestas, no que estés trabajando mal.
+            ¿Quieres agendar 20 minutos con tu líder para revisarlas?
+          </div>
+          <div class="pat-f">
+            <span class="btn gold">Sí, agendar</span>
+            <span class="btn ghost">Ahora no</span>
+          </div>
+          <div style="font-family:var(--mono); font-size:9.5px; color:var(--ink-3); margin-top:11px">
+            Si dices que ahora no, no pasa nada y tu líder no se entera.
+          </div>
+        </div>
+        <div class="note gold"><b>Es el mismo texto, con las mismas cifras.</b> No hay una versión para
+          ti y otra para ella. Si no estás dispuesto a que lo lea, el panel no debería mostrártelo.</div>
+        <div class="note"><b>Lo que ella NO ve:</b> que apareció en una lista, cuánta gente más apareció,
+          ni el orden. Y lo que <b>tú</b> no ves: si abrió el aviso, si lo descartó, o cuántas veces.</div>
+      </div>
+      <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Cerrar</button></div>
+    </div></div>`;
+}
+
+function modalEnviar(id){
+  const p = dl(id);
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Se manda por Levelop y por correo</span>
+        <h2 style="margin-top:4px; font-size:19px">Proponerle un 1-a-1 a ${esc(p.n.split(" ")[0])}</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="note"><b>La invitación la manda el sistema, la conversación la tienes tú.</b>
+          Ella puede decir que no sin dar explicaciones, y si dice que no, <b>a ti no te llega nada</b>.</div>
+        <div class="mirror">
+          <div class="mh">Vista previa</div>
+          <div style="font-size:13.5px; line-height:1.5; color:var(--ink-2)">
+            Hola ${esc(p.n.split(" ")[0])}. Últimas semanas te está costando llegar a las fechas y
+            lo que entregas se aprueba de una. Quiero revisar contigo si las fechas están bien puestas.
+            ¿Te sirven 20 minutos esta semana?
+          </div>
+        </div>
+        <div class="note gold"><b>No va a llevar cifras.</b> Llegar con un tablero a una conversación
+          de este tipo la convierte en una evaluación, y no es lo que es.</div>
+      </div>
+      <div class="sheet-f"><button class="btn" data-cerrar>Cancelar</button>
+        <button class="btn gold" style="flex:1" data-cerrar>${IC.mail} Mandar la invitación</button></div>
+    </div></div>`;
+}
+
+/* =========================================================
+   MAPA DE RELACIONES DEL ÁREA
+   Sale de con quién compartes misión, no de una encuesta.
+   Disposición determinista: tu área en el anillo interno,
+   el resto de la empresa en el externo, agrupado por área.
+   ========================================================= */
+function grafo(){
+  const dentro = gente.filter(p=>p.a===area && p.ritmo!==undefined).map(p=>p.id);
+  const usados = new Set();
+  const enlaces = new Map();
+  misiones.forEach(m=>{
+    if(!m.gente.some(id=>dentro.includes(id))) return;
+    m.gente.forEach(id=>usados.add(id));
+    for(let i=0;i<m.gente.length;i++) for(let j=i+1;j<m.gente.length;j++){
+      const [a,b] = [m.gente[i], m.gente[j]].sort((x,y)=>x-y);
+      const k = a+"-"+b;
+      enlaces.set(k, (enlaces.get(k)||0)+1);
+    }
+  });
+  const insiders = [...usados].filter(id=>dentro.includes(id));
+  const outsiders = [...usados].filter(id=>!dentro.includes(id))
+    .sort((a,b)=> dl(a).a.localeCompare(dl(b).a));
+  const W=760, H=520, cx=W/2, cy=H/2;
+  const pos = {};
+  insiders.forEach((id,i)=>{
+    const ang = -Math.PI/2 + i*2*Math.PI/insiders.length;
+    pos[id] = {x: cx + Math.cos(ang)*135, y: cy + Math.sin(ang)*118, dentro:true};
+  });
+  outsiders.forEach((id,i)=>{
+    const ang = -Math.PI/2 + (i+.5)*2*Math.PI/outsiders.length;
+    pos[id] = {x: cx + Math.cos(ang)*272, y: cy + Math.sin(ang)*214, dentro:false};
+  });
+  const grados = {};
+  [...enlaces.keys()].forEach(k=>{
+    const [a,b] = k.split("-").map(Number);
+    grados[a]=(grados[a]||0)+1; grados[b]=(grados[b]||0)+1;
+  });
+  return {W,H,pos,enlaces,grados,insiders,outsiders};
+}
+
+function pintarMapa(){
+  const g = grafo();
+  const vis = id => !nodoSel || id===nodoSel ||
+    [...g.enlaces.keys()].some(k=>{const [a,b]=k.split("-").map(Number);
+      return (a===nodoSel&&b===id)||(b===nodoSel&&a===id);});
+  const lineas = [...g.enlaces.entries()].map(([k,peso])=>{
+    const [a,b]=k.split("-").map(Number);
+    const A=g.pos[a], B=g.pos[b]; if(!A||!B) return "";
+    const act = !nodoSel || a===nodoSel || b===nodoSel;
+    const cruza = A.dentro !== B.dentro;
+    return `<line x1="${A.x.toFixed(1)}" y1="${A.y.toFixed(1)}" x2="${B.x.toFixed(1)}" y2="${B.y.toFixed(1)}"
+      stroke="${cruza?"var(--s2)":"var(--line-strong)"}" stroke-width="${Math.min(4,1+peso)}"
+      opacity="${act?(cruza?.75:.6):.08}"/>`;
+  }).join("");
+  const nodos = [...g.insiders, ...g.outsiders].map(id=>{
+    const p=dl(id), P=g.pos[id], deg=g.grados[id]||0;
+    const r = 9 + Math.min(11, deg*1.7);
+    const on = vis(id);
+    return `<g class="gn" data-nodo="${id}" opacity="${on?1:.16}">
+      <circle cx="${P.x.toFixed(1)}" cy="${P.y.toFixed(1)}" r="${r.toFixed(1)}"
+        fill="${P.dentro?"var(--gold-solid)":"var(--s2)"}"
+        stroke="var(--surface)" stroke-width="2"/>
+      <text x="${P.x.toFixed(1)}" y="${(P.y+r+13).toFixed(1)}" text-anchor="middle"
+        font-family="var(--mono)" font-size="10.5" fill="var(--ink-2)">${esc(p.n.split(" ")[0])}</text>
+      ${P.dentro?"":`<text x="${P.x.toFixed(1)}" y="${(P.y+r+24).toFixed(1)}" text-anchor="middle"
+        font-family="var(--mono)" font-size="9" fill="var(--ink-3)">${esc(p.a)}</text>`}
+    </g>`;
+  }).join("");
+  $("#mapa").innerHTML = `<svg viewBox="0 0 ${g.W} ${g.H}" role="img"
+    aria-label="Mapa de con quién comparte misiones cada persona del área">
+    <g>${lineas}</g><g>${nodos}</g></svg>`;
+
+  // panel lateral
+  const orden = [...g.insiders].sort((a,b)=>(g.grados[b]||0)-(g.grados[a]||0));
+  const solos = orden.filter(id=>(g.grados[id]||0)<=1);
+  const puentes = [...g.insiders].map(id=>({id, fuera:[...g.enlaces.keys()].filter(k=>{
+      const [a,b]=k.split("-").map(Number);
+      return (a===id&&!g.pos[b].dentro)||(b===id&&!g.pos[a].dentro);}).length}))
+    .filter(x=>x.fuera>0).sort((a,b)=>b.fuera-a.fuera);
+  $("#mapinfo").innerHTML = `
+    <div style="margin-top:15px"><span class="eyebrow">Más conectados dentro</span>
+      <div class="plist">${orden.slice(0,5).map(id=>
+        `<div class="pr"><span>${esc(dl(id).n)}</span><b>${g.grados[id]||0}</b></div>`).join("")}</div></div>
+    ${puentes.length?`<div style="margin-top:15px"><span class="eyebrow">Puentes con otras áreas</span>
+      <div class="plist">${puentes.slice(0,4).map(x=>
+        `<div class="pr"><span>${esc(dl(x.id).n)}</span><b>${x.fuera}</b></div>`).join("")}</div></div>`:""}
+    ${solos.length?`<div class="note" style="margin-top:15px; box-shadow:inset 0 0 0 1px var(--risk-line); color:var(--risk)">
+      <b>Trabajando en solitario:</b> ${solos.map(id=>esc(dl(id).n.split(" ")[0])).join(", ")}.
+      Si eso es a propósito, perfecto. Si no, es de donde salen las sorpresas.</div>`:""}
+    ${nodoSel?`<button class="btn ghost" style="margin-top:13px; width:100%" data-nodo="0">Ver todo otra vez</button>`:""}`;
+}
+
+/* =========================================================
+   CALENDARIO DE AUSENCIAS
+   ========================================================= */
+const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
+               "septiembre","octubre","noviembre","diciembre"];
+const HOY = {a:2026, m:7, d:27};   // agosto 2026, fijo en el prototipo
+
+function pintarCal(){
+  const m = HOY.m + mesOffset;
+  const anio = HOY.a + Math.floor(m/12);
+  const mes = ((m%12)+12)%12;
+  const primero = new Date(Date.UTC(anio, mes, 1)).getUTCDay();  // 0 = domingo
+  const desplaza = (primero+6)%7;                                 // semana arranca en lunes
+  const dias = new Date(Date.UTC(anio, mes+1, 0)).getUTCDate();
+  const esteMes = mesOffset===0;
+
+  const celdas = [];
+  for(let i=0;i<desplaza;i++) celdas.push(`<div class="dy off"></div>`);
+  for(let d=1; d<=dias; d++){
+    const hay = esteMes ? AUSENCIAS.filter(x=>x.d===d) : [];
+    const dow = new Date(Date.UTC(anio, mes, d)).getUTCDay();
+    const finde = dow===0 || dow===6;
+    celdas.push(`<div class="dy ${finde?"off":""} ${esteMes&&d===HOY.d?"hoy":""}">
+      <span class="dn">${d}</span>
+      ${hay.slice(0,2).map(x=>`<span class="cal-i ${x.full?"full":"part"}"
+        title="${esc(dl(x.id).n)} · ${esc(x.t)}">${esc(dl(x.id).n.split(" ")[0])} · ${esc(x.t)}</span>`).join("")}
+      ${hay.length>2?`<span class="cal-more">+${hay.length-2} más</span>`:""}
+    </div>`);
+  }
+  $("#cal").innerHTML = `<div class="cal">
+    ${["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].map(d=>`<div class="hd">${d}</div>`).join("")}
+    ${celdas.join("")}</div>`;
+  $("#calmes").textContent = MESES[mes][0].toUpperCase()+MESES[mes].slice(1)+" "+anio;
+
+  const dobles = {};
+  AUSENCIAS.forEach(x=>{ dobles[x.d]=(dobles[x.d]||0)+1; });
+  const apretados = Object.entries(dobles).filter(([,n])=>n>=3).map(([d])=>+d).sort((a,b)=>a-b);
+  $("#calnota").innerHTML = esteMes
+    ? `<b>${AUSENCIAS.length} ausencias ya canjeadas este mes</b>, de las cuales
+       ${AUSENCIAS.filter(x=>x.full).length} son días completos.
+       ${apretados.length?`Ojo con <b>el ${apretados.join(", el ")}</b>: ese día hay tres o más personas
+       fuera al mismo tiempo. No lo bloquees — <b>ya se lo ganaron</b> — pero no pongas nada crítico ahí.`
+       :`Ningún día tiene tres o más personas fuera a la vez.`}`
+    : `Los canjes del mes que viene aparecen aquí a medida que la gente los va pidiendo.
+       Este calendario <b>no permite cancelar nada</b>: un beneficio que el líder puede revocar no es un beneficio.`;
+  $("#calnav").innerHTML = `
+    <button class="btn ghost" data-mes="-1" ${mesOffset<=-1?"disabled":""}>Anterior</button>
+    <button class="btn ghost" data-mes="1" ${mesOffset>=1?"disabled":""}>Siguiente</button>`;
+}
+
+/* =========================================================
+   DEMANDA DE TIENDA DEL ÁREA
+   ========================================================= */
+function barras(cont, filas, opts={}){
+  const max = Math.max(...filas.map(d=>Math.abs(d.v)), 1);
+  cont.innerHTML = `<div class="bars">` + filas.map((d,i)=>`
+    <div class="bar-row" data-i="${i}">
+      <span class="bl" title="${esc(d.n)}">${esc(d.n)}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${(Math.abs(d.v)/max*100).toFixed(1)}%; background:${opts.color?opts.color(d):"var(--s1)"}"></span></span>
+      <span class="bv">${opts.fmtv?opts.fmtv(d):fmt(d.v)}${opts.extra?`<span class="bx"> ${opts.extra(d)}</span>`:""}</span>
+    </div>`).join("") + `</div>`;
+  cont.querySelectorAll(".bar-row").forEach(row=>{
+    const d = filas[+row.dataset.i];
+    row.addEventListener("mousemove", e=>mostrarTip(opts.tip?opts.tip(d):`<div class="tk">${esc(d.n)}</div>`, e));
+    row.addEventListener("mouseleave", ocultarTip);
+  });
+}
+
+function pintarDemanda(){
+  const ord = [...DEMANDA].sort((a,b)=>b.area-a.area);
+  barras($("#pideArea"), ord.map(d=>({n:d.n, v:d.area})), {
+    color:()=>"var(--s2)",
+    extra: d => "pedidos",
+    tip: d => `<div class="tk">${esc(d.n)}</div><div class="tr"><span>Pedidos en tu área</span><b>${d.v}</b></div>`
+  });
+  const dif = DEMANDA.map(d=>({n:d.n, v:d.area-d.resto, a:d.area, r:d.resto}))
+    .sort((a,b)=>Math.abs(b.v)-Math.abs(a.v));
+  barras($("#difArea"), dif, {
+    color: d => d.v>0 ? "var(--gold-solid)" : "var(--s4)",
+    fmtv: d => (d.v>0?"+":"")+d.v,
+    extra: d => d.v>0 ? "más que el resto" : "menos que el resto",
+    tip: d => `<div class="tk">${esc(d.n)}</div>
+      <div class="tr"><span>Tu área</span><b>${d.a}</b></div>
+      <div class="tr"><span>Promedio del resto</span><b>${d.r}</b></div>`
+  });
+  const top = dif[0];
+  $("#difNota").innerHTML = top.v>0
+    ? `Tu área pide <b>${esc(top.n)}</b> mucho más que las demás. Eso normalmente dice algo del trabajo,
+       no del gusto: <b>${esc(top.n)}</b> arriba de la norma suele ser gente peleando por concentrarse.
+       Vale más como diagnóstico que como dato de compras.`
+    : `Tu área pide <b>${esc(top.n)}</b> bastante menos que las demás. O no les sirve, o no saben que existe.`;
+}
+
+/* =========================================================
+   DESAFÍO ENTRE ÁREAS
+   ========================================================= */
+function pintarDesafio(){
+  const D = DESAFIO;
+  const yo = D.marcador[D.retador], el = D.marcador[D.rival];
+  $("#desafio").innerHTML = `
+    <div class="card">
+      <div class="chart-h"><div><h3>${esc(D.retador)} contra ${esc(D.rival)}</h3>
+        <div class="sub">${esc(D.metrica)}. Quedan ${D.restan} de ${D.dias} días.</div></div>
+        <button class="btn ghost" data-reglas>${IC.bandera} Las reglas</button></div>
+      <div class="duel" style="margin-top:4px">
+        <div class="duel-side ${yo>=el?"win":""}"><div class="an">${esc(D.retador)}</div>
+          <div class="av2">${pctify(yo+"%")}</div>
+          <div class="sub" style="margin-top:4px">${D.votos[D.retador].si} de ${D.votos[D.retador].si+D.votos[D.retador].no} votaron que sí</div></div>
+        <div class="duel-mid">de mejora<br>contra sí mismos</div>
+        <div class="duel-side ${el>yo?"win":""}"><div class="an">${esc(D.rival)}</div>
+          <div class="av2">${pctify(el+"%")}</div>
+          <div class="sub" style="margin-top:4px">${D.votos[D.rival].si} de ${D.votos[D.rival].si+D.votos[D.rival].no} votaron que sí</div></div>
+      </div>
+      <div class="flow">
+        <div class="fstep done"><span class="fn">${IC.check}</span><span class="ft"><b>Tú propusiste el reto.</b> Elegiste rival, duración y qué se mide.</span></div>
+        <div class="fstep done"><span class="fn">${IC.check}</span><span class="ft"><b>Tu equipo votó.</b> ${D.votos[D.retador].si} sí, ${D.votos[D.retador].no} no. Con mayoría simple sigue; sin ella se cae y el otro equipo nunca se entera.</span></div>
+        <div class="fstep done"><span class="fn">${IC.check}</span><span class="ft"><b>${esc(D.rival)} votó.</b> ${D.votos[D.rival].si} sí, ${D.votos[D.rival].no} no.</span></div>
+        <div class="fstep now"><span class="fn">4</span><span class="ft"><b>Corriendo.</b> Hay un widget fijo en el Inicio de los dos equipos con el marcador, y en Misiones se ve quién va sumando.</span></div>
+        <div class="fstep"><span class="fn">5</span><span class="ft">Al cerrar, el área que gana <b>se lleva una medalla de equipo</b>, no Oro individual. Nadie pierde nada por perder.</span></div>
+      </div>
+      <div class="pat-f">
+        <button class="btn gold" data-nuevo>${IC.bandera} Retar a otra área</button>
+      </div>
+    </div>`;
+}
+
+function modalReglas(){
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:560px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Desafío entre áreas</span>
+        <h2 style="margin-top:4px; font-size:19px">Las tres reglas que lo hacen justo</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="pat-do"><div class="dt">1 · Qué se mide</div>
+          <b>No se mide cuántas misiones cierras.</b> Se mide <b>cuánto mejoras contra tu propio mes
+          pasado</b>, en misiones que salieron a tiempo. Contar misiones a secas premia trocear el
+          trabajo en pedacitos, que es la forma más fácil de inflar el número — y está en la lista de
+          cosas que este producto no mide nunca.</div>
+        <div class="pat-do"><div class="dt">2 · Cómo se cruzan áreas distintas</div>
+          Marketing y Desarrollo no cierran el mismo tipo de trabajo, así que <b>no se comparan entre
+          ellos</b>: cada área compite <b>contra su propio pasado</b>. El marcador que ves no es
+          «18 misiones contra 14», es <b>«18% de mejora contra 14% de mejora»</b>. Así un área de tres
+          personas puede ganarle a una de veinte.</div>
+        <div class="pat-do"><div class="dt">3 · Quién es el juez</div>
+          Nadie que esté compitiendo. <b>Una misión solo cuenta para el reto si la revisó alguien que
+          no es el líder del área que compite.</b> Si el que cierra las tareas es el mismo que quiere
+          ganar, el reto se vicia solo, y el equipo lo va a notar antes que nosotros.</div>
+        <div class="note gold"><b>Y una regla de salida:</b> cualquiera puede quedarse fuera del reto
+          cuando quiera, sin dar explicaciones y sin que su líder se entere. Un reto del que no te
+          puedes salir no es un juego, es una orden con disfraz.</div>
+      </div>
+      <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Listo</button></div>
+    </div></div>`;
+}
+
+function modalNuevo(){
+  const otras = AREAS.filter(a=>a!==area);
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Nadie se entera todavía</span>
+        <h2 style="margin-top:4px; font-size:19px">Retar a otra área</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div><span class="eyebrow">A quién</span>
+          <div class="row g8 wrapf" style="margin-top:9px">${otras.map((a,i)=>
+            `<button class="btn ${i===0?"gold":"ghost"}">${esc(a)}</button>`).join("")}</div></div>
+        <div><span class="eyebrow">Cuánto dura</span>
+          <div class="row g8 wrapf" style="margin-top:9px">
+            ${["1 día","3 días","1 semana","1 mes"].map((d,i)=>
+              `<button class="btn ${i===2?"gold":"ghost"}">${d}</button>`).join("")}</div></div>
+        <div class="note"><b>Primero vota tu equipo.</b> Si la mayoría dice que no, el reto se cae
+          <b>y el área rival nunca se entera de que lo propusiste</b>. Después vota la otra. Solo si
+          los dos equipos dicen que sí, arranca.</div>
+        <div class="note gold"><b>Se avisa por Levelop y por correo</b> el día que arranque, con las
+          reglas escritas y el botón de salirse en el mismo mensaje.</div>
+      </div>
+      <div class="sheet-f"><button class="btn" data-cerrar>Cancelar</button>
+        <button class="btn gold" style="flex:1" data-cerrar>Mandarlo a votación de mi equipo</button></div>
+    </div></div>`;
+}
+
+/* =========================================================
+   TILES, TOOLTIP, EVENTOS
+   ========================================================= */
+function mostrarTip(html, e){
+  const t=$("#tip"); t.innerHTML=html; t.style.opacity="1";
+  const r=t.getBoundingClientRect();
+  t.style.left=Math.min(window.innerWidth-r.width-12, e.clientX+14)+"px";
+  t.style.top=Math.max(12, e.clientY-r.height-12)+"px";
+}
+function ocultarTip(){ $("#tip").style.opacity="0"; }
+
+function pintarTiles(){
+  const ctx = contexto(area);
+  const eq = ctx.equipo;
+  const casos = detectar(area);
+  const pun = Math.round(eq.reduce((a,p)=>a+p.pun,0)/eq.length);
+  const ritmo = (eq.reduce((a,p)=>a+p.ritmo,0)/eq.length);
+  const prev  = (eq.reduce((a,p)=>a+p.previo,0)/eq.length);
+  const dif = Math.round((ritmo-prev)/prev*100);
+  const ausMes = AUSENCIAS.length;
+  $("#tiles").innerHTML = [
+    {l:"Gente en tu área", v:eq.length, d:"todas con el juego prendido", c:""},
+    {l:"Ritmo del área", v:ritmo.toFixed(1), d:`${dif>0?"+":""}${dif}% contra el mes pasado`, c:dif>=0?"up":"down"},
+    {l:"Salieron a tiempo", v:pctify(pun+"%"), d:"de lo cerrado este mes", c:pun>=80?"up":"down"},
+    {l:"Necesitan una mano", v:casos.length, d:casos.length?"con patrón de 3+ semanas":"nadie esta semana", c:casos.length?"down":"up"},
+    {l:"Ausencias del mes", v:ausMes, d:"ya canjeadas y ganadas", c:""}
+  ].map(t=>`<div class="tile"><div class="l">${t.l}</div><div class="v">${t.v}</div>
+    <div class="d ${t.c}">${t.d}</div></div>`).join("");
+}
+
+function pintarSelector(){
+  $("#areasel").innerHTML = ["Diseño"].map(a=>
+    `<button aria-pressed="true">${esc(a)}</button>`).join("");
+  $("#h1").textContent = area;
+}
+
+function abrirModal(html){ $("#modal").innerHTML = html; document.body.style.overflow="hidden"; }
+function cerrarModal(){ $("#modal").innerHTML=""; document.body.style.overflow=""; }
+
+function render(){
+  pintarSelector(); pintarTiles(); pintarPatrones();
+  pintarMapa(); pintarCal(); pintarDemanda(); pintarDesafio();
+}
+
+document.addEventListener("click", e=>{
+  const t = e.target.closest("[data-nodo],[data-ver],[data-enviar],[data-mes],[data-reglas],[data-nuevo],[data-cerrar],[data-stop]");
+  if(!t) return;
+  if(t.hasAttribute("data-stop")) return;
+  if(t.hasAttribute("data-cerrar")){ cerrarModal(); return; }
+  if(t.dataset.nodo!==undefined){
+    const id = +t.dataset.nodo;
+    nodoSel = (id===0 || nodoSel===id) ? null : id;
+    pintarMapa(); return;
+  }
+  if(t.dataset.ver){ abrirModal(modalEspejo(+t.dataset.ver)); return; }
+  if(t.dataset.enviar){ abrirModal(modalEnviar(+t.dataset.enviar)); return; }
+  if(t.dataset.mes){ mesOffset = Math.max(-1, Math.min(1, mesOffset + (+t.dataset.mes))); pintarCal(); return; }
+  if(t.hasAttribute("data-reglas")){ abrirModal(modalReglas()); return; }
+  if(t.hasAttribute("data-nuevo")){ abrirModal(modalNuevo()); return; }
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") cerrarModal(); });
+
+$("#themebtn").innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor" stroke="none"/></svg>`;
+$("#themebtn").addEventListener("click", ()=>{
+  const cur = document.documentElement.getAttribute("data-theme")||"dark";
+  const nuevo = cur==="dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", nuevo);
+  try{ localStorage.setItem("lvl-tema", nuevo); }catch(e){}
+});
+
+render();
+</script>

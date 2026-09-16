@@ -1,0 +1,3094 @@
+<title>Levelop MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quantico:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+
+<script>
+/* Oscuro por defecto. Se aplica antes de pintar para que no haya parpadeo. */
+try{ document.documentElement.setAttribute("data-theme", localStorage.getItem("lvl-tema") || "dark"); }
+catch(e){ document.documentElement.setAttribute("data-theme","dark"); }
+</script>
+
+<style>
+/* =========================================================
+   LEVELOP! — sistema visual "arcade de oficina"
+   Negro, lima y blanco. Todo cuadra a una rejilla de 4 px:
+   esquinas escalonadas de pixel-art, reglas de bloques,
+   medidores de barras. Es un juego, pero uno que lleva
+   cuentas de verdad.
+   ========================================================= */
+
+/* ---------- TOKENS · claro ---------- */
+:root{
+  --ground:#EAEAE4; --surface:#FFFFFF; --surface-2:#F1F1EB; --surface-3:#DFDFD7;
+  --line:#D0D0C8; --line-strong:#ABABA1;
+  --ink:#0B0B0C; --ink-2:#4A4A47; --ink-3:#7A7A75;
+  --grid:rgba(11,11,12,.055);
+
+  /* Oro = lima. Es la moneda y es la marca: un solo color fuerte. */
+  --gold:#4E6606; --gold-ink:#3C5004; --gold-bg:#E7F7B7; --gold-line:#C4E273; --gold-solid:#C3F03A;
+  /* XP = tinta. En el juego, la experiencia no tiene color: tiene peso. */
+  --xp:#0B0B0C;   --xp-bg:#E2E2DB;   --xp-line:#BEBEB4;  --xp-solid:#0B0B0C;
+  --ok:#0A6B7A;   --ok-bg:#D7EFF4;   --ok-line:#9BD2DE;
+  --risk:#C0361F; --risk-bg:#FADFD9; --risk-line:#EEAE9F;
+  --sync:#4A38C4; --sync-bg:#E2DEFA; --sync-line:#B4ABF0;
+
+  --shadow:4px 4px 0 rgba(11,11,12,.10);
+  --shadow-lg:8px 8px 0 rgba(11,11,12,.18);
+
+  --display:'Silkscreen','Courier New',monospace;
+  --body:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --mono:'Space Mono','SFMono-Regular',Consolas,monospace;
+}
+/* ---------- TOKENS · oscuro (el modo por defecto) ---------- */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#08080A; --surface:#121215; --surface-2:#1A1A1E; --surface-3:#26262C;
+    --line:#2A2A31; --line-strong:#43434E;
+    --ink:#EDEDE7; --ink-2:#9B9B95; --ink-3:#6A6A66;
+    --grid:rgba(237,237,231,.045);
+    --gold:#C3F03A; --gold-ink:#D6F871; --gold-bg:#2A3607; --gold-line:#4A5F0D; --gold-solid:#C3F03A;
+    --xp:#EDEDE7;   --xp-bg:#26262C;   --xp-line:#43434E;  --xp-solid:#EDEDE7;
+    --ok:#4FD8E8;   --ok-bg:#0A2C33;   --ok-line:#18505C;
+    --risk:#FF6A52; --risk-bg:#331310; --risk-line:#57241D;
+    --sync:#A79AFF; --sync-bg:#1D1846; --sync-line:#332B70;
+    --shadow:4px 4px 0 rgba(0,0,0,.5);
+    --shadow-lg:8px 8px 0 rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#08080A; --surface:#121215; --surface-2:#1A1A1E; --surface-3:#26262C;
+  --line:#2A2A31; --line-strong:#43434E;
+  --ink:#EDEDE7; --ink-2:#9B9B95; --ink-3:#6A6A66;
+  --grid:rgba(237,237,231,.045);
+  --gold:#C3F03A; --gold-ink:#D6F871; --gold-bg:#2A3607; --gold-line:#4A5F0D; --gold-solid:#C3F03A;
+  --xp:#EDEDE7;   --xp-bg:#26262C;   --xp-line:#43434E;  --xp-solid:#EDEDE7;
+  --ok:#4FD8E8;   --ok-bg:#0A2C33;   --ok-line:#18505C;
+  --risk:#FF6A52; --risk-bg:#331310; --risk-line:#57241D;
+  --sync:#A79AFF; --sync-bg:#1D1846; --sync-line:#332B70;
+  --shadow:4px 4px 0 rgba(0,0,0,.5);
+  --shadow-lg:8px 8px 0 rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; color:var(--ink); font-family:var(--body);
+  font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  background-color:var(--ground);
+  background-image:linear-gradient(var(--grid) 1px, transparent 1px),
+                   linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:32px 32px;
+}
+button{font:inherit; color:inherit; border:0; background:none; cursor:pointer}
+input,select,textarea{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--gold-solid); outline-offset:2px}
+p{margin:0}
+svg{display:block}
+
+h1,h2,h3,h4{margin:0; font-family:var(--display); text-wrap:balance; text-transform:uppercase}
+h1{font-weight:700; letter-spacing:.005em; line-height:.94}
+h2{font-weight:700; letter-spacing:.01em; line-height:1}
+h3,h4{font-weight:700; letter-spacing:0; line-height:1.12}
+.num{font-family:var(--mono); font-variant-numeric:tabular-nums; font-weight:500; letter-spacing:-.01em}
+.score{font-family:var(--display); font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:.01em}
+
+/* La forma de la casa: octógono de pixel-art */
+.px8{clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+
+/* =========================================================
+   SHELL
+   ========================================================= */
+.app{min-height:100vh; display:grid; grid-template-columns:1fr}
+.rail{display:none}
+.main{min-width:0; display:flex; flex-direction:column}
+
+.topbar{position:sticky; top:0; z-index:40; background:var(--surface); border-bottom:2px solid var(--line)}
+.topbar-in{max-width:1180px; margin:0 auto; padding:10px 16px; display:flex; align-items:center; gap:10px}
+.topbar-spacer{flex:1}
+
+.brand{display:flex; align-items:center; gap:8px; font-family:var(--display); font-weight:700;
+  font-size:24px; text-transform:uppercase; letter-spacing:.01em; line-height:1}
+.brand em{font-style:normal; color:var(--gold)}
+.brand-mark{width:26px; height:26px; flex:none; display:grid; place-items:center; font-size:15px;
+  font-weight:700; font-family:var(--display); color:#0B0B0C; background:var(--gold-solid);
+  clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+
+.hudset{display:flex; align-items:center; gap:5px; min-width:0}
+.hud{display:inline-flex; align-items:center; gap:6px; padding:5px 9px; background:var(--surface-2);
+  border:1px solid var(--line); font-family:var(--mono); font-size:10px; white-space:nowrap; color:var(--ink-2)}
+.hud .num{font-size:11.5px; color:var(--ink); font-weight:600}
+.hud-l{font-size:8.5px; letter-spacing:-.01em; text-transform:uppercase; opacity:.8}
+.hud.is-gold{background:var(--gold-bg); border-color:var(--gold-line); color:var(--gold-ink)}
+.hud.is-gold .num{color:var(--gold)}
+.hud.is-xp{background:var(--xp-bg); border-color:var(--xp-line); color:var(--ink-2)}
+.hud.is-xp .num{color:var(--ink)}
+.hud.is-streak{background:var(--risk-bg); border-color:var(--risk-line); color:var(--risk)}
+.hud.is-streak .num{color:var(--risk)}
+.hud-warn{font-size:8.5px; padding:1px 4px; background:var(--risk); color:#0B0B0C; font-weight:600}
+button.hud{cursor:pointer}
+button.hud:hover{border-color:var(--line-strong)}
+.hud.is-zona svg{width:12px;height:12px;flex:none}
+.zona-l{max-width:96px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+button.chip{cursor:pointer; font:inherit; font-family:var(--mono); font-size:9.5px}
+button.chip:hover{border-color:var(--line-strong)}
+button.hud:hover{border-color:var(--gold-solid)}
+
+.iconbtn{width:32px; height:32px; display:grid; place-items:center; position:relative; color:var(--ink-2);
+  background:var(--surface-2); border:1px solid var(--line)}
+.iconbtn:hover{color:var(--ink); border-color:var(--gold-solid)}
+.iconbtn .ti{display:block; width:17px; height:17px}
+.iconbtn .ti svg{width:100%; height:100%}
+.dot{position:absolute; top:4px; right:4px; width:5px; height:5px; background:var(--risk)}
+
+.content{max-width:1180px; margin:0 auto; width:100%; padding:20px 16px 106px; flex:1}
+
+.tabbar{position:fixed; bottom:0; left:0; right:0; z-index:45; background:var(--surface);
+  border-top:2px solid var(--line); display:flex; padding:6px 2px calc(6px + env(safe-area-inset-bottom))}
+.tab{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:5px 1px; color:var(--ink-3);
+  font-family:var(--mono); font-size:8px; letter-spacing:-.04em; text-transform:uppercase}
+.tab .ti{display:block; width:20px; height:20px}
+.tab .ti svg{width:100%; height:100%}
+.tab[aria-current="page"]{color:var(--ink)}
+.tab-mark{width:16px; height:4px; background:transparent}
+.tab[aria-current="page"] .tab-mark{background:var(--gold-solid)}
+
+@media (min-width:960px){
+  .app{grid-template-columns:236px 1fr}
+  .rail{display:flex; flex-direction:column; gap:3px; padding:18px 12px; background:var(--surface);
+    border-right:2px solid var(--line); position:sticky; top:0; height:100vh}
+  .rail .brand{padding:4px 8px 20px}
+  .railbtn{display:flex; align-items:center; gap:10px; padding:10px 11px; color:var(--ink-2);
+    font-family:var(--mono); font-size:10.5px; letter-spacing:0; text-transform:uppercase; text-align:left;
+    border:1px solid transparent}
+  .railbtn:hover{background:var(--surface-2); color:var(--ink); border-color:var(--line)}
+  .railbtn[aria-current="page"]{background:var(--gold-solid); color:#0B0B0C; border-color:var(--gold-solid); font-weight:600}
+  .railbtn .ti{display:block; width:18px; height:18px}
+  .railbtn .ti svg{width:100%; height:100%}
+  .tabbar{display:none}
+  .content{padding-bottom:52px}
+  .topbar .brand{display:none}
+}
+
+/* =========================================================
+   PRIMITIVAS
+   ========================================================= */
+.card{background:var(--surface); border:1px solid var(--line)}
+.stack{display:flex; flex-direction:column}
+.g6{gap:6px} .g8{gap:8px} .g9{gap:9px} .g10{gap:10px} .g12{gap:12px} .g14{gap:14px} .g16{gap:16px}
+.row{display:flex; align-items:center}
+.wrap{flex-wrap:wrap}
+
+.eyebrow{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:9px;
+  letter-spacing:.01em; text-transform:uppercase; color:var(--ink-3)}
+.eyebrow::after{content:""; width:22px; height:4px;
+  background-image:linear-gradient(90deg,var(--line-strong) 0 4px,transparent 4px 8px); background-size:8px 4px}
+
+.page-h{display:flex; align-items:flex-end; justify-content:space-between; gap:14px; margin-bottom:18px}
+.page-h h1{font-size:40px; margin-top:4px}
+.sub{color:var(--ink-2); font-size:13px}
+.sec-h{display:flex; align-items:center; gap:12px; margin:28px 0 12px}
+.sec-h h2{font-size:19px; flex:none}
+.sec-h .sub{order:3; text-align:right; flex:none; max-width:46%}
+.sec-h::before{content:""; order:2; flex:1; height:4px; min-width:18px;
+  background-image:linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px); background-size:8px 4px}
+@media (max-width:700px){
+  .sec-h{flex-wrap:wrap}
+  .sec-h .sub{flex:1 0 100%; max-width:100%; text-align:left; order:3}
+}
+
+.chip{display:inline-flex; align-items:center; gap:5px; padding:3px 7px; font-family:var(--mono); font-size:9.5px;
+  letter-spacing:0; white-space:nowrap; background:var(--surface-2); border:1px solid var(--line);
+  color:var(--ink-2); text-transform:uppercase}
+.chip svg{width:11px; height:11px; flex:none}
+.chip.gold{background:var(--gold-bg); border-color:var(--gold-line); color:var(--gold-ink)}
+.chip.xp  {background:var(--xp-bg);   border-color:var(--xp-line);   color:var(--ink)}
+.chip.ok  {background:var(--ok-bg);   border-color:var(--ok-line);   color:var(--ok)}
+.chip.risk{background:var(--risk-bg); border-color:var(--risk-line); color:var(--risk)}
+.chip.sync{background:var(--sync-bg); border-color:var(--sync-line); color:var(--sync)}
+
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 14px;
+  font-family:var(--mono); font-size:10px; letter-spacing:0; text-transform:uppercase; font-weight:500;
+  background:var(--surface-2); border:1px solid var(--line-strong); color:var(--ink);
+  transition:background .1s steps(2), transform .06s steps(1)}
+.btn svg{width:14px; height:14px}
+.btn:hover{background:var(--surface-3); border-color:var(--gold-solid)}
+.btn:active{transform:translate(1px,1px)}
+.btn.primary{background:var(--ink); color:var(--surface); border-color:var(--ink)}
+.btn.primary:hover{background:var(--ink-2); border-color:var(--ink-2)}
+.btn.gold{background:var(--gold-solid); color:#0B0B0C; border-color:var(--gold-solid); font-weight:600}
+.btn.gold:hover{filter:brightness(1.1)}
+.btn:disabled{opacity:.35; cursor:not-allowed}
+.btn.sm{padding:6px 9px; font-size:9px}
+.btn.sm svg{width:12px; height:12px}
+.btn.wide{width:100%}
+
+.seg{display:inline-flex; background:var(--surface-2); border:1px solid var(--line); padding:2px; gap:2px}
+.seg button{padding:6px 11px; font-family:var(--mono); font-size:9.5px; letter-spacing:0;
+  text-transform:uppercase; color:var(--ink-3); white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--gold-solid); color:#0B0B0C; font-weight:600}
+
+.scroller{display:flex; gap:6px; overflow-x:auto; padding:0 16px 5px; margin:0 -16px; scrollbar-width:thin}
+.fchip{padding:7px 11px; font-family:var(--mono); font-size:9.5px; letter-spacing:0; text-transform:uppercase;
+  color:var(--ink-2); background:var(--surface); border:1px solid var(--line); white-space:nowrap}
+.fchip[aria-pressed="true"]{background:var(--gold-solid); border-color:var(--gold-solid); color:#0B0B0C; font-weight:600}
+
+.av{width:30px; height:30px; flex:none; display:grid; place-items:center; font-family:var(--mono); font-size:9px;
+  font-weight:600; color:#fff; letter-spacing:-.02em;
+  clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.av.lg{width:72px; height:72px; font-size:22px; font-family:var(--display); font-weight:700; letter-spacing:.02em}
+.av.sm{width:24px; height:24px; font-size:7.5px}
+.avstack{display:flex}
+.avstack .av{margin-left:-5px}
+.avstack .av:first-child{margin-left:0}
+
+.seal{width:60px; height:60px; flex:none; display:grid; place-items:center; color:#0B0B0C; background:var(--gold-solid);
+  clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.seal b{font-family:var(--display); font-weight:400; font-size:27px; line-height:1}
+.seal i{font-style:normal; font-family:var(--mono); font-size:6.5px; letter-spacing:-.04em; text-transform:uppercase; opacity:.72}
+.seal.sm{width:34px; height:34px}
+.seal.sm b{font-size:15px}
+.seal.sm i{display:none}
+
+.meter{display:flex; gap:2px; align-items:stretch; height:12px}
+.meter i{flex:1; background:var(--surface-3); transition:background .2s steps(2)}
+.meter i.on{background:var(--xp-solid)}
+.meter.gold i.on{background:var(--gold-solid)}
+.meter.sm{height:8px}
+
+.kv{display:flex; justify-content:space-between; gap:12px; padding:9px 0; font-size:13px;
+  background-image:linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px);
+  background-size:8px 2px; background-repeat:repeat-x; background-position:bottom}
+.kv:last-child{background-image:none}
+.kv span:first-child{color:var(--ink-2)}
+
+.note{padding:11px 12px; font-size:12.5px; line-height:1.55; background:var(--surface-2);
+  border:1px solid var(--line); border-left-width:4px; color:var(--ink-2)}
+.note.sync{background:var(--sync-bg); border-color:var(--sync-line); border-left-color:var(--sync); color:var(--sync)}
+.note.risk{background:var(--risk-bg); border-color:var(--risk-line); border-left-color:var(--risk); color:var(--risk)}
+.note.gold{background:var(--gold-bg); border-color:var(--gold-line); border-left-color:var(--gold-solid); color:var(--gold-ink)}
+.note.ok{background:var(--ok-bg); border-color:var(--ok-line); border-left-color:var(--ok); color:var(--ok)}
+.note b{font-weight:700}
+.empty{padding:28px 18px; text-align:center; color:var(--ink-3); font-size:10px; font-family:var(--mono); text-transform:uppercase; letter-spacing:.01em}
+
+/* =========================================================
+   INICIO · bento
+   ========================================================= */
+.bento{display:grid; gap:10px; grid-template-columns:1fr}
+@media (min-width:700px){.bento{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:1080px){.bento{grid-template-columns:repeat(3,1fr)}}
+.bento>*{min-width:0}
+.w{display:flex; flex-direction:column; min-width:0; padding:14px 15px; background:var(--surface); border:1px solid var(--line)}
+.w-h{display:flex; align-items:center; gap:9px; margin-bottom:12px}
+.w-h .wi{width:16px; height:16px; color:var(--gold); flex:none}
+.w-h h3{font-size:15px; flex:1; min-width:0; overflow-wrap:anywhere}
+.w-h .c{font-family:var(--mono); font-size:9px; color:var(--ink-3); flex:none}
+.w-body{display:flex; flex-direction:column; gap:9px; flex:1; min-width:0}
+@media (min-width:700px){ .w.x2{grid-column:span 2} }
+@media (min-width:1080px){ .w.x3{grid-column:span 3} }
+.mini{display:flex; gap:10px; align-items:flex-start; padding-bottom:9px; text-align:left; width:100%; min-width:0;
+  background-image:linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px);
+  background-size:8px 2px; background-repeat:repeat-x; background-position:bottom}
+.mini:last-child{background-image:none; padding-bottom:0}
+.mini-b{flex:1; min-width:0}
+.mini-t{font-size:13.5px; font-weight:600; line-height:1.35; overflow-wrap:anywhere}
+.mini-m{display:flex; gap:6px; align-items:center; margin-top:5px; flex-wrap:wrap; min-width:0}
+.mini-x{font-family:var(--mono); font-size:8.5px; color:var(--ink-3); letter-spacing:0;
+  flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-transform:uppercase}
+
+.saludo{padding:18px; background:var(--surface); border:2px solid var(--ink); box-shadow:var(--shadow); margin-bottom:16px}
+.saludo h1{font-size:32px}
+@media (min-width:700px){.saludo h1{font-size:44px}}
+.pixels{display:flex; gap:3px; margin-bottom:12px}
+.pixels i{width:8px; height:8px; background:var(--gold-solid); display:block}
+.pixels i:nth-child(4){background:var(--line-strong)}
+.pixels i:nth-child(5){background:var(--line-strong); opacity:.5}
+
+.news{display:flex; gap:11px; align-items:flex-start; padding:11px 0;
+  background-image:linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px);
+  background-size:8px 2px; background-repeat:repeat-x; background-position:bottom}
+.news:last-child{background-image:none}
+.news-i{width:32px; height:32px; flex:none; display:grid; place-items:center; color:#0B0B0C; background:var(--gold-solid);
+  clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.news-i svg{width:15px; height:15px}
+.news-i.lvl{color:var(--ink); background:var(--surface-3)}
+.news-t{font-size:13.5px; font-weight:600; line-height:1.35}
+.news-d{font-size:12.5px; color:var(--ink-2); margin-top:2px; line-height:1.5}
+
+/* =========================================================
+   MISIONES
+   ========================================================= */
+.mission{display:block; width:100%; text-align:left; padding:14px 15px; background:var(--surface);
+  border:1px solid var(--line); transition:border-color .1s steps(2), transform .06s steps(1)}
+.mission:hover{border-color:var(--gold-solid); transform:translate(-1px,-1px); box-shadow:var(--shadow)}
+.mission-top{display:flex; gap:11px; align-items:flex-start; margin-bottom:10px}
+.mission h3{font-size:17px; flex:1; line-height:1.15}
+.mission-meta{display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:11px}
+.mission-foot{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding-top:10px;
+  background-image:linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px);
+  background-size:8px 2px; background-repeat:repeat-x; background-position:top}
+.rewards{display:flex; gap:6px; align-items:center}
+.area-tag{font-family:var(--mono); font-size:8.5px; text-transform:uppercase; letter-spacing:0; color:var(--ink-3)}
+.thread-count{display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:9.5px; color:var(--ink-3)}
+.thread-count svg{width:13px; height:13px}
+
+.stat-strip{display:grid; grid-template-columns:repeat(3,1fr); gap:2px; background:var(--line); border:1px solid var(--line)}
+.stat{background:var(--surface); padding:12px 13px}
+.stat .l{font-family:var(--mono); font-size:8px; text-transform:uppercase; letter-spacing:.01em; color:var(--ink-3)}
+.stat .v{font-family:var(--display); font-weight:700; font-size:32px; line-height:.95; margin-top:4px; font-variant-numeric:tabular-nums}
+
+/* =========================================================
+   HOJA / MODAL
+   ========================================================= */
+.veil{position:fixed; inset:0; z-index:60; background:rgba(4,4,6,.72); display:flex; align-items:flex-end; justify-content:center}
+@media (min-width:760px){.veil{align-items:center; padding:24px}}
+.sheet{width:100%; max-width:640px; max-height:92vh; display:flex; flex-direction:column; background:var(--surface);
+  border:2px solid var(--ink); box-shadow:var(--shadow-lg); animation:rise .18s steps(3)}
+@keyframes rise{from{transform:translateY(16px)} to{transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}}
+.sheet-h{padding:16px 18px 14px; display:flex; gap:12px; align-items:flex-start;
+  background-image:linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px);
+  background-size:8px 2px; background-repeat:repeat-x; background-position:bottom}
+.sheet-h h2{font-size:21px; flex:1; line-height:1.05}
+.sheet-b{padding:16px 18px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:16px}
+.sheet-f{padding:12px 18px calc(12px + env(safe-area-inset-bottom)); display:flex; gap:8px;
+  background:var(--surface); border-top:2px solid var(--line)}
+.closebtn{width:30px; height:30px; flex:none; display:grid; place-items:center; color:var(--ink-2);
+  background:var(--surface-2); border:1px solid var(--line)}
+.closebtn:hover{border-color:var(--risk); color:var(--risk)}
+.closebtn svg{width:13px; height:13px}
+
+.msg{display:flex; gap:10px}
+.msg-b{flex:1; min-width:0}
+.msg-n{font-size:12.5px; font-weight:700}
+.msg-n small{font-weight:400; color:var(--ink-3); font-family:var(--mono); font-size:8px; margin-left:7px; text-transform:uppercase}
+.msg-t{font-size:13.5px; color:var(--ink-2); margin-top:3px; line-height:1.55; overflow-wrap:anywhere}
+.msg-t .mention{color:var(--gold); font-weight:700}
+.composer{display:flex; gap:8px; align-items:flex-end}
+.composer textarea{flex:1; resize:none; padding:10px 12px; border:1px solid var(--line); background:var(--surface-2);
+  font-size:13.5px; line-height:1.45; min-height:42px; max-height:120px; font-family:var(--body)}
+.composer textarea:focus{outline:none; border-color:var(--gold-solid); background:var(--surface)}
+
+/* =========================================================
+   TIENDA
+   ========================================================= */
+.shop-grid{display:grid; gap:10px; grid-template-columns:1fr}
+@media (min-width:640px){.shop-grid{grid-template-columns:1fr 1fr}}
+@media (min-width:1100px){.shop-grid{grid-template-columns:1fr 1fr 1fr}}
+.item{display:flex; flex-direction:column; gap:10px; padding:14px 15px; background:var(--surface); border:1px solid var(--line)}
+.item:hover{border-color:var(--line-strong)}
+.item.locked{opacity:.6}
+.item.agotado{opacity:.5}
+.item.objetivo{border-color:var(--gold-solid); border-width:2px}
+.item-h{display:flex; gap:11px; align-items:flex-start}
+.item-ico{width:38px; height:38px; flex:none; display:grid; place-items:center; color:var(--ink); background:var(--surface-3);
+  clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.item-ico svg{width:18px; height:18px}
+.item h3{font-size:16px; flex:1; line-height:1.14}
+.item p{font-size:12.5px; color:var(--ink-2); line-height:1.55}
+.item-f{display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-top:auto; padding-top:11px;
+  background-image:linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px);
+  background-size:8px 2px; background-repeat:repeat-x; background-position:top}
+.price{display:inline-flex; align-items:baseline; gap:4px; color:var(--gold)}
+.price b{font-family:var(--display); font-weight:700; font-size:24px; line-height:.9; font-variant-numeric:tabular-nums}
+.price small{font-family:var(--mono); font-size:8px; letter-spacing:.01em; text-transform:uppercase}
+.cupo{display:flex; align-items:center; gap:8px}
+.cupo .meter{width:56px; flex:none}
+.power{display:flex; align-items:center; gap:2px; margin-top:5px}
+.power i{width:9px; height:5px; background:var(--surface-3); display:block}
+.power i.on{background:var(--gold-solid)}
+.power .mini-x{margin-left:5px}
+.btn.sug{width:100%; margin-top:11px; justify-content:center; color:var(--ink-2);
+  border:1px dashed var(--line-strong); background:transparent}
+.btn.sug svg{width:14px; height:14px}
+.btn.sug:hover{background:var(--surface-2); color:var(--ink); border-style:solid; border-color:var(--gold-solid)}
+.obj-card{border-left:4px solid var(--gold-solid)}
+
+/* =========================================================
+   RANKING
+   ========================================================= */
+.rank-row{display:flex; align-items:center; gap:11px; padding:10px 13px; background:var(--surface); border:1px solid var(--line)}
+.rank-row.me{background:var(--gold-bg); border-color:var(--gold-solid); border-width:2px}
+.rank-pos{font-family:var(--display); font-weight:700; font-size:20px; color:var(--ink-3); width:28px;
+  text-align:right; flex:none; line-height:1; font-variant-numeric:tabular-nums}
+.rank-row.me .rank-pos{color:var(--gold)}
+.rank-b{flex:1; min-width:0}
+.rank-n{font-size:13.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.rank-s{font-family:var(--mono); font-size:8.5px; color:var(--ink-3); letter-spacing:0; text-transform:uppercase}
+.rank-v{font-family:var(--mono); font-size:11px; text-align:right; flex:none; font-variant-numeric:tabular-nums; font-weight:500}
+.gap-mark{display:flex; align-items:center; gap:10px; padding:4px 0 4px 40px; color:var(--ink-3);
+  font-family:var(--mono); font-size:8.5px; letter-spacing:0; text-transform:uppercase}
+.altboard{padding:14px 15px; background:var(--surface); border:1px solid var(--line)}
+.altboard h3{font-size:16px; margin-bottom:3px}
+.altboard .why{font-size:12px; color:var(--ink-3); margin-bottom:11px; line-height:1.5}
+
+/* =========================================================
+   PERFIL
+   ========================================================= */
+.hero{padding:18px; background:var(--surface); border:2px solid var(--ink); box-shadow:var(--shadow)}
+.hero-top{display:flex; gap:14px; align-items:center}
+.av-wrap{position:relative; flex:none}
+.av-wrap .seal{position:absolute; right:-10px; bottom:-8px}
+.hero-n{font-family:var(--display); font-size:26px; font-weight:700; line-height:1; text-transform:uppercase}
+.pos-card{padding:14px 15px; background:var(--surface-2); border:1px solid var(--line)}
+
+.trophy-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(104px,1fr)); gap:8px}
+.trophy{display:flex; flex-direction:column; align-items:center; gap:7px; padding:13px 8px 11px; text-align:center;
+  background:var(--surface); border:1px solid var(--line); transition:transform .06s steps(1), border-color .1s steps(2)}
+.trophy:hover{transform:translate(-1px,-1px); border-color:var(--gold-solid); box-shadow:var(--shadow)}
+.trophy .tico{width:46px; height:46px; display:grid; place-items:center; color:#0B0B0C; background:var(--gold-solid);
+  clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.trophy .tico svg{width:22px; height:22px}
+.trophy.locked .tico{background:var(--surface-3); color:var(--ink-3)}
+.trophy.equipo .tico{color:#0B0B0C; background:var(--ok)}
+.trophy.equipo.locked .tico{background:var(--surface-3); color:var(--ink-3)}
+.trophy.oculto .tico{background:var(--sync); color:#fff}
+.trophy.oculto-card{opacity:.55; cursor:default}
+.trophy.oculto-card .tico{background:var(--surface-3); color:var(--ink-3)}
+.trophy .tn{font-family:var(--display); font-size:14px; font-weight:400; line-height:1.1; text-transform:uppercase}
+.trophy .td{font-family:var(--mono); font-size:7.5px; color:var(--ink-3); letter-spacing:0; text-transform:uppercase}
+.trophy .meter{width:100%}
+
+.benefit{display:flex; gap:11px; align-items:flex-start; padding:13px 14px; background:var(--surface); border:1px solid var(--line)}
+.benefit.ind{background:var(--sync-bg); border-color:var(--sync-line)}
+.benefit h4{font-family:var(--display); font-size:15px; font-weight:700; text-transform:uppercase; line-height:1.1}
+
+.switch{width:44px; height:24px; background:var(--line-strong); position:relative; flex:none; transition:background .1s steps(2)}
+.switch::after{content:""; position:absolute; top:3px; left:3px; width:18px; height:18px; background:var(--surface);
+  transition:transform .12s steps(3)}
+.switch[aria-checked="true"]{background:var(--gold-solid)}
+.switch[aria-checked="true"]::after{transform:translateX(20px); background:#0B0B0C}
+.setting{display:flex; gap:13px; align-items:center; padding:14px 15px}
+.setting-b{flex:1}
+.setting-b .t{font-family:var(--display); font-size:16px; font-weight:700; text-transform:uppercase; line-height:1.1}
+.setting-b .d{font-size:12.5px; color:var(--ink-2); margin-top:3px}
+
+.pleg{margin-bottom:10px}
+.pleg-h{display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:11px 13px;
+  background:var(--surface); border:1px solid var(--line)}
+.pleg-h:hover{background:var(--surface-2); border-color:var(--line-strong)}
+.pleg-h h2{font-size:17px; flex:none}
+.pleg-h .sub{flex:1; text-align:right}
+.pleg-i{width:16px; height:16px; flex:none; color:var(--ink-3); transition:transform .12s steps(3)}
+.pleg-i.open{transform:rotate(180deg)}
+.pleg-b{padding:12px 0 4px}
+
+/* =========================================================
+   AVISOS · desplegable
+   ========================================================= */
+.bellwrap{position:relative}
+.drop{position:absolute; top:calc(100% + 7px); right:0; width:min(94vw, 380px); z-index:60;
+  background:var(--surface); border:2px solid var(--ink); box-shadow:var(--shadow-lg); animation:rise .12s steps(2)}
+.drop[hidden]{display:none}
+.drop-h{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 13px 10px;
+  background-image:linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px);
+  background-size:8px 2px; background-repeat:repeat-x; background-position:bottom}
+.drop-b{max-height:min(64vh,460px); overflow-y:auto}
+.aviso{display:flex; gap:10px; align-items:flex-start; padding:11px 13px; border-left:4px solid var(--line-strong)}
+.aviso + .aviso{border-top:1px solid var(--line)}
+.aviso-i{width:28px; height:28px; flex:none; display:grid; place-items:center; color:var(--ink-2);
+  background:var(--surface-2); border:1px solid var(--line)}
+.aviso-i svg{width:14px; height:14px}
+.aviso-t{font-size:13px; font-weight:600; line-height:1.35}
+.aviso.sync{border-left-color:var(--sync)} .aviso.sync .aviso-i{color:var(--sync); background:var(--sync-bg); border-color:var(--sync-line)}
+.aviso.gold{border-left-color:var(--gold-solid)} .aviso.gold .aviso-i{color:var(--gold); background:var(--gold-bg); border-color:var(--gold-line)}
+.aviso.risk{border-left-color:var(--risk)} .aviso.risk .aviso-i{color:var(--risk); background:var(--risk-bg); border-color:var(--risk-line)}
+.aviso.ok{border-left-color:var(--ok)}     .aviso.ok .aviso-i{color:var(--ok); background:var(--ok-bg); border-color:var(--ok-line)}
+.aviso.xp{border-left-color:var(--ink)}    .aviso.xp .aviso-i{color:var(--ink); background:var(--xp-bg); border-color:var(--xp-line)}
+
+/* =========================================================
+   BLOQUES v0.4
+   ========================================================= */
+.meta-card{padding:15px 16px; display:flex; flex-direction:column}
+.meta-card h3{font-size:15px}
+.meta-card .wi{width:16px; height:16px; color:var(--gold); flex:none}
+.duelo-w{grid-column:1 / -1; padding:0; background:none; border:0}
+.duelo{border:2px solid var(--ink); background:var(--surface); box-shadow:var(--shadow)}
+.duelo-h{display:flex; align-items:center; gap:9px; padding:11px 13px; box-shadow:inset 0 -1px 0 var(--line)}
+.duelo-h .wi{color:var(--gold)}
+.duelo-h .wi svg{width:15px; height:15px; display:block}
+.duelo-h h3{flex:1; font-size:14px; min-width:0}
+.duelo-b{display:grid; grid-template-columns:1fr auto 1fr; gap:2px; background:var(--line)}
+.duelo-s{background:var(--surface); padding:13px; text-align:center; min-width:0}
+.duelo-s .an{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.duelo-s .av{width:auto; height:auto; background:none; clip-path:none; display:block;
+  font-family:var(--display); font-weight:700; font-size:30px; line-height:1; margin-top:6px; color:var(--ink)}
+.duelo-s.win .av{color:var(--gold)}
+.duelo-m{background:var(--surface-2); display:grid; place-items:center; padding:0 11px;
+  font-family:var(--mono); font-size:8.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); text-align:center}
+.duelo-f{padding:11px 13px; box-shadow:inset 0 1px 0 var(--line); display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+.duelo-sum{display:flex; gap:7px; flex-wrap:wrap; padding:0 13px 12px}
+.privado{border:2px dashed var(--gold-line); background:var(--gold-bg); padding:13px}
+.meta-w{padding:0; background:none; border:0}
+.meta-w .meta-card{height:100%; border:1px solid var(--line); background:var(--surface)}
+.proy-dot{width:8px; height:8px; flex:none; display:inline-block; vertical-align:middle}
+
+.bar-track{display:block; height:12px; background:var(--surface-2); flex:1; min-width:0; border:1px solid var(--line)}
+.bar-fill{display:block; height:100%; transition:width .3s steps(8)}
+.c-n{background:var(--line-strong)} .c-xp{background:var(--xp-solid)} .c-gold{background:var(--gold-solid)}
+.c-risk{background:var(--risk)} .c-ok{background:var(--ok)}
+.bl{font-size:12px; color:var(--ink-2); width:92px; flex:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.bv{font-family:var(--mono); font-size:10.5px; font-variant-numeric:tabular-nums; color:var(--ink);
+  min-width:32px; text-align:right; flex:none; font-weight:500}
+.estado-row{display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:3px 0}
+.estado-row:hover .bl{color:var(--ink)}
+.lote{display:flex; align-items:center; gap:9px}
+.lote .chip{min-width:70px; justify-content:center}
+.top-row{display:flex; align-items:center; gap:10px}
+
+.rep-row{display:flex; align-items:center; gap:10px; padding:9px 11px; background:var(--surface-2); border:1px solid var(--line)}
+.rep-row.yo{border-color:var(--gold-solid); border-width:2px}
+.rep-n{font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+
+.msg.sistema{padding:10px 12px; background:var(--surface-2); border:1px solid var(--line); border-left:4px solid var(--ok)}
+.msg-sis{width:24px; height:24px; flex:none; display:grid; place-items:center; color:#0B0B0C; background:var(--ok)}
+.msg-sis svg{width:13px; height:13px}
+
+.paso{display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--surface-2); border:1px solid var(--line)}
+.paso-n{width:20px; height:20px; flex:none; display:grid; place-items:center; font-size:9px; font-weight:600;
+  background:var(--gold-solid); color:#0B0B0C; font-family:var(--mono)}
+.regla{display:flex; gap:10px; align-items:flex-start; font-size:12.5px; color:var(--ink-2); line-height:1.55}
+.regla .num{width:18px; height:18px; flex:none; display:grid; place-items:center; font-size:8.5px;
+  background:var(--surface-3); color:var(--ink); margin-top:1px; font-weight:600}
+
+/* =========================================================
+   AVISOS FLOTANTES
+   ========================================================= */
+.toasts{position:fixed; left:12px; right:12px; bottom:80px; z-index:70; display:flex; flex-direction:column;
+  gap:8px; align-items:center; pointer-events:none}
+@media (min-width:960px){.toasts{bottom:20px; left:auto; right:20px; align-items:flex-end}}
+.toast{pointer-events:auto; max-width:400px; width:100%; padding:11px 13px; background:var(--surface);
+  border:2px solid var(--ink); box-shadow:var(--shadow); display:flex; gap:10px; align-items:flex-start;
+  animation:rise .14s steps(2)}
+.toast .ti{flex:none; width:17px; height:17px; margin-top:2px; color:var(--ink-2)}
+.toast .tt{font-family:var(--display); font-size:15px; font-weight:700; text-transform:uppercase; line-height:1.15}
+.toast .td{font-size:12.5px; color:var(--ink-2); margin-top:2px; line-height:1.5}
+.toast.sync{border-color:var(--sync)} .toast.sync .td, .toast.sync .ti{color:var(--sync)}
+.toast.ok{border-color:var(--ok)}     .toast.ok .td, .toast.ok .ti{color:var(--ok)}
+.toast.risk{border-color:var(--risk)} .toast.risk .td, .toast.risk .ti{color:var(--risk)}
+
+.optout-banner{padding:12px 13px; background:var(--surface-2); border:1px dashed var(--line-strong);
+  font-size:12.5px; color:var(--ink-2); margin-bottom:16px}
+
+/* =========================================================
+   FORMULARIOS
+   ========================================================= */
+.field{display:flex; flex-direction:column; gap:6px}
+.field label{font-family:var(--mono); font-size:8.5px; text-transform:uppercase; letter-spacing:.01em; color:var(--ink-3)}
+.field input, .field select, .field textarea{padding:10px 12px; border:1px solid var(--line); background:var(--surface-2);
+  font-size:14px; font-family:var(--body)}
+.field textarea{line-height:1.5; resize:vertical}
+.field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--gold-solid); background:var(--surface)}
+.field select{appearance:none; background-image:none}
+.pickav{display:flex; gap:6px; flex-wrap:wrap}
+.pickav button{width:32px; height:32px;
+  clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.pickav button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface), 0 0 0 4px var(--gold-solid)}
+.check{display:flex; align-items:center; gap:9px; font-size:13.5px; color:var(--ink-2); cursor:pointer}
+.check input{width:16px; height:16px; accent-color:var(--gold-solid)}
+
+/* Iconos en línea dentro de texto: nunca a tamaño de bloque */
+.note svg, .sub svg, .mini-x svg, .setting-b svg, p svg, .why svg, figcaption svg{
+  width:13px; height:13px; display:inline-block; vertical-align:-2px; flex:none}
+
+.tline{font-size:13px; line-height:1.45; color:var(--ink-2); flex:1; min-width:0; overflow-wrap:anywhere}
+.tline b{color:var(--ink)}
+.hide{display:none !important}
+
+@media (max-width:540px){
+  .topbar-in{gap:7px; padding:8px 12px}
+  .brand{font-size:21px}
+  .hud{padding:4px 6px; gap:4px}
+  .hud.is-streak, .hud.is-zona{display:none}
+  .iconbtn{width:30px; height:30px}
+  .iconbtn .ti{width:16px; height:16px}
+  .content{padding-left:12px; padding-right:12px}
+  .scroller{margin:0 -12px; padding-left:12px; padding-right:12px}
+  .page-h h1{font-size:30px}
+  .sheet-h h2{font-size:18px}
+  .hero-n{font-size:21px}
+  .drop{position:fixed; top:54px; left:8px; right:8px; width:auto}
+  .bl{width:74px}
+  .tab{font-size:7px}
+}
+
+/* =========================================================
+   CIFRAS SIEMPRE EN REGULAR 400
+   Silkscreen y Space Mono en 700 engordan el dígito y le
+   quitan el contraforma. Los números se leen mejor en 400,
+   así que ningún número del sistema va en negrita — ni los
+   grandes ni los de una tabla. La jerarquía la hace el
+   tamaño, no el peso.
+   ========================================================= */
+
+/* SIGNO % EN QUANTICO — Silkscreen pierde la forma del '%',
+   así que en cualquier valor con Silkscreen se aísla el signo
+   en .pct para que se lea con Quantico en su lugar. */
+.pct{font-family:'Quantico','Courier New',monospace; font-weight:400}
+.num, .hud .num, .score, .seal b, .stat .v, .stat b, .tile .v, .price b,
+.rank-pos, .rank-v, .bv, .bar-row .bv, .w-h .c, .paso-n, .chip.num,
+td.n, #tip .tr b, #tip .tr span, .pat-sig .sv, .plist .pr b, .fstep .fn,
+.duelo-s .av, .duel-side .av2, .cal .dn, .cal-more, .mini-bar + span,
+.ranklist b, .lote .bv, .meter-v, .gauge-v{
+  font-weight:400 !important;
+}
+</style>
+
+<div class="app">
+  <nav class="rail" id="rail"></nav>
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-in">
+        <div class="brand"><span class="brand-mark">L</span>Levelop<em>!</em></div>
+        <div class="topbar-spacer"></div>
+        <div class="hudset" id="hud"></div>
+        <div class="bellwrap">
+          <button class="iconbtn" id="bell" title="Avisos" aria-label="Avisos" aria-expanded="false"><span class="ti"></span><span class="dot" id="belldot"></span></button>
+          <div class="drop" id="avisosdrop" hidden></div>
+        </div>
+        <button class="iconbtn" id="themebtn" title="Cambiar tema" aria-label="Cambiar tema"><span class="ti"></span></button>
+      </div>
+    </header>
+    <main class="content" id="view"></main>
+  </div>
+</div>
+<nav class="tabbar" id="tabbar"></nav>
+<div class="toasts" id="toasts"></div>
+<div id="modal"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   ICONOGRAFÍA — outline, 24×24, un solo grosor.
+   ========================================================= */
+const S = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const IC = {
+  inicio:   S('<path d="M3.5 10.4 12 3.8l8.5 6.6"/><path d="M5.6 9.1V20h12.8V9.1"/><path d="M9.6 20v-5.4h4.8V20"/>'),
+  misiones: S('<path d="M3.4 6.5 4.7 7.8 7.1 5.4"/><path d="M3.4 12.4 4.7 13.7 7.1 11.3"/><path d="M3.4 18.3 4.7 19.6 7.1 17.2"/><path d="M10.4 6.6h10.2M10.4 12.5h10.2M10.4 18.4h6.6"/>'),
+  tienda:   S('<path d="M4.4 7.6h15.2l-1 11a2 2 0 0 1-2 1.8H7.4a2 2 0 0 1-2-1.8l-1-11Z"/><path d="M9.2 10.4V7a2.8 2.8 0 0 1 5.6 0v3.4"/>'),
+  ranking:  S('<path d="M4 20.2V13.4M9.3 20.2V8.4M14.7 20.2v-6.2M20 20.2V4.6"/>'),
+  perfil:   S('<circle cx="12" cy="8.2" r="3.6"/><path d="M5 20.2a7 7 0 0 1 14 0"/>'),
+  bell:     S('<path d="M6.4 9.8a5.6 5.6 0 0 1 11.2 0c0 4.2 1.5 5.6 1.5 5.6H4.9s1.5-1.4 1.5-5.6Z"/><path d="M10.3 18.9a1.9 1.9 0 0 0 3.4 0"/>'),
+  tema:     S('<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor" stroke="none"/>'),
+  x:        S('<path d="M6.4 6.4 17.6 17.6M17.6 6.4 6.4 17.6"/>'),
+  mas:      S('<path d="M12 5.2v13.6M5.2 12h13.6"/>'),
+  check:    S('<path d="M5 12.6 9.6 17 19 6.8"/>'),
+  reloj:    S('<circle cx="12" cy="12" r="8"/><path d="M12 7.2V12l3.2 2"/>'),
+  chat:     S('<path d="M20 12.6c0 3.7-3.6 6.7-8 6.7a9.7 9.7 0 0 1-2.5-.3L4.6 20.4l1.2-3.3A6.4 6.4 0 0 1 4 12.6C4 8.9 7.6 5.9 12 5.9s8 3 8 6.7Z"/>'),
+  arroba:   S('<circle cx="12" cy="12" r="3.4"/><path d="M15.4 8.6v4.8a2.6 2.6 0 0 0 5.2 0V12a8.6 8.6 0 1 0-3.4 6.9"/>'),
+  calendario:S('<rect x="3.8" y="5.4" width="16.4" height="14.4" rx="1.6"/><path d="M3.8 10h16.4M8.4 3.4v3.6M15.6 3.4v3.6"/>'),
+  pin:      S('<path d="M19 10.4c0 5-7 11-7 11s-7-6-7-11a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10.2" r="2.6"/>'),
+  candado:  S('<rect x="4.8" y="10.6" width="14.4" height="9.4" rx="1.6"/><path d="M8.4 10.6V7.8a3.6 3.6 0 0 1 7.2 0v2.8"/>'),
+  alerta:   S('<path d="M12 4.4 21 19.8H3L12 4.4Z"/><path d="M12 10v4.2M12 17.4h.01"/>'),
+  flecha:   S('<path d="m9.6 5.6 6.4 6.4-6.4 6.4"/>'),
+  abajo:    S('<path d="m5.6 9.6 6.4 6.4 6.4-6.4"/>'),
+  sync:     S('<path d="M20 12a8 8 0 0 1-13.7 5.6L4 15.4"/><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.6"/><path d="M4 20.4v-5h5M20 3.6v5h-5"/>'),
+  tuerca:   S('<circle cx="12" cy="12" r="3"/><path d="M19.2 14.4a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/>'),
+  mano:     S('<path d="M11 11.4V5.6a1.6 1.6 0 0 1 3.2 0v5.8"/><path d="M14.2 11V4.6a1.6 1.6 0 0 1 3.2 0v8.2"/><path d="M17.4 11.6V7.4a1.6 1.6 0 0 1 3.2 0v8.2a5.4 5.4 0 0 1-5.4 5.4h-2.6a5.6 5.6 0 0 1-4.4-2.2L4 13.6a1.7 1.7 0 0 1 2.8-2l2.4 3"/>'),
+  regalo:   S('<rect x="3.6" y="9.4" width="16.8" height="10.6" rx="1.4"/><path d="M3.6 13.4h16.8M12 9.4V20"/><path d="M12 9.4S9.2 9.4 8.2 8.4a2 2 0 0 1 2.8-2.8c1 1 1 3.8 1 3.8ZM12 9.4s2.8 0 3.8-1a2 2 0 0 0-2.8-2.8c-1 1-1 3.8-1 3.8Z"/>'),
+  bandera:  S('<path d="M5 20.4V4.2"/><path d="M5 5.2h11.6l-2 3.6 2 3.6H5"/>'),
+  carpeta:  S('<path d="M3.6 6.6a1.6 1.6 0 0 1 1.6-1.6h4l2 2.6h7.6a1.6 1.6 0 0 1 1.6 1.6v8.6a1.6 1.6 0 0 1-1.6 1.6H5.2a1.6 1.6 0 0 1-1.6-1.6V6.6Z"/>'),
+  capas:    S('<path d="m12 3.4 8.4 4.4-8.4 4.4L3.6 7.8 12 3.4Z"/><path d="m3.6 12.2 8.4 4.4 8.4-4.4M3.6 16.4l8.4 4.4 8.4-4.4"/>'),
+  sol:      S('<circle cx="12" cy="12" r="4"/><path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.3 6.3 4.8 4.8M19.2 19.2l-1.5-1.5M17.7 6.3l1.5-1.5M4.8 19.2l1.5-1.5"/>'),
+  luna:     S('<path d="M20 14.4A8.4 8.4 0 0 1 9.6 4 8.4 8.4 0 1 0 20 14.4Z"/>'),
+  cubiertos:S('<path d="M7 3.4v8.2a2 2 0 0 0 4 0V3.4"/><path d="M9 11.6V20.6"/><path d="M16.6 3.4c-1.6 1-2.4 3-2.4 5.2 0 1.6.8 2.6 2.4 2.8V20.6"/>'),
+  casa:     S('<path d="M4 10.6 12 4.2l8 6.4V20H4v-9.4Z"/><path d="M9.8 20v-5h4.4v5"/>'),
+  playa:    S('<path d="M12 20.4v-9"/><path d="M3.4 11.4a8.6 8.6 0 0 1 17.2 0Z"/><path d="M12 20.4h4.6"/>'),
+  torta:    S('<path d="M4.4 20.4v-5a2 2 0 0 1 2-2h11.2a2 2 0 0 1 2 2v5"/><path d="M3.4 20.4h17.2"/><path d="M8.4 13.4V10M12 13.4V10M15.6 13.4V10"/><path d="M8.4 7.4V6M12 7.4V6M15.6 7.4V6"/>'),
+  silencio: S('<path d="m4 4 16 16"/><path d="M17.6 13.6c0-4.2 1.4-5.6 1.4-5.6"/><path d="M6.4 9.8a5.6 5.6 0 0 1 8-5"/><path d="M5.6 15.4S6.4 14 6.4 9.8"/><path d="M4.6 15.4h13"/><path d="M10.3 18.9a1.9 1.9 0 0 0 3.4 0"/>'),
+  mochila:  S('<rect x="5" y="7.6" width="14" height="12.6" rx="2.6"/><path d="M8.8 7.6V6.4a3.2 3.2 0 0 1 6.4 0v1.2"/><path d="M9 13.6h6"/>'),
+  carro:    S('<path d="M4.6 15.4 6.4 9.8A2 2 0 0 1 8.3 8.4h7.4a2 2 0 0 1 1.9 1.4l1.8 5.6"/><path d="M4 15.4h16"/><path d="M6 15.4V19h2.4v-3.6M15.6 15.4V19H18v-3.6"/>'),
+  libro:    S('<path d="M4.6 4.4h5.2a2.6 2.6 0 0 1 2.2 1.2 2.6 2.6 0 0 1 2.2-1.2h5.2v13.4h-5.2a2.6 2.6 0 0 0-2.2 1.2 2.6 2.6 0 0 0-2.2-1.2H4.6V4.4Z"/><path d="M12 5.6v13"/>'),
+  taza:     S('<path d="M4.6 6.4h11.8v7.4a4.6 4.6 0 0 1-4.6 4.6H9.2a4.6 4.6 0 0 1-4.6-4.6V6.4Z"/><path d="M16.4 8.4h1.8a2.4 2.4 0 0 1 0 4.8h-1.8"/><path d="M4 21h13"/>'),
+  bolsa:    S('<path d="M5.6 8.4h12.8l1.2 11.6H4.4L5.6 8.4Z"/><path d="M9 8.4a3 3 0 0 1 6 0"/>'),
+  bus:      S('<rect x="4.6" y="4.4" width="14.8" height="12.4" rx="2"/><path d="M4.6 10.8h14.8M8 16.8v2.8M16 16.8v2.8"/><circle cx="8.2" cy="13.9" r=".9"/><circle cx="15.8" cy="13.9" r=".9"/>'),
+  silla:    S('<path d="M7 4.4h10v7.2H7z"/><path d="M6 11.6h12l-1 4.4H7l-1-4.4Z"/><path d="M8.4 16v4M15.6 16v4"/>'),
+  escudo:   S('<path d="M12 3.4 19.4 6v5.6c0 4.4-3 7.6-7.4 9-4.4-1.4-7.4-4.6-7.4-9V6L12 3.4Z"/>'),
+  arena:    S('<path d="M7 3.6h10M7 20.4h10"/><path d="M8.2 3.6v3.2c0 2 3.8 3.6 3.8 5.2 0 1.6-3.8 3.2-3.8 5.2v3.2M15.8 3.6v3.2c0 2-3.8 3.6-3.8 5.2 0 1.6 3.8 3.2 3.8 5.2v3.2"/>'),
+  megafono: S('<path d="M4 10.2v3.6a1.6 1.6 0 0 0 1.6 1.6h2.2L15 20V4L7.8 8.6H5.6A1.6 1.6 0 0 0 4 10.2Z"/><path d="M18.4 8.6a5 5 0 0 1 0 6.8"/>'),
+  panas:    S('<circle cx="9" cy="8.6" r="3.2"/><circle cx="16.4" cy="10.4" r="2.5"/><path d="M3.4 19.6a5.8 5.8 0 0 1 11.2 0M16.6 15.4a5 5 0 0 1 4 4.2"/>'),
+  llama:    S('<path d="M12 20.8c3.5 0 6-2.3 6-5.6 0-4.3-4.4-5.6-3.8-10.8-2.7 1.4-4.8 4.4-4.8 7.3 0 1-.6 1.7-1.4 1.7s-1.3-.7-1.3-1.9c-1.2 1.4-1.5 2.9-1.5 4.2 0 3 2.8 5.1 6.8 5.1Z"/>'),
+  amanecer: S('<path d="M3.4 18.4h17.2"/><path d="M6.6 18.4a5.4 5.4 0 0 1 10.8 0"/><path d="M12 4.4V7M5.4 7.6 7.2 9.4M18.6 7.6 16.8 9.4"/>'),
+  ticket:   S('<path d="M4 8.4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1.4a2.2 2.2 0 0 0 0 4.4v1.4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1.4a2.2 2.2 0 0 0 0-4.4V8.4Z"/><path d="M14 6.4v11.2"/>'),
+  salvavidas:S('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.4"/><path d="m6.4 6.4 3.2 3.2M17.6 6.4l-3.2 3.2M17.6 17.6l-3.2-3.2M6.4 17.6l3.2-3.2"/>'),
+  sube:     S('<path d="M3.6 16.6 9 11.2l3.4 3.4 7.6-7.6"/><path d="M15.4 7h4.6v4.6"/>'),
+  diana:    S('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.4"/><circle cx="12" cy="12" r=".9" fill="currentColor" stroke="none"/>'),
+  planta:   S('<path d="M12 20.4v-7"/><path d="M12 13.4c0-3.2 2.4-5.6 5.6-5.6 0 3.2-2.4 5.6-5.6 5.6Z"/><path d="M12 15.4c0-2.8-2.2-5-5-5 0 2.8 2.2 5 5 5Z"/>'),
+  ladrillos:S('<rect x="3.6" y="5" width="16.8" height="4.6"/><rect x="3.6" y="9.6" width="16.8" height="4.8"/><rect x="3.6" y="14.4" width="16.8" height="4.6"/><path d="M11 5v4.6M7.4 9.6v4.8M15.4 9.6v4.8M11 14.4V19"/>'),
+  brujula:  S('<circle cx="12" cy="12" r="8.2"/><path d="m15.2 8.8-1.8 4.6-4.6 1.8 1.8-4.6 4.6-1.8Z"/>'),
+  rayo:     S('<path d="M12.8 3.4 5.6 13.4h5.4l-.8 7.2 7.2-10h-5.4l.8-7.2Z"/>'),
+  aldia:    S('<circle cx="12" cy="12" r="8.2"/><path d="m8.4 12.2 2.6 2.6 4.6-5"/>'),
+  corona:   S('<path d="M4 17.6h16"/><path d="m4 17.6-1.2-9 5 3.4L12 5l4.2 7 5-3.4-1.2 9"/>'),
+  red:      S('<circle cx="6" cy="6.6" r="2.4"/><circle cx="18" cy="6.6" r="2.4"/><circle cx="12" cy="17.4" r="2.4"/><path d="m7.6 8.4 3 6.8M16.4 8.4l-3 6.8M8.4 6.6h7.2"/>'),
+  calcheck: S('<rect x="3.8" y="5.4" width="16.4" height="14.4" rx="1.6"/><path d="M3.8 10h16.4M8.4 3.4v3.6M15.6 3.4v3.6"/><path d="m9.4 14.4 1.8 1.8 3.6-3.8"/>'),
+  trofeo:   S('<path d="M8 4.4h8v4.8a4 4 0 0 1-8 0V4.4Z"/><path d="M8 6H5.4a2.4 2.4 0 0 0 2.6 3.6M16 6h2.6a2.4 2.4 0 0 1-2.6 3.6"/><path d="M12 13.2v3.4M8.6 20h6.8l-.6-3.4H9.2L8.6 20Z"/>'),
+  estrella: S('<path d="m12 3.8 2.6 5.4 5.8.8-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8L3.6 10l5.8-.8L12 3.8Z"/>'),
+  interro:  S('<circle cx="12" cy="12" r="8.2"/><path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.8c0 1.7-2.4 2.2-2.4 3.6"/><path d="M12 17.2h.01"/>'),
+  brillo:   S('<path d="m12 3.4 1.8 4.8 4.8 1.8-4.8 1.8L12 16.6l-1.8-4.8L5.4 10l4.8-1.8L12 3.4Z"/><path d="M18.6 16.2 19.4 18l1.8.8-1.8.8-.8 1.8-.8-1.8L16 18.8l1.8-.8.8-1.8Z"/>'),
+  ojo:      S('<path d="M2.6 12S6 5.8 12 5.8 21.4 12 21.4 12 18 18.2 12 18.2 2.6 12 2.6 12Z"/><circle cx="12" cy="12" r="3"/>')
+};
+
+/* =========================================================
+   GENTE
+   ========================================================= */
+const AV = ["#0C6E78","#B23E33","#5B4ED6","#2A7047","#9C6D0E","#7A3E8C","#1F5FA8","#A0522D","#3E7B7B","#8A2F5B"];
+const people = [
+  {id:1,  n:"Alim Reyes",       area:"Producto",    rol:"Miembro", xp:5400, oro:640,  mis:38, colab:22, mejora:14, hilos:61},
+  {id:2,  n:"Daniela Ochoa",    area:"Diseño",      rol:"Líder",   xp:6480, oro:1180, mis:71, colab:44, mejora:6,  hilos:132},
+  {id:3,  n:"Kevin Salas",      area:"Ingeniería",  rol:"Miembro", xp:4310, oro:820,  mis:52, colab:18, mejora:9,  hilos:47},
+  {id:4,  n:"María Bracho",     area:"Operaciones", rol:"Líder",   xp:8940, oro:1760, mis:96, colab:51, mejora:3,  hilos:88},
+  {id:5,  n:"José Nieves",      area:"Ventas",      rol:"Miembro", xp:2410, oro:520,  mis:29, colab:11, mejora:21, hilos:34},
+  {id:6,  n:"Yorbelis Rangel",  area:"RRHH",        rol:"Líder",   xp:5260, oro:1040, mis:63, colab:39, mejora:11, hilos:104},
+  {id:7,  n:"Andrés Petit",     area:"Ingeniería",  rol:"Miembro", xp:3340, oro:700,  mis:41, colab:16, mejora:18, hilos:29},
+  {id:8,  n:"Carla Mendoza",    area:"Marketing",   rol:"Miembro", xp:1680, oro:380,  mis:22, colab:9,  mejora:26, hilos:41},
+  {id:9,  n:"Luis Farías",      area:"Soporte",     rol:"Miembro", xp:3010, oro:610,  mis:44, colab:27, mejora:8,  hilos:76},
+  {id:10, n:"Ninoska Ruiz",     area:"Finanzas",    rol:"Líder",   xp:7520, oro:1490, mis:84, colab:33, mejora:5,  hilos:57},
+  {id:11, n:"Génesis Uzcátegui",area:"Producto",    rol:"Líder",   xp:4180, oro:790,  mis:49, colab:31, mejora:12, hilos:69},
+  {id:12, n:"Rafael Colmenares",area:"Producto",    rol:"Miembro", xp:2260, oro:470,  mis:26, colab:14, mejora:23, hilos:38}
+];
+people.forEach((p,i)=>{ p.color=AV[i%AV.length]; p.ini=p.n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase(); });
+const P = id => people.find(p=>p.id===id);
+
+/* =========================================================
+   PROYECTOS — agrupan misiones
+   ========================================================= */
+const proyectos = [
+  {id:"pr1", n:"Onboarding Q3", cliente:"Cashea",              color:"var(--s1)", vence:"12 SEP 26"},
+  {id:"pr2", n:"Migración de canjes", cliente:"Interno",        color:"var(--s3)", vence:"30 SEP 26"},
+  {id:"pr3", n:"Catálogo 2026", cliente:"Interno",              color:"var(--s2)", vence:"05 SEP 26"},
+  {id:"pr4", n:"Soporte continuo", cliente:"Distribuidora Andina", color:"var(--s5)", vence:"—"}
+];
+const PR = id => proyectos.find(p=>p.id===id);
+
+/* =========================================================
+   MISIONES
+   ========================================================= */
+const H = 3600e3;
+let missions = [
+  {id:101, t:"Cerrar el onboarding de tres clientes nuevos", area:"Operaciones", proy:"pr1", est:"curso",
+   urg:"alta", imp:"alta", esf:"medio", due:+40*H, resp:4, col:[1,5], sync:"confirmada",
+   d:"Los tres contratos ya están firmados. Falta cargar los datos en el panel, cuadrar la llamada de bienvenida y que el cliente firme el checklist.",
+   msgs:[{u:4,t:"Ya cargué lo de Distribuidora Andina. Faltan los otros dos.",h:5},
+         {u:5,t:"Yo cuadro las llamadas de bienvenida hoy en la tarde, tranquilo.",h:4},
+         {u:1,t:"@María Bracho ¿el checklist nuevo ya está en Drive o uso el viejo?",h:2},
+         {u:4,t:"El nuevo, pana. Te lo paso por interno.",h:1}]},
+
+  {id:102, t:"Migrar el flujo de canje a la API nueva", area:"Ingeniería", proy:"pr2", est:"curso",
+   urg:"alta", imp:"alta", esf:"alto", due:+62*H, resp:3, col:[7,1], sync:"confirmada",
+   d:"Cambiar las llamadas al endpoint viejo. Ojo con esto: si el proveedor se cae por timeout eso NO es un fallo. Tiene que quedar en indeterminado y reintentar.",
+   msgs:[{u:3,t:"Ya tengo el cliente nuevo corriendo en staging.",h:20},
+         {u:1,t:"Ojo con el timeout: si no sabemos si el canje pasó, el usuario tiene que ver exactamente eso. Nada de rueditas girando para siempre.",h:16},
+         {u:7,t:"Lo dejo con reintento a los 30 s y aviso al usuario. @Alim Reyes mañana te paso el texto.",h:3}]},
+
+  {id:103, t:"Revisar los textos de la pantalla de Tienda", area:"Diseño", proy:"pr3", est:"revision",
+   urg:"media", imp:"alta", esf:"bajo", due:+14*H, resp:2, col:[1], sync:"confirmada",
+   revBy:2, revH:9,
+   d:"Cada beneficio tiene que decir qué te llevas, cuánto Oro cuesta y hasta cuándo vale. Sin rodeos.",
+   msgs:[{u:2,t:"Subí la versión 3. Cambié «canjear» por «pedir» en lo de tiempo — suena más honesto, al final eso lo aprueba tu jefe directo.",h:10},
+         {u:1,t:"Chévere. Metámosle la fecha de vencimiento visible antes de confirmar.",h:9}]},
+
+  {id:104, t:"Actualizar el catálogo de aliados", area:"RRHH", proy:"pr3", est:"proxima",
+   urg:"media", imp:"media", esf:"medio", due:+7*24*H, resp:6, col:[], sync:"confirmada",
+   d:"Renovar los convenios que se vencen en septiembre y meter dos aliados nuevos del este de Caracas.",
+   msgs:[{u:6,t:"La farmacia ya confirmó la renovación. Falta el gimnasio.",h:26}]},
+
+  {id:105, t:"Diseñar el estado «canje indeterminado»", area:"Diseño", proy:"pr2", est:"riesgo",
+   urg:"alta", imp:"alta", esf:"medio", due:-19*H, resp:1, col:[2,3], sync:"confirmada",
+   ayuda:{abierta:true, alcance:"equipo", oro:26, respuestas:[]},
+   d:"Qué ve la persona cuando el sistema no sabe si su canje pasó. Incluye el texto, el reintento y qué pasa con su Oro mientras tanto.",
+   msgs:[{u:3,t:"Necesito esto para cerrar la 102. ¿Te echo una mano con algo?",h:22},
+         {u:1,t:"Sí, pana. Mañana temprano lo tengo, se me atravesó el catálogo.",h:20},
+         {u:2,t:"Me sumo como colaboradora, ya tengo los componentes listos.",h:11}]},
+
+  {id:106, t:"Reporte semanal de soporte", area:"Soporte", proy:"pr4", est:"proxima",
+   urg:"baja", imp:"media", esf:"bajo", due:+3*24*H, resp:9, col:[], sync:"confirmada",
+   d:"Tickets abiertos, tiempo de respuesta y los tres motivos que más se repitieron esta semana.", msgs:[]},
+
+  {id:107, t:"Auditar los canjes del trimestre", area:"Finanzas", proy:"pr2", est:"revision",
+   urg:"alta", imp:"alta", esf:"alto", due:+30*H, resp:10, col:[1,6], sync:"confirmada",
+   revBy:10, revH:8,
+   d:"Revisar que los 214 canjes del trimestre se hayan cobrado al precio publicado y que a nadie le hayan quitado Oro.",
+   msgs:[{u:10,t:"214 canjes revisados: 0 reversiones y ni un precio movido.",h:9},
+         {u:1,t:"Full. Eso es justo lo que promete la pantalla de Tienda.",h:7}]},
+
+  {id:108, t:"Charla: cómo funciona el Oro", area:"RRHH", proy:"pr3", est:"completada",
+   urg:"media", imp:"alta", esf:"medio", due:-4*24*H, resp:6, col:[1,10], sync:"confirmada",
+   d:"Sesión de 20 minutos: de dónde sale el Oro, para qué alcanza, quién puede cambiar los precios y con cuánto aviso.",
+   msgs:[{u:6,t:"Vinieron 48 personas. La pregunta que más se repitió: «¿me lo pueden quitar?». Respuesta: no, pero caduca a los 90 días.",h:70}]},
+
+  {id:109, t:"Montar la demo del prototipo para la mesa redonda", area:"Producto", proy:"pr3", est:"curso",
+   urg:"alta", imp:"media", esf:"medio", due:+9*H, resp:1, col:[2], sync:"pendiente",
+   d:"Recorrido de 5 minutos: una misión, un canje y el apagado del juego. Sin láminas.",
+   msgs:[{u:2,t:"Te armo unas pantallas de apoyo por si la conexión se pone fea.",h:3}]},
+
+  {id:110, t:"Levantar la encuesta de beneficios por zona", area:"RRHH", proy:"pr3", est:"proxima",
+   urg:"media", imp:"alta", esf:"bajo", due:+5*24*H, resp:6, col:[1,11], sync:"confirmada",
+   d:"Preguntarle a la gente de Maracaibo y Valencia qué beneficio quisieran de verdad. No podemos seguir contratando cupos a punta de corazonada.",
+   msgs:[{u:11,t:"@Alim Reyes te ayudo con las preguntas, tengo el borrador desde la semana pasada.",h:6}]},
+
+  {id:111, t:"Cargar los datos de los tres clientes en el panel", area:"Operaciones", proy:"pr1", est:"proxima",
+   urg:"media", imp:"media", esf:"bajo", due:+12*24*H, resp:1, col:[], sync:"confirmada",
+   d:"Datos de contacto, plan contratado y zona de cada empleado. La zona la fija RRHH del cliente, no la escoge la gente.",
+   msgs:[]},
+
+  {id:112, t:"Cerrar el convenio del gimnasio en Valencia", area:"RRHH", proy:"pr3", est:"proxima",
+   urg:"baja", imp:"media", esf:"medio", due:+18*24*H, resp:6, col:[], sync:"confirmada",
+   d:"El de Caracas ya está firmado. Falta que Valencia mande la propuesta de cupos mensuales.",
+   msgs:[]}
+];
+
+const MULT = {urg:{baja:1,media:1.4,alta:1.9}, imp:{baja:1,media:1.4,alta:1.9}, esf:{bajo:.8,medio:1.2,alto:1.7}};
+const BASE_XP = 40, ORO_POR_XP = .4, TOPE_DIA = 150, DECAY_DIAS = 90;
+const calcXP  = m => Math.round(BASE_XP*MULT.urg[m.urg]*MULT.imp[m.imp]*MULT.esf[m.esf]);
+const calcOro = m => Math.round(calcXP(m)*ORO_POR_XP);
+missions.forEach(m=>{ m.xp=calcXP(m); m.oro=calcOro(m); });
+
+/* --- Reparto: el responsable se lleva más, siempre --- */
+const REPARTO_RESP = .60;
+function reparto(m){
+  const equipo = [m.resp, ...m.col];
+  if(equipo.length===1) return [{id:m.resp, rol:"Responsable", pct:1, xp:m.xp, oro:m.oro}];
+  const resto = (1-REPARTO_RESP)/m.col.length;
+  return equipo.map((id,i)=>{
+    const pct = i===0 ? REPARTO_RESP : resto;
+    return {id, rol: i===0?"Responsable":"Colaborador", pct,
+            xp: Math.round(m.xp*pct), oro: Math.round(m.oro*pct)};
+  });
+}
+/* --- Recompensa sugerida al pedir ayuda: 15% del Oro de la misión, entre 10 y 80 --- */
+const oroSugerido = m => Math.max(10, Math.min(80, Math.round(m.oro*0.15)));
+
+const xpParaNivel = n => Math.round(280*Math.pow(n,1.62));
+function nivelDe(xp){ let n=1; while(xp>=xpParaNivel(n+1)) n++; return n; }
+const RANGOS = [{min:1,n:"Bronce"},{min:4,n:"Plata"},{min:7,n:"Oro"},{min:10,n:"Platino"},{min:13,n:"Leyenda"}];
+const rangoDe = lvl => [...RANGOS].reverse().find(r=>lvl>=r.min);
+people.forEach(p=>{ p.lvl = nivelDe(p.xp); });
+
+/* =========================================================
+   ZONAS — las fija RRHH del cliente, no el empleado (Maestro §9)
+   ========================================================= */
+const ZONAS = ["Caracas","Valencia","Maracaibo","Barquisimeto","Maracay","Remoto"];
+
+/* =========================================================
+   MEDALLAS DE EQUIPO
+   Regla C-4: una medalla NUNCA condiciona un beneficio base.
+   Solo añade uno extra. El denominador son los participantes.
+   ========================================================= */
+const medallasEquipo = [
+  {id:"mes-limpio", ico:"calcheck", n:"Mes limpio", d:"El equipo cerró un mes entero sin una sola misión vencida.",
+   got:"JUL 26", extra:"Café con la directiva"},
+  {id:"nadie-solo", ico:"panas", n:"Nadie solo", d:"Nueve de cada diez misiones del mes tuvieron dos o más personas metidas.",
+   got:"AGO 26", extra:"Desatasque colectivo"},
+  {id:"cruce", ico:"red", n:"Se cruzaron las áreas", d:"40 misiones del mes juntaron a gente de tres áreas distintas.",
+   prog:[31,40], extra:"Cambio de silla"},
+  {id:"meta-mes", ico:"trofeo", n:"Meta del mes", d:"120 misiones completadas entre todos los que participan.",
+   prog:[87,120], extra:"Almuerzo de equipo"}
+];
+const equipoTiene = id => !!medallasEquipo.find(m=>m.id===id && m.got);
+
+/* =========================================================
+   TIENDA — cupos precontratados. El Oro es puntaje, no dinero.
+   ⚠️ Precios provisionales: CH-5 del Maestro los bloquea.
+   ========================================================= */
+const shop = [
+  /* ---------- TIEMPO ---------- */
+  {id:"t1", cat:"tiempo", ico:"reloj", n:"Salida anticipada (2 h)", p:180, gate:null,
+   d:"Te vas dos horas antes el día que tú elijas, avisando con 24 horas.", cupo:[14,20], zonas:"todas"},
+  {id:"t2", cat:"tiempo", ico:"amanecer", n:"Entrada tarde (1 h)", p:70, gate:null,
+   d:"Llegas una hora más tarde el día que quieras. Avisas la tarde anterior.", cupo:[27,35], zonas:"todas"},
+  {id:"t3", cat:"tiempo", ico:"cubiertos", n:"Almuerzo largo (1 h más)", p:90, gate:null,
+   d:"Una hora extra de almuerzo, el día que te provoque.", cupo:[23,30], zonas:"todas"},
+  {id:"t4", cat:"tiempo", ico:"sol", n:"Viernes flex", p:220, gate:{t:"nivel",v:4},
+   d:"Entras dos horas más tarde un viernes, el que tú quieras.", cupo:[6,10], zonas:"todas"},
+  {id:"t5", cat:"tiempo", ico:"casa", n:"Un día desde la casa", p:320, gate:{t:"nivel",v:4},
+   d:"Un día de trabajo remoto fuera de tu cuota normal.", cupo:[4,8], zonas:"todas"},
+  {id:"t6", cat:"tiempo", ico:"luna", n:"Tarde libre", p:420, gate:{t:"nivel",v:4},
+   d:"Medio día libre pago. Sales al almuerzo y no vuelves.", cupo:[5,8], zonas:"todas"},
+  {id:"t7", cat:"tiempo", ico:"silencio", n:"Desconexión total", p:260, gate:{t:"nivel",v:4},
+   d:"Un día sin notificaciones y sin que nadie te pueda asignar nada. Las urgencias van a tu líder.", cupo:[9,12], zonas:"todas"},
+  {id:"t8", cat:"tiempo", ico:"torta", n:"Tu cumpleaños libre", p:340, gate:{t:"nivel",v:4},
+   d:"El día de tu cumpleaños, libre y pago. Se pide con un mes de aviso.", cupo:[11,15], zonas:"todas"},
+  {id:"t9", cat:"tiempo", ico:"playa", n:"Día libre completo", p:900, gate:{t:"nivel",v:7},
+   d:"Un día libre pago, cuadrado con tu equipo con cinco días de aviso.", cupo:[2,4], zonas:"todas"},
+  {id:"t10",cat:"tiempo", ico:"calendario", n:"Semana comprimida", p:1200, gate:{t:"nivel",v:10},
+   d:"Una semana de cuatro días de diez horas. Se cuadra con tu líder y con quien depende de ti.", cupo:[1,2], zonas:"todas"},
+
+  /* ---------- EMPRESA ---------- */
+  {id:"e1", cat:"empresa", ico:"mochila", n:"Kit Levelop", p:300, gate:null,
+   d:"Termo, libreta y calcomanías de la casa. Te lo entregan en la oficina.", cupo:[9,12], zonas:["Caracas","Valencia","Maracaibo"]},
+  {id:"e2", cat:"empresa", ico:"bolsa", n:"Bolsa de mercado", p:520, gate:null,
+   d:"La bolsa mensual que negocia la empresa con el proveedor. Se retira los viernes.", cupo:[18,40], zonas:"todas"},
+  {id:"e3", cat:"empresa", ico:"bus", n:"Transporte del mes", p:400, gate:null,
+   d:"Un mes completo en la ruta de la empresa, ida y vuelta.", cupo:[7,15], zonas:["Caracas","Valencia","Maracay"]},
+  {id:"e4", cat:"empresa", ico:"carro", n:"Puesto techado (1 semana)", p:260, gate:{t:"nivel",v:4},
+   d:"Tu nombre en el puesto techado del estacionamiento por una semana completa.", cupo:[1,3], zonas:["Caracas","Valencia"]},
+  {id:"e5", cat:"empresa", ico:"silla", n:"Mejora de tu puesto", p:560, gate:{t:"nivel",v:4},
+   d:"Silla ergonómica, monitor extra o lo que más te haga falta donde te sientas.", cupo:[3,6], zonas:["Caracas","Valencia","Maracaibo","Barquisimeto","Maracay"]},
+  {id:"e6", cat:"empresa", ico:"libro", n:"Curso a elección", p:800, gate:{t:"nivel",v:7},
+   d:"La empresa te paga el curso que tú escojas de la plataforma contratada.", cupo:[6,6], zonas:"todas"},
+  {id:"e7", cat:"empresa", ico:"calendario", n:"Día de formación", p:640, gate:{t:"nivel",v:7},
+   d:"Un día pago para estudiar lo que tú elijas. No es vacación: presentas qué aprendiste.", cupo:[4,6], zonas:"todas"},
+  {id:"e8", cat:"empresa", ico:"estrella", n:"Certificación pagada", p:1400, gate:{t:"nivel",v:10},
+   d:"La empresa cubre una certificación profesional completa, examen incluido.", cupo:[1,2], zonas:"todas"},
+  {id:"e9", cat:"empresa", ico:"taza", n:"Café con la directiva", p:500, gate:{t:"medalla",v:"mes-limpio"}, extra:true,
+   d:"Una hora de conversa con quien tú elijas del equipo de liderazgo. Tú pones el tema.", cupo:[3,4], zonas:"todas"},
+
+  /* ---------- IMPULSOS — la familia más potente.
+     Todos mueven la relación entre personas y entre niveles. ---------- */
+  {id:"i1", cat:"impulsos", ico:"escudo", n:"Escudo de foco (2 h)", p:60, gate:null, power:1,
+   d:"Dos horas en las que nadie te puede asignar misiones nuevas. Las urgentes igual entran.", cupo:[99,99], zonas:"todas"},
+  {id:"i2", cat:"impulsos", ico:"arena", n:"Prórroga de 24 h", p:80, gate:null, power:1,
+   d:"Le corres un día la fecha de una misión y tu equipo se entera solo.", cupo:[3,3], zonas:"todas"},
+  {id:"i3", cat:"impulsos", ico:"ojo", n:"Segunda opinión", p:110, gate:null, power:2,
+   d:"Pides que alguien de OTRA área revise tu trabajo antes de mandarlo. Quien revisa también gana XP.", cupo:[12,15], zonas:"todas"},
+  {id:"i4", cat:"impulsos", ico:"escudo", n:"Escudo compartido", p:130, gate:null, power:2,
+   d:"Dos horas de foco para ti y para un pana que elijas. Los dos quedan blindados al mismo tiempo.", cupo:[10,12], zonas:"todas"},
+  {id:"i5", cat:"impulsos", ico:"megafono", n:"Impulso de equipo", p:180, gate:{t:"nivel",v:4}, power:3,
+   d:"Un día completo con 10% más de XP para todo tu equipo. Tú pagas, gana todo el mundo.", cupo:[1,1], zonas:"todas"},
+  {id:"i6", cat:"impulsos", ico:"planta", n:"Mentoría de una hora", p:240, gate:{t:"nivel",v:4}, power:4,
+   d:"Una hora con alguien de más nivel, del área que tú escojas. Lo pides tú, no te lo asignan.", cupo:[8,10], zonas:"todas"},
+  {id:"i7", cat:"impulsos", ico:"panas", n:"Padrino de misión", p:280, gate:{t:"nivel",v:4}, power:4,
+   d:"Alguien con más recorrido te acompaña en una misión completa. Los dos se llevan XP.", cupo:[5,8], zonas:"todas"},
+  {id:"i8", cat:"impulsos", ico:"capas", n:"Rueda de conocimiento", p:200, gate:{t:"nivel",v:4}, power:4,
+   d:"Treinta minutos donde TÚ le enseñas algo al equipo. Ganas XP por enseñar, no por asistir.", cupo:[6,8], zonas:"todas"},
+  {id:"i9", cat:"impulsos", ico:"brujula", n:"Cambio de silla", p:520, gate:{t:"medalla",v:"cruce"}, extra:true, power:5,
+   d:"Un día completo trabajando dentro de otra área. Vuelves con el mapa de cómo funciona.", cupo:[2,4], zonas:"todas"},
+  {id:"i10",cat:"impulsos", ico:"red", n:"Desatasque colectivo", p:340, gate:{t:"medalla",v:"nadie-solo"}, extra:true, power:5,
+   d:"Convocas a tres personas de donde sea por 30 minutos para destrabar una misión. Nadie puede decir que no.", cupo:[3,5], zonas:"todas"},
+  {id:"i11",cat:"impulsos", ico:"cubiertos", n:"Almuerzo de equipo", p:600, gate:{t:"medalla",v:"meta-mes"}, extra:true, power:5,
+   d:"El equipo completo almuerza junto y la empresa pone. Lo pide una persona, lo disfrutan todos.", cupo:[2,3], zonas:["Caracas","Valencia","Maracaibo","Barquisimeto","Maracay"]}
+];
+const CATS = {
+  tiempo:  {n:"Tiempo",   d:"Lo que no cuesta caja y es lo que más se pide."},
+  empresa: {n:"Empresa",  d:"Cupos que puso la casa."},
+  impulsos:{n:"Impulsos", d:"Lo que mueve al equipo. La familia con más potencia."}
+};
+
+/* Los más pedidos — agregado, sin nombres (R-07) */
+const masPedidos = {
+  semana:[{id:"t2",v:14},{id:"t1",v:11},{id:"i1",v:9},{id:"t3",v:8},{id:"e2",v:6}],
+  mes:   [{id:"t1",v:38},{id:"t3",v:31},{id:"e2",v:27},{id:"t2",v:24},{id:"i1",v:22},{id:"i3",v:15}]
+};
+
+/* =========================================================
+   TROFEOS  ·  "Determinación" es oculto: solo se ve al ganarlo
+   ========================================================= */
+const trofeos = [
+  {id:1,  ico:"panas",     n:"Buen pana",       d:"Métete en 10 misiones donde haya tres o más personas.", got:"12 JUN 26"},
+  {id:2,  ico:"llama",     n:"Racha de 30",     d:"30 días activos seguidos. Un fin de semana no te la tumba.", prog:[12,30]},
+  {id:3,  ico:"amanecer",  n:"Madrugador",      d:"Cierra 20 misiones antes de las diez de la mañana.", got:"03 JUL 26"},
+  {id:4,  ico:"ticket",    n:"Estrenó la tienda",d:"Pide tu primer beneficio.", got:"12 AGO 26"},
+  {id:5,  ico:"salvavidas",n:"Salvavidas",      d:"Súmate a cinco misiones que estaban en riesgo.", prog:[3,5]},
+  {id:6,  ico:"sube",      n:"El que más subió",d:"Sé la mayor mejora de la semana en tu área.", got:"18 AGO 26"},
+  {id:7,  ico:"chat",      n:"Da la cara",      d:"50 mensajes en hilos de misión que alguien respondió.", got:"29 JUL 26"},
+  {id:8,  ico:"diana",     n:"Puntual",         d:"15 misiones seguidas entregadas a tiempo.", prog:[9,15]},
+  {id:9,  ico:"planta",    n:"Padrino",         d:"Acompaña a tres personas nuevas en su primera misión.", prog:[1,3]},
+  {id:10, ico:"ladrillos", n:"Echa los kilos",  d:"100 misiones completadas.", prog:[38,100]},
+  {id:11, ico:"brujula",   n:"Se mueve",        d:"Misiones con cuatro áreas distintas en un mes.", got:"07 AGO 26"},
+  {id:12, ico:"rayo",      n:"De una",          d:"Cierra 10 misiones el mismo día que te las montaron.", prog:[6,10]},
+  {id:13, ico:"aldia",     n:"Al día",          d:"Cierra un mes sin ninguna misión vencida.", got:"31 JUL 26"},
+  {id:14, ico:"corona",    n:"Leyenda",         d:"Llega al nivel 13.", prog:[6,13]},
+  {id:15, ico:"bandera",   n:"Determinación",   d:"Ponte tu propia meta del mes y cúmplela.", oculto:true, prog:[0,1]},
+  {id:16, ico:"mano",      n:"Porque soy pana", d:"Ayuda cinco veces sin quedarte con la recompensa.", oculto:true, prog:[2,5]}
+];
+
+/* =========================================================
+   BENEFICIOS DEL USUARIO  ·  el Oro caduca a 90 días (§3.4)
+   ========================================================= */
+let beneficios = [
+  {id:"b1", ico:"reloj", n:"Salida anticipada (2 h)", pedido:"12 AGO 26", vence:"26 AGO 26", estado:"activo", cod:"LVL-8842", dias:2},
+  {id:"b2", ico:"amanecer",  n:"Entrada tarde (1 h)", pedido:"20 AGO 26", vence:"20 SEP 26", estado:"proceso", cod:"—", dias:27},
+  {id:"b3", ico:"bolsa", n:"Bolsa de mercado",  pedido:"22 AGO 26", vence:"22 SEP 26", estado:"indeterminado", cod:"—", dias:29},
+  {id:"b4", ico:"escudo", n:"Escudo de foco (2 h)",pedido:"18 AGO 26", vence:"31 AGO 26", estado:"activo", cod:"LVL-8790", dias:7},
+  {id:"b5", ico:"planta", n:"Mentoría de una hora", pedido:"16 AGO 26", vence:"16 SEP 26", estado:"activo", cod:"LVL-8771", dias:23, regaloDe:2},
+  {id:"b6", ico:"cubiertos", n:"Almuerzo largo (1 h más)", pedido:"05 AGO 26", vence:"05 AGO 26", estado:"usado", cod:"LVL-8113", dias:0}
+];
+
+/* Lotes de Oro con su fecha de caducidad — el saldo no es un número plano */
+let lotesOro = [
+  {oro:120, dias:9},  {oro:180, dias:31}, {oro:210, dias:58}, {oro:130, dias:81}
+];
+const oroTotal = () => lotesOro.reduce((a,b)=>a+b.oro,0);
+const loteMasViejo = () => lotesOro.slice().sort((a,b)=>a.dias-b.dias)[0];
+
+/* =========================================================
+   NOTICIAS Y AVISOS
+   ========================================================= */
+const noticiasEmpresa = [
+  {ico:"trofeo", t:"Vamos 87 de 120 misiones del mes", d:"Si llegamos, todo el equipo sube un escalón de rango. Faltan 33 y quedan seis días.", h:3},
+  {ico:"calcheck", t:"Operaciones cerró julio sin una sola vencida", d:"Segunda vez en el año. Con eso el equipo se ganó la medalla «Mes limpio».", h:26},
+  {ico:"panas", t:"Nueve de cada diez misiones tuvieron dos o más personas", d:"Se abrió el «Desatasque colectivo» en la Tienda para todo el mundo.", h:50},
+  {ico:"estrella", t:"Diseño llevó tres semanas seguidas sin retrasos", d:"Daniela, Alim y Rafael: chévere.", h:74}
+];
+const noticiasLevelop = [
+  {ico:"regalo", t:"Ya puedes regalar beneficios", d:"Le pagas un beneficio a alguien de tu equipo o de la empresa con tu Oro.", h:5, zonas:"todas"},
+  {ico:"brillo", t:"Nuevos Impulsos disponibles", d:"Mentoría, padrino de misión y rueda de conocimiento. La familia que mueve al equipo.", h:9, zonas:"todas"},
+  {ico:"bolsa",  t:"Se sumaron 20 cupos de bolsa de mercado", d:"Este mes hay 40 en total. Aplica en todo el país.", h:34, zonas:"todas"},
+  {ico:"carro",  t:"Puesto techado ahora también en Valencia", d:"Tres cupos por semana, igual que en Caracas.", h:58, zonas:["Caracas","Valencia"]}
+];
+
+const TIPOS_AVISO = {
+  mencion:  {n:"Mención",  c:"sync"},
+  logro:    {n:"Logro",    c:"gold"},
+  riesgo:   {n:"Riesgo",   c:"risk"},
+  beneficio:{n:"Beneficio",c:"ok"},
+  equipo:   {n:"Equipo",   c:"xp"},
+  ayuda:    {n:"Ayuda",    c:"sync"},
+  privado:  {n:"Solo tú",  c:"gold"},
+  apoyo:    {n:"Apoyo",    c:"ok"},
+  reto:     {n:"Desafío",  c:"xp"}
+};
+let avisos = [
+  {tipo:"mencion",  ico:"arroba", t:"Kevin Salas te nombró", d:"En «Diseñar el estado canje indeterminado»", h:22},
+  {tipo:"ayuda",    ico:"mano",   t:"Pediste ayuda y nadie ha respondido", d:"«Diseñar el estado canje indeterminado» · 26 de Oro ofrecidos", h:11},
+  {tipo:"logro",    ico:"trofeo", t:"Trofeo nuevo: El que más subió", d:"Fuiste la mayor mejora de la semana en Producto", h:30},
+  {tipo:"riesgo",   ico:"alerta", t:"Se te venció una misión ayer", d:"«Diseñar el estado canje indeterminado» sigue abierta", h:19},
+  {tipo:"beneficio",ico:"ticket", t:"Tu escudo de foco vence en 7 días", d:"Código LVL-8790", h:12},
+  {tipo:"beneficio",ico:"regalo", t:"Daniela Ochoa te regaló una mentoría", d:"Ya está activa en tu perfil", h:40},
+  {tipo:"equipo",   ico:"panas",  t:"El equipo se ganó «Nadie solo»", d:"Se abrió el Desatasque colectivo para todos", h:50},
+  {tipo:"privado",  ico:"regalo",  t:"Se te abrió algo, y solo lo ves tú", d:"Quedaste de primero en tu área la semana pasada", h:6, accion:"top"},
+  {tipo:"apoyo",    ico:"mano",    t:"¿Hablamos de tus tiempos?", d:"Sin ranking y sin que nadie más se entere", h:14, accion:"apoyo"},
+  {tipo:"reto",     ico:"bandera", t:"Arrancó el desafío contra Ingeniería", d:"Ya estás adentro. Te puedes salir cuando quieras", h:72, accion:"duelo"}
+];
+
+let sugerencias = [];
+
+/* =========================================================
+   DESAFÍO ENTRE ÁREAS
+   Lo propone un líder, lo vota cada equipo, y se mide mejora
+   contra el propio mes pasado — nunca volumen de misiones.
+   ========================================================= */
+const duelo = {
+  activo:true, mia:"Producto", rival:"Ingeniería",
+  mejora:{Producto:18, Ingeniería:14},
+  restan:3, dias:7, dentro:true,
+  suman:[
+    {id:1, n:"Daniela Ochoa",   v:5},
+    {id:9, n:"Alim Reyes",      v:4},
+    {id:3, n:"Génesis Uzcátegui",v:3},
+    {id:5, n:"Rafael Colmenares",v:2}
+  ]
+};
+
+/* Desbloqueo privado del que quedó de primero — solo lo ve él.
+   No sale en el ranking, no le llega a ningún líder. */
+const desbloqueoTop = {
+  activo:true, ambito:"tu área", periodo:"la semana pasada",
+  n:"Tarde libre sin descontar del cupo",
+  d:"Te vas cuando quieras un día de esta semana. No sale de la cuota de nadie ni aparece en la Tienda."
+};
+
+/* =========================================================
+   ESTADO
+   ========================================================= */
+const me = P(1);
+const state = {
+  tab:"inicio",
+  optIn:true,
+  zona:"Caracas",              // la fija RRHH · el empleado no la edita (Maestro §9)
+  periodo:"semana",
+  filtro:"todas",
+  shopCat:"todas",
+  shopTab:"disponibles",       // disponibles | bloqueados
+  pedidosRango:"semana",
+  rankModo:"cerca",
+  rankMetrica:"xp",
+  rankAmbito:"equipo",
+  posAmbito:"equipo",          // toggle de posición en Perfil e Inicio
+  abierta:null,
+  nombre:me.n,
+  color:me.color,
+  oro:oroTotal(),
+  xp:me.xp,
+  racha:12,
+  metaMes:{objetivo:12, hecho:7, puesta:true},
+  objetivo:null,               // id del beneficio marcado como objetivo
+  plegado:{medallas:false, trofeos:false, beneficios:false}
+};
+const PERIODOS = {dia:{n:"Hoy", h:24}, semana:{n:"Semana", h:24*7}, mes:{n:"Mes", h:24*30}};
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pctify = s => String(s).replace(/%/g, '<span class="pct">%</span>');
+const fmt = n => n.toLocaleString("es-VE");
+const av  = (p,cls="") => `<span class="av ${cls}" style="background:${p.id===1?state.color:p.color}">${p.ini}</span>`;
+const nom = id => id===1 ? state.nombre : P(id).n;
+const MESES = ["ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"];
+const MESES_L = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const fecha = d => `${String(d.getDate()).padStart(2,"0")} ${MESES[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`;
+const fechaLarga = d => `${d.getDate()} de ${MESES_L[d.getMonth()]}`;
+
+/* Hoy y mañana en palabras; de ahí en adelante, la fecha real (pedido de Alim) */
+function restante(ms){
+  if(ms < 0){
+    const h = Math.round(-ms/H);
+    return {txt: h<24 ? `Se venció hace ${h} h` : `Se venció hace ${Math.round(h/24)} d`, tipo:"risk"};
+  }
+  const h = ms/H;
+  if(h < 1)  return {txt:`Quedan ${Math.max(1,Math.round(h*60))} min`, tipo:"risk"};
+  if(h < 12) return {txt:`Quedan ${Math.round(h)} h`, tipo:"risk"};
+  if(h < 24) return {txt:"Se vence hoy", tipo:"gold"};
+  if(h < 48) return {txt:"Se vence mañana", tipo:"gold"};
+  return {txt:`Entrega ${fechaLarga(new Date(Date.now()+ms))}`, tipo:""};
+}
+const haceRato = h => h<1 ? "ahorita" : h<24 ? `hace ${h} h` : `hace ${Math.round(h/24)} d`;
+const ESTADOS = {
+  proxima:{n:"Por arrancar",c:""}, curso:{n:"En curso",c:"xp"}, revision:{n:"En revisión",c:"gold"},
+  riesgo:{n:"En riesgo",c:"risk"}, completada:{n:"Lista",c:"ok"}
+};
+
+function meter(actual, total, cls=""){
+  const pips=14, on=Math.max(0,Math.min(pips,Math.round(actual/total*pips)));
+  let h=`<span class="meter ${cls}">`;
+  for(let i=0;i<pips;i++) h += `<i class="${i<on?"on":""}"></i>`;
+  return h+"</span>";
+}
+function toast(tipo, ico, t, d, ms=4400){
+  const el=document.createElement("div");
+  el.className="toast "+tipo;
+  el.innerHTML=`<span class="ti">${IC[ico]||IC.check}</span><div><div class="tt">${esc(t)}</div><div class="td">${esc(d)}</div></div>`;
+  document.getElementById("toasts").appendChild(el);
+  setTimeout(()=>{ el.style.opacity="0"; el.style.transition="opacity .3s"; setTimeout(()=>el.remove(),320); }, ms);
+}
+const zonaOk = x => x.zonas==="todas" || x.zonas.includes(state.zona);
+function gateAbierto(g){
+  if(!g) return true;
+  if(g.t==="nivel")  return nivelDe(state.xp) >= g.v;
+  if(g.t==="medalla") return equipoTiene(g.v);
+  return true;
+}
+function gateTexto(g){
+  if(g.t==="nivel") return `Nivel ${g.v}`;
+  const m = medallasEquipo.find(x=>x.id===g.v);
+  return `Medalla «${m.n}»`;
+}
+function gateComoLograrlo(g){
+  if(g.t==="nivel"){
+    const falta = xpParaNivel(g.v) - state.xp;
+    return falta>0 ? `Te faltan ${fmt(falta)} XP para el nivel ${g.v}.` : `Ya tienes el nivel ${g.v}.`;
+  }
+  const m = medallasEquipo.find(x=>x.id===g.v);
+  return m.got ? `El equipo ya la tiene.` : `El equipo va ${m.prog[0]} de ${m.prog[1]}: ${esc(m.d)}`;
+}
+const ultimoMsg = m => m.msgs.length ? Math.min(...m.msgs.map(x=>x.h)) : 9999;
+const meNombran = m => m.msgs.filter(x=>x.u!==1 && x.t.includes("@"+me.n.split(" ")[0]));
+const miParte = m => reparto(m).find(r=>r.id===1);
+const misMisiones = () => missions.filter(m=>(m.resp===1||m.col.includes(1)) && m.est!=="completada");
+
+/* Ritmo real: el Oro que ya tengo comprometido en misiones mías, por día */
+function ritmoDiario(){
+  const mias = misMisiones();
+  const oro = mias.reduce((a,m)=>a + (miParte(m)?.oro||0), 0);
+  const dias = Math.max(7, Math.round(Math.max(...mias.map(m=>m.due), 7*24*H)/(24*H)));
+  return Math.max(8, Math.round(oro/dias));
+}
+
+/* =========================================================
+   NAVEGACIÓN
+   ========================================================= */
+const TABS = [
+  {id:"inicio",  n:"Inicio",   juego:false},
+  {id:"misiones",n:"Misiones", juego:false},
+  {id:"tienda",  n:"Tienda",   juego:true},
+  {id:"ranking", n:"Ranking",  juego:true},
+  {id:"perfil",  n:"Perfil",   juego:false}
+];
+const tabsVisibles = () => TABS.filter(t=> state.optIn || !t.juego);
+
+function pintarNav(){
+  const vis = tabsVisibles();
+  document.getElementById("tabbar").innerHTML = vis.map(t=>`
+    <button class="tab" data-tab="${t.id}" ${state.tab===t.id?'aria-current="page"':""}>
+      <span class="ti">${IC[t.id]}</span><span>${t.n}</span><span class="tab-mark"></span></button>`).join("");
+  document.getElementById("rail").innerHTML =
+    `<div class="brand"><span class="brand-mark">L</span>Levelop<em>!</em></div>` +
+    vis.map(t=>`<button class="railbtn" data-tab="${t.id}" ${state.tab===t.id?'aria-current="page"':""}>
+      <span class="ti">${IC[t.id]}</span><span>${t.n}</span></button>`).join("") +
+    `<div style="flex:1"></div>
+     <div class="note" style="font-size:11px">Prototipo MVP · datos de mentira<br>v0.4 · ${new Date().toLocaleDateString("es-VE")}</div>`;
+}
+let _oroVisto=null;
+function contarHasta(el, fin){
+  if(!el) return;
+  const ini = _oroVisto===null ? fin : _oroVisto;
+  _oroVisto = fin;
+  if(ini===fin || matchMedia("(prefers-reduced-motion: reduce)").matches){ el.textContent=fmt(fin); return; }
+  const t0=performance.now(), dur=620;
+  (function paso(t){
+    const k=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-k,3);
+    el.textContent=fmt(Math.round(ini+(fin-ini)*e));
+    if(k<1) requestAnimationFrame(paso);
+  })(t0);
+}
+function pintarChrome(){
+  document.querySelector("#bell .ti").innerHTML = IC.bell;
+  document.querySelector("#themebtn .ti").innerHTML = IC.tema;
+}
+function pintarHud(){
+  const lvl = nivelDe(state.xp), viejo = loteMasViejo();
+  document.getElementById("hud").innerHTML = state.optIn ? `
+    <button class="hud is-xp" data-info="nivel" title="Tu nivel — tócalo"><span class="hud-l">Nv</span><span class="num">${lvl}</span></button>
+    <button class="hud is-gold" data-info="oro" title="Tu Oro — tócalo"><span class="hud-l">Oro</span><span class="num" id="hudoro">${fmt(state.oro)}</span>${viejo.dias<=14?`<span class="hud-warn">${viejo.dias}d</span>`:""}</button>
+    <button class="hud is-streak" data-info="racha" title="Tu racha — tócala"><span class="hud-l">Racha</span><span class="num">${state.racha}</span></button>
+    <button class="hud is-zona" data-info="zona" title="Tu ciudad — tócala">${IC.pin}<span class="hud-l zona-l">${esc(state.zona)}</span></button>`
+    : `<button class="hud is-zona" data-info="zona" title="Tu ciudad — tócala">${IC.pin}<span class="hud-l zona-l">${esc(state.zona)}</span></button>`;
+  contarHasta(document.getElementById("hudoro"), state.oro);
+  document.getElementById("belldot").classList.toggle("hide", avisos.length===0);
+}
+
+/* =========================================================
+   AVISOS — menú desplegable, etiquetado por tipo
+   ========================================================= */
+function pintarAvisos(){
+  const d = document.getElementById("avisosdrop");
+  d.innerHTML = `
+    <div class="drop-h"><span class="eyebrow">Últimas 48 h</span>
+      <button class="btn sm" data-limpiar>Marcar visto</button></div>
+    <div class="drop-b">
+      ${avisos.length ? avisos.map(n=>{
+        const t = TIPOS_AVISO[n.tipo];
+        return `<${n.accion?"button":"div"} class="aviso ${t.c}" ${n.accion?`data-aviso="${n.accion}"`:""} style="${n.accion?"width:100%; text-align:left; cursor:pointer":""}">
+          <span class="aviso-i">${IC[n.ico]}</span>
+          <div style="flex:1; min-width:0">
+            <div class="row wrap g6" style="margin-bottom:3px"><span class="chip ${t.c}">${t.n}</span>
+              <span class="mini-x">${haceRato(n.h)}</span></div>
+            <div class="aviso-t">${esc(n.t)}</div>
+            <div class="sub">${esc(n.d)}</div>
+          </div></${n.accion?"button":"div"}>`;
+      }).join("") : `<div class="empty">Nada nuevo. Tranquilo.</div>`}
+    </div>`;
+}
+function toggleAvisos(forzar){
+  const d = document.getElementById("avisosdrop"), b = document.getElementById("bell");
+  const abrir = forzar!==undefined ? forzar : d.hidden;
+  if(abrir) pintarAvisos();
+  d.hidden = !abrir;
+  b.setAttribute("aria-expanded", String(abrir));
+}
+
+/* =========================================================
+   META DEL MES — se repite en Inicio, Ranking y Perfil
+   ========================================================= */
+function bloqueMeta(compacto){
+  const m = state.metaMes;
+  if(!m.puesta){
+    return `<div class="card meta-card">
+      <div class="row g10" style="margin-bottom:10px"><span class="wi">${IC.bandera}</span>
+        <h3 style="flex:1">Tu meta del mes</h3></div>
+      <p class="sub">Ponte tú mismo cuántas misiones quieres cerrar este mes. No la pone tu jefe y nadie más la ve.</p>
+      <button class="btn sm primary" style="margin-top:11px" data-meta>Ponerme una meta</button>
+    </div>`;
+  }
+  const pct = Math.min(100, Math.round(m.hecho/m.objetivo*100));
+  const listo = m.hecho >= m.objetivo;
+  return `<div class="card meta-card">
+    <div class="row g10" style="margin-bottom:10px">
+      <span class="wi">${IC.bandera}</span>
+      <h3 style="flex:1">Tu meta del mes</h3>
+      <button class="btn sm" data-meta>Cambiar</button>
+    </div>
+    <div class="row" style="justify-content:space-between; align-items:flex-end; margin-bottom:8px">
+      <div class="score" style="font-size:34px; line-height:.95">${m.hecho} <span style="color:var(--ink-3)">de</span> ${m.objetivo}</div>
+      <span class="chip ${listo?"ok":pct>=60?"gold":""}">${pct}%</span>
+    </div>
+    ${meter(m.hecho, m.objetivo, "gold")}
+    ${!compacto?`<p class="sub" style="margin-top:10px">${listo
+      ? "La cumpliste. La medalla «Determinación» es tuya."
+      : `Te faltan <b>${m.objetivo-m.hecho}</b> misiones. Esta meta la pusiste tú: si no llegas, no pasa nada y nadie se entera.`}</p>`:""}
+  </div>`;
+}
+
+/* =========================================================
+   VISTA · INICIO
+   ========================================================= */
+function selectorPeriodo(){
+  return `<div class="seg">${Object.entries(PERIODOS).map(([k,v])=>
+    `<button data-periodo="${k}" aria-pressed="${state.periodo===k}">${v.n}</button>`).join("")}</div>`;
+}
+function widget(ico, titulo, contador, cuerpo, cls=""){
+  return `<section class="w ${cls}">
+    <div class="w-h"><span class="wi">${IC[ico]}</span><h3>${titulo}</h3>
+      ${contador!==null?`<span class="c">${contador}</span>`:""}</div>
+    <div class="w-body">${cuerpo}</div>
+  </section>`;
+}
+function proximoLogro(){
+  const cands = trofeos.filter(t=>!t.got && t.prog && !t.oculto)
+    .map(t=>({t, falta:t.prog[1]-t.prog[0], pct:t.prog[0]/t.prog[1]}))
+    .sort((a,b)=>b.pct-a.pct);
+  return cands[0];
+}
+function posicionDe(ambito){
+  const base = ambito==="area" ? people.filter(p=>p.area===me.area) : people;
+  const orden = [...base].sort((a,b)=>b.xp-a.xp);
+  const i = orden.findIndex(p=>p.id===1);
+  return {pos:i+1, total:orden.length, arriba:i>0?orden[i-1]:null, abajo:i<orden.length-1?orden[i+1]:null};
+}
+function vistaInicio(){
+  const hh = PERIODOS[state.periodo].h;
+  const hora = new Date().getHours();
+  const saludo = hora<12 ? "Buenos días" : hora<19 ? "Buenas tardes" : "Buenas noches";
+  const lvl = nivelDe(state.xp);
+
+  const proximas = missions.filter(m=>m.est!=="completada" && m.due <= hh*H).sort((a,b)=>a.due-b.due);
+  const wProximas = proximas.length ? proximas.slice(0,5).map(m=>{
+    const r = restante(m.due);
+    return `<button class="mini" data-mision="${m.id}">
+      <div class="mini-b"><div class="mini-t">${esc(m.t)}</div>
+        <div class="mini-m"><span class="chip ${r.tipo}">${r.txt}</span><span class="mini-x">${esc(m.area)}</span></div></div>
+      ${state.optIn?`<span class="chip xp">${miParte(m)?miParte(m).xp:m.xp} XP</span>`:""}
+    </button>`;
+  }).join("") : `<div class="empty">Nada por entregar en este rango. Aprovecha.</div>`;
+
+  const movidas = missions.filter(m=>m.msgs.length && ultimoMsg(m) <= hh).sort((a,b)=>ultimoMsg(a)-ultimoMsg(b));
+  const wHilos = movidas.length ? movidas.slice(0,5).map(m=>{
+    const u = m.msgs.reduce((a,b)=>a.h<=b.h?a:b);
+    return `<button class="mini" data-mision="${m.id}">
+      ${av(P(u.u),"sm")}
+      <div class="mini-b"><div class="mini-t">${esc(m.t)}</div>
+        <div class="mini-m"><span class="mini-x">${esc(nom(u.u).split(" ")[0])} · ${haceRato(u.h)}</span></div></div>
+      <span class="chip">${m.msgs.length}</span>
+    </button>`;
+  }).join("") : `<div class="empty">Los hilos están tranquilos.</div>`;
+
+  const menciones = [];
+  missions.forEach(m => meNombran(m).filter(x=>x.h<=hh).forEach(x=>menciones.push({m,x})));
+  menciones.sort((a,b)=>a.x.h-b.x.h);
+  const wMenciones = menciones.length ? menciones.slice(0,4).map(({m,x})=>`
+    <button class="mini" data-mision="${m.id}">
+      ${av(P(x.u),"sm")}
+      <div class="mini-b"><div class="mini-t">${esc(nom(x.u))} te nombró</div>
+        <div class="msg-t" style="margin-top:3px">${esc(x.t)}</div>
+        <div class="mini-m"><span class="mini-x">${esc(m.t)} · ${haceRato(x.h)}</span></div></div>
+    </button>`).join("") : `<div class="empty">Nadie te ha nombrado en este rango.</div>`;
+
+  /* --- PROYECTOS --- */
+  const wProyectos = proyectos.map(pr=>{
+    const ms = missions.filter(m=>m.proy===pr.id);
+    const listas = ms.filter(m=>m.est==="completada").length;
+    const riesgo = ms.filter(m=>m.est==="riesgo").length;
+    return `<button class="mini" data-proyecto="${pr.id}">
+      <span class="proy-dot" style="background:${pr.color}"></span>
+      <div class="mini-b"><div class="mini-t">${esc(pr.n)}</div>
+        <div class="mini-m"><span class="mini-x">${esc(pr.cliente)} · ${listas} de ${ms.length}</span>
+        ${riesgo?`<span class="chip risk">${riesgo} en riesgo</span>`:""}</div>
+        <div style="margin-top:7px">${meter(listas, ms.length||1)}</div></div>
+    </button>`;
+  }).join("");
+
+  /* --- ESTADO DE TAREAS --- */
+  const conteo = ["proxima","curso","revision","riesgo","completada"].map(k=>({
+    k, n:ESTADOS[k].n, c:ESTADOS[k].c, v:missions.filter(m=>m.est===k).length
+  }));
+  const maxC = Math.max(...conteo.map(c=>c.v));
+  const wEstado = `<div class="stack g8">${conteo.map(c=>`
+    <button class="estado-row" data-filtro-ir="${c.k}">
+      <span class="bl">${c.n}</span>
+      <span class="bar-track"><span class="bar-fill c-${c.c||"n"}" style="width:${(c.v/maxC*100).toFixed(0)}%"></span></span>
+      <span class="bv num">${c.v}</span>
+    </button>`).join("")}</div>`;
+
+  /* --- TU POSICIÓN --- */
+  const pos = posicionDe(state.posAmbito);
+  const wPos = `
+    <div class="seg" style="margin-bottom:12px">
+      <button data-posambito="area" aria-pressed="${state.posAmbito==="area"}">Mi área</button>
+      <button data-posambito="equipo" aria-pressed="${state.posAmbito==="equipo"}">Toda la empresa</button>
+    </div>
+    <div class="row" style="align-items:flex-end; gap:12px; margin-bottom:10px">
+      <div class="score" style="font-size:44px; line-height:.9">#${pos.pos}</div>
+      <div class="sub" style="padding-bottom:5px">de ${pos.total} ${state.posAmbito==="area"?"en "+esc(me.area):"en la empresa"}</div>
+    </div>
+    ${pos.arriba?`<div class="note">Te faltan <b class="num">${fmt(pos.arriba.xp-me.xp)}</b> XP para alcanzar a ${esc(pos.arriba.n.split(" ")[0])}.</div>`
+                :`<div class="note ok">Vas de primero. Ojo: eso no es la meta, es una consecuencia.</div>`}
+    <button class="btn sm primary" style="margin-top:11px" data-planpos>${IC.sube} Quiero subir</button>`;
+
+  /* --- PRÓXIMO LOGRO --- */
+  const pl = proximoLogro();
+  const wLogro = pl ? `
+    <div class="row g12" style="align-items:center">
+      <span class="tico" style="width:52px;height:52px;flex:none">${IC[pl.t.ico]}</span>
+      <div style="flex:1; min-width:0">
+        <div class="mini-t" style="font-size:15px">${esc(pl.t.n)}</div>
+        <div class="sub" style="margin-top:2px">${esc(pl.t.d)}</div>
+      </div>
+    </div>
+    <div style="margin-top:12px">${meter(pl.t.prog[0], pl.t.prog[1], "gold")}</div>
+    <div class="row" style="justify-content:space-between; margin-top:8px">
+      <span class="mini-x">${pl.t.prog[0]} de ${pl.t.prog[1]}</span>
+      <span class="chip gold">Te faltan ${pl.falta}</span>
+    </div>` : `<div class="empty">Ya los tienes todos.</div>`;
+
+  /* --- BENEFICIOS --- */
+  const activos = beneficios.filter(b=>b.estado!=="usado");
+  const wActivos = activos.length ? activos.slice(0,4).map(b=>`
+    <button class="mini" data-tab="perfil">
+      <span class="item-ico" style="width:32px;height:32px">${IC[b.ico]}</span>
+      <div class="mini-b"><div class="mini-t">${esc(b.n)}</div>
+        <div class="mini-m"><span class="chip ${ESTADO_BEN[b.estado].chip}">${ESTADO_BEN[b.estado].txt}</span>
+        ${b.regaloDe?`<span class="chip gold">Regalo de ${esc(nom(b.regaloDe).split(" ")[0])}</span>`:""}</div></div>
+    </button>`).join("") : `<div class="empty">No tienes beneficios activos.</div>`;
+
+  const porVencer = [...activos].sort((a,b)=>a.dias-b.dias);
+  const wVencen = porVencer.length ? porVencer.slice(0,4).map(b=>`
+    <button class="mini" data-tab="perfil">
+      <div class="mini-b"><div class="mini-t">${esc(b.n)}</div>
+        <div class="mini-m"><span class="mini-x">Vence ${b.vence}</span></div></div>
+      <span class="chip ${b.dias<=3?"risk":b.dias<=10?"gold":""}">${b.dias===0?"hoy":b.dias+" d"}</span>
+    </button>`).join("") : `<div class="empty">Nada por vencerse.</div>`;
+
+  const nEmp = noticiasEmpresa.filter(n=>n.h<=hh*1.6);
+  const wEmpresa = (nEmp.length?nEmp:noticiasEmpresa.slice(0,2)).map(n=>`
+    <div class="news"><span class="news-i">${IC[n.ico]}</span>
+      <div><div class="news-t">${esc(n.t)}</div><div class="news-d">${esc(n.d)}</div>
+      <div class="mini-x" style="margin-top:4px">${haceRato(n.h)}</div></div></div>`).join("");
+
+  const nLvl = noticiasLevelop.filter(zonaOk);
+  const wLevelop = nLvl.length ? nLvl.map(n=>`
+    <div class="news"><span class="news-i lvl">${IC[n.ico]}</span>
+      <div><div class="news-t">${esc(n.t)}</div><div class="news-d">${esc(n.d)}</div>
+      <div class="mini-x" style="margin-top:4px">${haceRato(n.h)} · ${esc(state.zona)}</div></div></div>`).join("")
+    : `<div class="empty">Todavía no hay novedades para ${esc(state.zona)}.</div>`;
+
+  return `
+  ${!state.optIn?`<div class="optout-banner">Tienes el juego apagado: no estás ganando Oro nuevo y no apareces en las tablas. Lo vuelves a prender desde tu Perfil cuando quieras.</div>`:""}
+
+  <div class="saludo">
+    <span class="pixels"><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="eyebrow">${new Date().toLocaleDateString("es-VE",{weekday:"long", day:"numeric", month:"long"})}</span>
+    <h1 style="margin-top:6px">${saludo},<br>${esc(state.nombre.split(" ")[0])}</h1>
+    <div class="row wrap g8" style="margin-top:13px">
+      ${state.optIn?`<button class="chip xp" data-info="nivel">Nivel ${lvl} · ${rangoDe(lvl).n}</button>
+      <button class="chip gold" data-info="oro">${fmt(state.oro)} de Oro</button>
+      <button class="chip risk" data-info="racha">Racha de ${state.racha}</button>`:""}
+      <button class="chip" data-info="zona">${IC.pin} ${esc(state.zona)}</button>
+    </div>
+  </div>
+
+  <div class="row wrap g8" style="justify-content:space-between; margin-bottom:14px">
+    <span class="eyebrow">Qué te toca</span>
+    ${selectorPeriodo()}
+  </div>
+
+  <div class="bento">
+    ${state.optIn && duelo.activo ? `<section class="w duelo-w">${bloqueDuelo()}</section>` : ""}
+    ${state.optIn && desbloqueoTop.activo ? widget("regalo","Solo lo ves tú", null, wPrivado()) : ""}
+    ${state.optIn?`<section class="w meta-w">${bloqueMeta(false)}</section>`:""}
+    ${widget("calendario","Lo que se viene", proximas.length, wProximas)}
+    ${widget("carpeta","Tus proyectos", proyectos.length, wProyectos)}
+    ${widget("capas","Estado de las misiones", missions.length, wEstado)}
+    ${state.optIn?widget("ranking","Tu posición", null, wPos):""}
+    ${state.optIn?widget("trofeo","Tu próximo logro", null, wLogro):""}
+    ${widget("chat","Se movió el hilo", movidas.length, wHilos)}
+    ${widget("arroba","Te nombraron", menciones.length, wMenciones)}
+    ${state.optIn?widget("ticket","Beneficios activos", activos.length, wActivos):""}
+    ${state.optIn?widget("reloj","Se te vencen", porVencer.length, wVencen):""}
+    ${widget("megafono","La empresa", null, wEmpresa, state.optIn?"":"x2")}
+    ${state.optIn?widget("estrella","Nuevo en Levelop", null, wLevelop, "x2"):""}
+  </div>`;
+}
+
+/* =========================================================
+   VISTA · MISIONES
+   ========================================================= */
+const FILTROS = [
+  {id:"todas",n:"Todas"},{id:"mias",n:"Mías"},{id:"riesgo",n:"En riesgo"},
+  {id:"revision",n:"En revisión"},{id:"completada",n:"Listas"}
+];
+function misionesFiltradas(){
+  return missions.filter(m=>{
+    if(state.filtro==="todas") return m.est!=="completada";
+    if(state.filtro==="mias")  return m.resp===1 || m.col.includes(1);
+    return m.est===state.filtro;
+  }).sort((a,b)=>a.due-b.due);
+}
+function tarjetaMision(m){
+  const r=restante(m.due), e=ESTADOS[m.est], equipo=[m.resp,...m.col];
+  const parte = miParte(m);
+  const pr = m.proy ? PR(m.proy) : null;
+  return `<button class="mission" data-mision="${m.id}">
+    <div class="mission-top"><h3>${esc(m.t)}</h3>
+      ${m.sync==="pendiente"?`<span class="chip sync">${IC.sync} Sin sincronizar</span>`:""}</div>
+    <div class="mission-meta">
+      <span class="chip ${e.c}">${e.n}</span>
+      ${m.est!=="completada"?`<span class="chip ${r.tipo}">${r.txt}</span>`:`<span class="chip ok">Entregada</span>`}
+      ${m.ayuda&&m.ayuda.abierta?`<span class="chip sync">${IC.mano} Pide ayuda</span>`:""}
+      ${pr?`<span class="area-tag"><span class="proy-dot" style="background:${pr.color}"></span> ${esc(pr.n)}</span>`:""}
+    </div>
+    <div class="mission-foot">
+      <div class="row g8">
+        <span class="avstack">${equipo.slice(0,3).map(id=>av(P(id),"sm")).join("")}</span>
+        ${equipo.length>3?`<span class="area-tag">+${equipo.length-3}</span>`:""}
+        <span class="thread-count">${IC.chat} ${m.msgs.length}</span>
+      </div>
+      ${state.optIn?`<div class="rewards">
+        <span class="chip xp">${parte?parte.xp:m.xp} XP</span>
+        <span class="chip gold">${parte?parte.oro:m.oro} Oro</span>
+        ${equipo.length>1&&parte?`<span class="mini-x">tu parte</span>`:""}
+      </div>`:`<span class="chip">Urgencia ${esc(m.urg)}</span>`}
+    </div>
+  </button>`;
+}
+function vistaMisiones(){
+  const lista=misionesFiltradas();
+  const abiertas=missions.filter(m=>m.est!=="completada").length;
+  const enRiesgo=missions.filter(m=>m.est==="riesgo").length;
+  const mias=misMisiones().length;
+  const lvl=nivelDe(state.xp), sig=xpParaNivel(lvl+1), ini=xpParaNivel(lvl);
+
+  return `
+  ${!state.optIn?`<div class="optout-banner">Tienes el juego apagado. Aquí sigues viendo todo lo del trabajo.</div>`:""}
+  <div class="page-h">
+    <div><span class="eyebrow">Tablón</span><h1>Misiones</h1></div>
+    <button class="btn sm" data-nueva>${IC.mas} Nueva</button>
+  </div>
+
+  ${state.optIn?`
+  <div class="card" style="padding:15px; margin-bottom:14px">
+    <div class="row" style="gap:14px; align-items:center">
+      <span class="seal"><b>${lvl}</b><i>Nivel</i></span>
+      <div style="flex:1; min-width:0">
+        <div class="row" style="justify-content:space-between; margin-bottom:7px; gap:10px">
+          <span class="chip gold">${rangoDe(lvl).n}</span>
+          <span class="num" style="font-size:12px; color:var(--ink-2)">${fmt(state.xp-ini)} / ${fmt(sig-ini)} XP</span>
+        </div>
+        ${meter(state.xp-ini, sig-ini)}
+        <p class="sub" style="margin-top:9px">Te faltan <b class="num">${fmt(sig-state.xp)}</b> XP para el nivel ${lvl+1}. La XP solo sube: aquí no se resta por llegar tarde.</p>
+      </div>
+    </div>
+  </div>`:""}
+
+  <div class="stat-strip" style="margin-bottom:14px">
+    <div class="stat"><div class="l">Abiertas</div><div class="v">${abiertas}</div></div>
+    <div class="stat"><div class="l">Mías</div><div class="v">${mias}</div></div>
+    <div class="stat"><div class="l">En riesgo</div><div class="v" style="color:${enRiesgo?"var(--risk)":"inherit"}">${enRiesgo}</div></div>
+  </div>
+
+  ${state.optIn && duelo.activo ? `
+  <div class="card" style="padding:13px; margin-bottom:14px">
+    <div class="row wrap g8" style="justify-content:space-between">
+      <span class="row g8" style="min-width:0"><span style="color:var(--gold); display:inline-flex; width:15px; height:15px; flex:none">${IC.bandera}</span>
+        <span class="rank-n" style="font-size:14px">Quién va sumando al desafío</span></span>
+      <button class="btn sm ghost" data-duelo>Cómo se cuenta</button>
+    </div>
+    <div class="stack g8" style="margin-top:11px">
+      ${duelo.suman.map((x,i)=>`<div class="row g10" style="justify-content:space-between">
+        <span class="row g8" style="min-width:0; flex:1">
+          <span class="rank-pos">${i+1}</span>
+          <span class="rank-n">${esc(x.n)}</span></span>
+        <span class="chip gold num">+${x.v}</span>
+      </div>`).join("")}
+    </div>
+    <div class="note" style="margin-top:11px">Suma <b>lo que sale a tiempo</b>, y solo si lo revisó
+      alguien de otra área. ${duelo.dentro?"":"<b>Tú estás fuera del desafío</b>, así que lo tuyo no suma acá — tu XP y tu Oro siguen igual."}</div>
+  </div>`:""}
+
+  <div class="scroller" style="margin-bottom:12px">
+    ${FILTROS.map(f=>`<button class="fchip" data-filtro="${f.id}" aria-pressed="${state.filtro===f.id}">${f.n}</button>`).join("")}
+  </div>
+  <div class="stack g10">
+    ${lista.length?lista.map(tarjetaMision).join(""):`<div class="card empty">No hay nada en este filtro.</div>`}
+  </div>`;
+}
+
+function detalleMision(m){
+  const r=restante(m.due), e=ESTADOS[m.est];
+  const rep = reparto(m);
+  const soyResp = m.resp===1;
+  const equipo=[m.resp,...m.col];
+  const pr = m.proy ? PR(m.proy) : null;
+  const syncChip={
+    confirmada:`<span class="chip ok">${IC.check} Sincronizada</span>`,
+    pendiente:`<span class="chip sync">${IC.sync} Falta sincronizar</span>`,
+    rechazada:`<span class="chip risk">${IC.x} El servidor la rechazó</span>`}[m.sync]||"";
+
+  /* El hilo se abre con la entrada del sistema si fue enviada a revisión */
+  const entradaRevision = m.revBy!==undefined ? `
+    <div class="msg sistema">
+      <span class="msg-sis">${IC.check}</span>
+      <div class="msg-b">
+        <div class="msg-n">Levelop<small>${haceRato(m.revH)}</small></div>
+        <div class="msg-t"><b>${esc(nom(m.revBy))}</b> la envió a revisión. Queda esperando a que un líder de área la valide.</div>
+      </div>
+    </div>` : "";
+
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(m.t)}" data-stop>
+      <div class="sheet-h">
+        <div style="flex:1"><span class="eyebrow">${esc(m.area)} · LVL-${m.id}</span>
+          <h2 style="margin-top:4px">${esc(m.t)}</h2>
+          ${pr?`<div class="mini-x" style="margin-top:6px"><span class="proy-dot" style="background:${pr.color}"></span> ${esc(pr.n)} · ${esc(pr.cliente)}</div>`:""}</div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button>
+      </div>
+      <div class="sheet-b">
+        <div class="row wrap g8">
+          <span class="chip ${e.c}">${e.n}</span>
+          ${m.est!=="completada"?`<span class="chip ${r.tipo}">${r.txt}</span>`:`<span class="chip ok">Entregada</span>`}
+          ${syncChip}
+        </div>
+        ${m.sync==="pendiente"?`<div class="note sync"><b>Está guardada en tu teléfono, todavía no en el servidor.</b> Puedes seguir trabajando tranquilo. Apenas vuelva la señal se sincroniza sola.</div>`:""}
+        ${m.sync==="rechazada"?`<div class="note risk"><b>El servidor rechazó el envío.</b> Alguien más ya la había mandado a revisión. Lo que se te había apartado volvió al pozo — no salió de lo que ya tenías.</div>`:""}
+        ${m.est==="revision"?`<div class="note gold"><b>Está en manos de un líder de área.</b> Tú ya hiciste tu parte. Cuando la valide, se acredita el Oro y la XP del reparto de abajo.</div>`:""}
+
+        <p style="font-size:14px; color:var(--ink-2); line-height:1.55">${esc(m.d)}</p>
+
+        ${m.ayuda&&m.ayuda.abierta?`
+        <div class="note sync">
+          <b>${esc(nom(m.resp))} está pidiendo ayuda ${m.ayuda.alcance==="equipo"?"a todo el equipo":"a "+esc(nom(m.ayuda.para))}.</b>
+          Ofrece <b class="num">${m.ayuda.oro}</b> de Oro del pozo — no sale de su saldo.
+          ${m.resp!==1?`<div class="row wrap g8" style="margin-top:10px">
+            <button class="btn sm gold" data-ayudar="${m.id}|si">Ayudo y tomo el Oro</button>
+            <button class="btn sm" data-ayudar="${m.id}|no">${IC.mano} Ayudo porque soy pana</button>
+          </div>`:`<div class="mini-x" style="margin-top:8px">Esperando que alguien responda.</div>`}
+        </div>`:""}
+
+        ${state.optIn?`
+        <div class="card" style="padding:13px">
+          <div class="row" style="justify-content:space-between; margin-bottom:10px; gap:10px">
+            <span class="eyebrow">Cómo se reparte</span>
+            <button class="btn sm" data-formula>¿De dónde sale?</button>
+          </div>
+          <div class="stack g8">
+            ${rep.map(x=>`<div class="rep-row ${x.id===1?"yo":""}">
+              ${av(P(x.id),"sm")}
+              <div style="flex:1; min-width:0">
+                <div class="rep-n">${esc(nom(x.id))}${x.id===1?" (tú)":""}</div>
+                <div class="mini-x">${x.rol} · ${Math.round(x.pct*100)}%</div>
+              </div>
+              <span class="chip xp">${x.xp} XP</span>
+              <span class="chip gold">${x.oro}</span>
+            </div>`).join("")}
+          </div>
+          ${rep.length>1?`<div class="note" style="margin-top:10px">El responsable se lleva el <b>60%</b> y el resto se reparte en partes iguales entre quienes colaboran. La regla es fija y está publicada: <b>no la negocia nadie</b>, para que nadie tenga que pedirla.</div>`:""}
+          <div id="formula" class="hide" style="margin-top:12px">
+            <div class="kv"><span>Base</span><span class="num">${BASE_XP} XP</span></div>
+            <div class="kv"><span>Urgencia ${m.urg}</span><span class="num">× ${MULT.urg[m.urg]}</span></div>
+            <div class="kv"><span>Importancia ${m.imp}</span><span class="num">× ${MULT.imp[m.imp]}</span></div>
+            <div class="kv"><span>Esfuerzo ${m.esf}</span><span class="num">× ${MULT.esf[m.esf]}</span></div>
+            <div class="kv"><span><b>XP de la misión</b></span><span class="num"><b>${m.xp}</b></span></div>
+            <div class="kv"><span>Oro = XP × ${ORO_POR_XP}</span><span class="num"><b>${m.oro}</b></span></div>
+            <div class="note" style="margin-top:10px">Tope del día: ${TOPE_DIA} de Oro. Solo cuentan las misiones que te asignaron o que otra persona aceptó. Y el Oro <b>caduca a los 90 días</b>.</div>
+          </div>
+        </div>`:""}
+
+        <div>
+          <div class="row wrap" style="justify-content:space-between; margin-bottom:10px; gap:10px">
+            <span class="eyebrow">Quién está metido</span>
+            <div class="row g8">
+              ${soyResp&&m.est!=="completada"&&!(m.ayuda&&m.ayuda.abierta)?`<button class="btn sm" data-pedirayuda="${m.id}">${IC.mano} Pedir ayuda</button>`:""}
+              <button class="btn sm" data-sumarme ${equipo.includes(1)?"disabled":""}>${equipo.includes(1)?"Ya estás":"Meterme"}</button>
+            </div>
+          </div>
+          <div class="stack g8">
+            ${equipo.map((id,i)=>`<div class="row g10">${av(P(id))}
+              <div style="flex:1"><div style="font-size:13.5px; font-weight:600">${esc(nom(id))}</div>
+              <div class="area-tag">${i===0?"Responsable":"Colaborador"} · ${esc(P(id).area)}</div></div></div>`).join("")}
+          </div>
+        </div>
+
+        <div>
+          <span class="eyebrow">El hilo · ${m.msgs.length + (m.revBy!==undefined?1:0)}</span>
+          <div class="stack g12" style="margin-top:11px">
+            ${entradaRevision}
+            ${m.msgs.length?m.msgs.map(x=>`<div class="msg">${av(P(x.u),"sm")}
+              <div class="msg-b"><div class="msg-n">${esc(nom(x.u))}<small>${haceRato(x.h)}</small></div>
+              <div class="msg-t">${esc(x.t).replace(/@([A-ZÁÉÍÓÚÑ][\wÁÉÍÓÚÑáéíóúñ]*(?: [A-ZÁÉÍÓÚÑ][\wÁÉÍÓÚÑáéíóúñ]*)?)/g,'<span class="mention">@$1</span>')}</div>
+              </div></div>`).join("")
+            :(entradaRevision?"":`<div class="note">Todavía nadie ha escrito. El hilo vive con la misión: cuando se cierra, la conversa queda ahí.</div>`)}
+          </div>
+          <div class="composer" style="margin-top:12px">
+            <textarea id="msgin" rows="1" placeholder="Escribe en el hilo…  (usa @ para nombrar a alguien)"></textarea>
+            <button class="btn primary" data-enviar aria-label="Enviar">${IC.flecha}</button>
+          </div>
+        </div>
+      </div>
+      <div class="sheet-f">
+        ${m.est==="completada" ? `<button class="btn wide" data-cerrar>Cerrar</button>`
+        : m.est==="revision"   ? `<button class="btn wide" data-cerrar>Cerrar · esperando al líder</button>`
+        : `<button class="btn" data-cerrar>Cerrar</button>
+           <button class="btn primary" style="flex:1" data-revisar="${m.id}">${IC.check} Enviar a revisión</button>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+function modalPedirAyuda(m){
+  const sug = oroSugerido(m);
+  const otros = people.filter(p=>p.id!==1 && !m.col.includes(p.id));
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:520px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Pedir ayuda</span>
+        <h2 style="margin-top:4px">${esc(m.t)}</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="note ok"><b>Pedir ayuda no te cuesta Oro.</b> La recompensa sale del pozo, no de tu parte. Aquí nadie pierde por levantar la mano.</div>
+
+        <div class="field"><label>¿A quién le pides?</label>
+          <div class="seg" id="alcance">
+            <button data-v="equipo" aria-pressed="true">A todo el equipo</button>
+            <button data-v="uno" aria-pressed="false">A alguien en específico</button>
+          </div>
+        </div>
+
+        <div class="field hide" id="quienwrap"><label>¿A quién?</label>
+          <select id="quien">${otros.map(p=>`<option value="${p.id}">${esc(p.n)} · ${esc(p.area)}</option>`).join("")}</select>
+        </div>
+
+        <div class="field"><label>Cuánto Oro ofreces</label>
+          <div class="row g10">
+            <input id="oroayuda" type="number" min="10" max="80" value="${sug}" style="flex:1">
+            <span class="chip gold">Sugerido ${sug}</span>
+          </div>
+        </div>
+        <div class="note">Levelop sugiere el <b>15%</b> del Oro de esta misión, entre 10 y 80. Sale del pozo del mes, no de tu saldo ni del de tu equipo.</div>
+        <div class="note gold">Quien te ayude puede <b>tomar el Oro</b> o dejarlo con un <b>«porque soy pana»</b>. Si lo deja, el Oro vuelve al pozo — <b>no se lo queda nadie</b>, ni tú. Eso es para que la generosidad de otro nunca sea negocio tuyo.</div>
+      </div>
+      <div class="sheet-f"><button class="btn" data-cerrar>Ahorita no</button>
+        <button class="btn primary" style="flex:1" data-confirmarayuda="${m.id}">Publicar el pedido</button></div>
+    </div></div>`;
+}
+
+/* =========================================================
+   VISTA · TIENDA
+   ========================================================= */
+function planObjetivo(item){
+  const falta = Math.max(0, item.p - state.oro);
+  const ritmo = ritmoDiario();
+  const dias = falta===0 ? 0 : Math.ceil(falta/ritmo);
+  const mias = misMisiones()
+    .map(m=>({m, parte:miParte(m)}))
+    .filter(x=>x.parte)
+    .sort((a,b)=>b.parte.oro-a.parte.oro)
+    .slice(0,4);
+  let acumulado = state.oro, pasos = [];
+  for(const x of mias){
+    acumulado += x.parte.oro;
+    pasos.push({m:x.m, oro:x.parte.oro, acumulado});
+    if(acumulado >= item.p) break;
+  }
+  const alcanzaConLoQueHay = acumulado >= item.p;
+  const imposible = dias > DECAY_DIAS;
+  /* Si no alcanza, ¿cuál es el mejor beneficio que SÍ alcanza? */
+  const alternativa = shop.filter(zonaOk).filter(i=>gateAbierto(i.gate) && i.p<=state.oro+ritmo*30 && i.id!==item.id)
+    .sort((a,b)=>b.p-a.p)[0];
+  return {falta, ritmo, dias, pasos, alcanzaConLoQueHay, imposible, alternativa};
+}
+
+function modalObjetivo(item){
+  const pl = planObjetivo(item);
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:560px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Ponerlo de objetivo</span>
+        <h2 style="margin-top:4px">${esc(item.n)}</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="card" style="padding:13px">
+          <div class="kv"><span>Cuesta</span><span class="num">${fmt(item.p)} de Oro</span></div>
+          <div class="kv"><span>Tienes</span><span class="num">${fmt(state.oro)}</span></div>
+          <div class="kv"><span>Te faltan</span><span class="num" style="color:var(--gold)">${fmt(pl.falta)}</span></div>
+          <div class="kv"><span>Tu ritmo</span><span class="num">${pl.ritmo} de Oro por día</span></div>
+          <div class="kv"><span>Tiempo estimado</span><span class="num">${pl.dias===0?"ya lo tienes":pl.dias+" días"}</span></div>
+        </div>
+
+        ${pl.imposible ? `
+          <div class="note risk"><b>Con este ritmo no lo alcanzas.</b> Te tomaría ${pl.dias} días y <b>tu Oro caduca a los 90</b>: lo que ahorres al principio se te vence antes de llegar. No te voy a armar un plan que sé que no funciona.</div>
+          ${pl.alternativa?`<div class="note gold">Lo que sí alcanzas en menos de 30 días: <b>${esc(pl.alternativa.n)}</b> por ${fmt(pl.alternativa.p)} de Oro.</div>`:""}
+        ` : `
+        <div>
+          <span class="eyebrow">El plan, con lo que YA tienes asignado</span>
+          <div class="stack g8" style="margin-top:11px">
+            ${pl.pasos.length ? pl.pasos.map((p,i)=>`
+              <div class="paso">
+                <span class="paso-n num">${i+1}</span>
+                <div style="flex:1; min-width:0">
+                  <div class="mini-t">${esc(p.m.t)}</div>
+                  <div class="mini-x">${restante(p.m.due).txt}</div>
+                </div>
+                <span class="chip gold">+${p.oro}</span>
+                <span class="mini-x num">${fmt(p.acumulado)}</span>
+              </div>`).join("")
+            : `<div class="empty">No tienes misiones asignadas ahorita.</div>`}
+          </div>
+          ${pl.alcanzaConLoQueHay
+            ? `<div class="note ok" style="margin-top:11px"><b>Con lo que ya tienes asignado te alcanza.</b> No hace falta que agarres nada nuevo.</div>`
+            : `<div class="note" style="margin-top:11px">Con tus misiones actuales llegas a <b class="num">${fmt(pl.pasos.length?pl.pasos[pl.pasos.length-1].acumulado:state.oro)}</b>. El resto sale del trabajo que venga después — <b>no te voy a decir que agarres misiones de más</b>.</div>`}
+        </div>
+
+        <div class="note risk"><b>Esto puede cambiar el orden de tus tareas.</b> Al ponerte un objetivo, Levelop va a resaltar las misiones que más te acercan. <b>Eso no las hace más importantes.</b> Si una misión urgente o en riesgo compite con tu objetivo, gana la urgente y te lo voy a decir en la cara.</div>
+
+        <div class="card" style="padding:13px">
+          <span class="eyebrow">Las cuatro reglas del plan</span>
+          <div class="stack g8" style="margin-top:10px">
+            <div class="regla"><span class="num">1</span><span>Solo usa misiones que <b>ya son tuyas</b>. Nunca te sugiere quitarle trabajo a otro.</span></div>
+            <div class="regla"><span class="num">2</span><span>Nunca te propone <b>posponer</b> algo urgente o en riesgo.</span></div>
+            <div class="regla"><span class="num">3</span><span>Si el objetivo tarda más de <b>90 días</b>, te lo dice y te propone otro. No te deja ahorrando para nada.</span></div>
+            <div class="regla"><span class="num">4</span><span>Lo quitas cuando quieras y <b>no queda registro</b> para tu jefe.</span></div>
+          </div>
+        </div>
+      `}
+      </div>
+      <div class="sheet-f">
+        <button class="btn" data-cerrar>Cancelar</button>
+        ${state.objetivo===item.id
+          ? `<button class="btn" style="flex:1" data-quitarobjetivo>Quitar el objetivo</button>`
+          : `<button class="btn gold" style="flex:1" data-fijarobjetivo="${item.id}" ${pl.imposible?"disabled":""}>${IC.bandera} Es mi objetivo</button>`}
+      </div>
+    </div></div>`;
+}
+
+function modalRegalar(item){
+  const mismos = people.filter(p=>p.id!==1 && p.area===me.area);
+  const otros  = people.filter(p=>p.id!==1 && p.area!==me.area);
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:480px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Regalar</span>
+        <h2 style="margin-top:4px">${esc(item.n)}</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <p class="sub">Pagas ${fmt(item.p)} de Oro de tu saldo y el beneficio le llega a quien elijas, con tu nombre.</p>
+        <div class="field"><label>¿A quién?</label>
+          <select id="paraquien">
+            <optgroup label="Tu área — ${esc(me.area)}">
+              ${mismos.map(p=>`<option value="${p.id}">${esc(p.n)}</option>`).join("")}
+            </optgroup>
+            <optgroup label="Resto de la empresa">
+              ${otros.map(p=>`<option value="${p.id}">${esc(p.n)} · ${esc(p.area)}</option>`).join("")}
+            </optgroup>
+          </select>
+        </div>
+        <div class="card" style="padding:4px 13px">
+          <div class="kv"><span>Cuesta</span><span class="num">${fmt(item.p)}</span></div>
+          <div class="kv"><span>Te queda</span><span class="num" style="color:${state.oro-item.p<0?"var(--risk)":"var(--ok)"}">${fmt(state.oro-item.p)}</span></div>
+        </div>
+        <div class="note gold"><b>Dos reglas del regalo, y están en pantalla a propósito:</b><br>
+          · Va <b>con tu nombre</b>. Un regalo anónimo dentro de una empresa se parece demasiado a otra cosa.<br>
+          · <b>No puedes regalarle a tu líder directo.</b> Un regalo hacia arriba deja de ser un regalo.</div>
+      </div>
+      <div class="sheet-f"><button class="btn" data-cerrar>Cancelar</button>
+        <button class="btn gold" style="flex:1" data-confirmarregalo="${item.id}" ${state.oro<item.p?"disabled":""}>
+          ${state.oro<item.p?`Te faltan ${fmt(item.p-state.oro)}`:"Regalarlo"}</button></div>
+    </div></div>`;
+}
+
+function modalSugerencia(cat){
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:480px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">${esc(CATS[cat]?CATS[cat].n:"Tienda")}</span>
+        <h2 style="margin-top:4px">¿Qué te gustaría ver?</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <p class="sub">Esto llega a los líderes de tu empresa y al equipo de Levelop. Es la única forma que tenemos de saber qué hace falta de verdad.</p>
+        <div class="field"><label>Tu idea</label>
+          <textarea id="sugtxt" rows="4" placeholder="Ej. Un día libre por mudanza. O que la bolsa de mercado se pueda retirar los sábados."></textarea>
+        </div>
+        <label class="check"><input type="checkbox" id="sugnombre"><span>Mandarla con mi nombre</span></label>
+        <div class="note"><b>Por defecto va sin tu nombre.</b> Lo pusimos así a propósito: pedir un beneficio no debería costarte nada frente a tu jefe. Si quieres que sepan que fuiste tú y puedan preguntarte, marca la casilla.</div>
+      </div>
+      <div class="sheet-f"><button class="btn" data-cerrar>Cancelar</button>
+        <button class="btn primary" style="flex:1" data-mandarsug="${cat}">Mandarla</button></div>
+    </div></div>`;
+}
+
+function vistaTienda(){
+  const lvl=nivelDe(state.xp);
+  const disponibles = shop.filter(zonaOk);
+  const abiertos  = disponibles.filter(i=>gateAbierto(i.gate));
+  const cerrados  = disponibles.filter(i=>!gateAbierto(i.gate));
+  const lista = state.shopTab==="disponibles" ? abiertos : cerrados;
+  const cats = state.shopCat==="todas" ? Object.keys(CATS) : [state.shopCat];
+  const viejo = loteMasViejo();
+  const obj = state.objetivo ? shop.find(i=>i.id===state.objetivo) : null;
+
+  const top = masPedidos[state.pedidosRango];
+  const maxTop = Math.max(...top.map(x=>x.v));
+
+  return `
+  <div class="page-h">
+    <div><span class="eyebrow">Cupos</span><h1>Tienda</h1></div>
+    <span class="hud is-gold" style="font-size:14px; padding:7px 13px"><span class="hud-l">Oro</span><span class="num">${fmt(state.oro)}</span></span>
+  </div>
+
+  <div class="note gold" style="margin-bottom:14px">
+    <b>Esto no se compra: se gana.</b> Cada beneficio es un cupo que tu empresa ya contrató. Lo que ves es lo que hay, y se repone el primer día del mes.
+    <div class="row wrap g8" style="margin-top:10px">
+      <button class="btn sm" data-reglas>Cómo funciona el Oro</button>
+      <span class="chip">${IC.pin} ${esc(state.zona)}</span>
+      <span class="chip ${viejo.dias<=14?"risk":""}">${IC.reloj} ${viejo.oro} de Oro se te vencen en ${viejo.dias} días</span>
+    </div>
+  </div>
+
+  ${obj?`<div class="card obj-card" style="margin-bottom:14px">
+    <div class="row g12">
+      <span class="item-ico">${IC[obj.ico]}</span>
+      <div style="flex:1; min-width:0">
+        <span class="eyebrow">Tu objetivo</span>
+        <h3 style="margin-top:3px">${esc(obj.n)}</h3>
+        <div style="margin-top:9px">${meter(state.oro, obj.p, "gold")}</div>
+        <div class="row" style="justify-content:space-between; margin-top:7px">
+          <span class="mini-x num">${fmt(state.oro)} de ${fmt(obj.p)}</span>
+          <span class="mini-x">${state.oro>=obj.p?"ya lo puedes pedir":`te faltan ${fmt(obj.p-state.oro)}`}</span>
+        </div>
+      </div>
+      <button class="btn sm" data-objetivo="${obj.id}">Ver plan</button>
+    </div>
+  </div>`:""}
+
+  <div class="card" style="padding:14px; margin-bottom:14px">
+    <div class="row" style="justify-content:space-between; margin-bottom:11px; gap:12px">
+      <span class="eyebrow">Qué te tiene abierto el catálogo</span>
+      <span class="row g8"><span class="seal sm"><b>${lvl}</b></span><span class="chip gold">${rangoDe(lvl).n}</span></span>
+    </div>
+    <div class="row wrap g8">
+      ${RANGOS.map(r=>`<span class="chip ${lvl>=r.min?"gold":""}" style="${lvl>=r.min?"":"opacity:.5"}">${r.n} <span class="num" style="opacity:.7">Nv ${r.min}+</span></span>`).join("")}
+    </div>
+    <p class="sub" style="margin-top:10px">Las medallas del equipo <b>no bloquean nada</b>: solo <b>añaden</b> beneficios extra para todo el mundo. Ningún beneficio base depende de que tu equipo gane algo.</p>
+  </div>
+
+  <div class="seg" style="margin-bottom:12px">
+    <button data-shoptab="disponibles" aria-pressed="${state.shopTab==="disponibles"}">Disponibles · ${abiertos.length}</button>
+    <button data-shoptab="bloqueados" aria-pressed="${state.shopTab==="bloqueados"}">Por desbloquear · ${cerrados.length}</button>
+  </div>
+
+  <div class="scroller" style="margin-bottom:14px">
+    <button class="fchip" data-shopcat="todas" aria-pressed="${state.shopCat==="todas"}">Todo</button>
+    ${Object.entries(CATS).map(([k,c])=>`<button class="fchip" data-shopcat="${k}" aria-pressed="${state.shopCat===k}">${c.n}</button>`).join("")}
+  </div>
+
+  ${cats.map(k=>{
+    const c=CATS[k], items=lista.filter(i=>i.cat===k);
+    if(!items.length) return "";
+    return `<div class="sec-h"><h2>${c.n}</h2><span class="sub">${c.d}</span></div>
+    <div class="shop-grid">${items.map(i=>tarjetaItem(i)).join("")}</div>
+    <button class="btn sug" data-sugerir="${k}">${IC.interro} ¿Qué te gustaría ver en ${c.n}?</button>`;
+  }).join("")}
+
+  <div class="sec-h"><h2>Los más pedidos</h2><span class="sub">Sin nombres: solo el agregado</span></div>
+  <div class="card">
+    <div class="seg" style="margin-bottom:14px">
+      <button data-pedidos="semana" aria-pressed="${state.pedidosRango==="semana"}">Esta semana</button>
+      <button data-pedidos="mes" aria-pressed="${state.pedidosRango==="mes"}">Este mes</button>
+    </div>
+    <div class="stack g9">${top.map((x,i)=>{
+      const it = shop.find(s=>s.id===x.id);
+      if(!it) return "";
+      return `<div class="top-row">
+        <span class="rank-pos" style="font-size:18px">${i+1}</span>
+        <span class="item-ico" style="width:32px;height:32px">${IC[it.ico]}</span>
+        <div style="flex:1; min-width:0"><div class="mini-t">${esc(it.n)}</div></div>
+        <span class="bar-track" style="max-width:120px"><span class="bar-fill c-gold" style="width:${(x.v/maxTop*100).toFixed(0)}%"></span></span>
+        <span class="bv num">${x.v}</span>
+      </div>`;
+    }).join("")}</div>
+  </div>`;
+}
+
+function tarjetaItem(i){
+  const abierto=gateAbierto(i.gate), caro=state.oro<i.p, agotado=i.cupo[0]<=0;
+  const esObjetivo = state.objetivo===i.id;
+  return `<div class="item ${!abierto?"locked":""} ${agotado?"agotado":""} ${esObjetivo?"objetivo":""}">
+    <div class="item-h"><span class="item-ico">${IC[i.ico]}</span>
+      <div style="flex:1"><h3>${esc(i.n)}</h3>
+        ${i.power?`<div class="power">${[1,2,3,4,5].map(p=>`<i class="${p<=i.power?"on":""}"></i>`).join("")}<span class="mini-x">potencia</span></div>`:""}
+      </div>
+      ${esObjetivo?`<span class="chip gold">${IC.bandera}</span>`:""}
+    </div>
+    <p>${esc(i.d)}</p>
+    <div class="cupo">
+      ${meter(i.cupo[0], i.cupo[1], "gold sm")}
+      <span class="mini-x">${agotado?"Se acabaron":`Quedan ${i.cupo[0]} de ${i.cupo[1]}`}</span>
+    </div>
+    ${!abierto?`<div class="note" style="font-size:11.5px"><b>${IC.candado} ${gateTexto(i.gate)}</b><br>${gateComoLograrlo(i.gate)}
+      ${i.extra?`<br><span style="opacity:.8">Es un extra que abre el equipo, no un beneficio base.</span>`:""}</div>`:""}
+    <div class="item-f">
+      <span class="price"><b>${fmt(i.p)}</b><small>oro</small></span>
+      <div class="row g6">
+        ${abierto?`<button class="btn sm" data-objetivo="${i.id}" title="Ponerlo de objetivo">${IC.bandera}</button>
+                   <button class="btn sm" data-regalar="${i.id}" title="Regalarlo">${IC.regalo}</button>`:""}
+        <button class="btn sm ${abierto&&!caro&&!agotado?"gold":""}" data-pedir="${i.id}" ${!abierto||caro||agotado?"disabled":""}>
+          ${agotado?"Sin cupo":!abierto?"Cerrado":caro?`Faltan ${fmt(i.p-state.oro)}`:"Pedirlo"}
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function modalPedir(item){
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:470px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Confirmar</span>
+        <h2 style="margin-top:4px">${esc(item.n)}</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <p style="font-size:14px; color:var(--ink-2)">${esc(item.d)}</p>
+        <div class="card" style="padding:13px">
+          <div class="kv"><span>Cuesta</span><span class="num">${fmt(item.p)} de Oro</span></div>
+          <div class="kv"><span>Cupos que quedan</span><span class="num">${item.cupo[0]} de ${item.cupo[1]}</span></div>
+          <div class="kv"><span>Tu Oro ahorita</span><span class="num">${fmt(state.oro)}</span></div>
+          <div class="kv"><span>Te queda</span><span class="num" style="color:var(--ok)">${fmt(state.oro-item.p)}</span></div>
+        </div>
+        <div class="note"><b>Se gasta primero el Oro que está por vencerse.</b> Así no pierdes nada por haberlo guardado.</div>
+        <div class="note">Al confirmar queda <b>en proceso</b> hasta que el proveedor lo confirme. Si el sistema no logra confirmarlo, vas a ver el estado real — nunca un «listo» de mentira — y tu Oro te vuelve completo.</div>
+      </div>
+      <div class="sheet-f"><button class="btn" data-cerrar>Ahorita no</button>
+        <button class="btn gold" style="flex:1" data-confirmar="${item.id}">Pedirlo</button></div>
+    </div></div>`;
+}
+
+function modalReglas(){
+  const viejo = loteMasViejo();
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:560px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Reglas de la casa</span>
+        <h2 style="margin-top:4px">Cómo funciona el Oro</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="card" style="padding:4px 13px">
+          <div class="kv"><span>Qué es</span><span>Puntaje de juego</span></div>
+          <div class="kv"><span>Se gana</span><span>Completando misiones</span></div>
+          <div class="kv"><span>Se compra</span><span>Nunca</span></div>
+          <div class="kv"><span>Se cambia por plata</span><span>No, y no es la idea</span></div>
+          <div class="kv"><span>Caduca</span><span class="num">a los 90 días</span></div>
+          <div class="kv"><span>Te lo pueden quitar</span><span>No</span></div>
+        </div>
+
+        <div class="card" style="padding:13px">
+          <span class="eyebrow">Tu Oro, por lote</span>
+          <div class="stack g8" style="margin-top:11px">
+            ${lotesOro.slice().sort((a,b)=>a.dias-b.dias).map(l=>`
+              <div class="lote">
+                <span class="chip ${l.dias<=14?"risk":l.dias<=30?"gold":""}">${l.dias} días</span>
+                <span class="bar-track"><span class="bar-fill ${l.dias<=14?"c-risk":"c-gold"}" style="width:${(l.dias/DECAY_DIAS*100).toFixed(0)}%"></span></span>
+                <span class="bv num">${l.oro}</span>
+              </div>`).join("")}
+          </div>
+          <div class="note" style="margin-top:11px">Cuando pides algo, <b>se gasta primero el lote más viejo</b>. Ahorita se te vencen <b class="num">${viejo.oro}</b> en <b>${viejo.dias} días</b>.</div>
+          <button class="btn gold wide" data-irtienda style="margin-top:11px">${IC.tienda} Gastarlo en la Tienda</button>
+        </div>
+
+        <div class="note ok"><b>Nada de descuentos por la espalda.</b> Si suben el precio de un beneficio, el aviso sale 30 días antes y el precio no se mueve sobre el Oro que ya tienes.</div>
+        <div class="note"><b>Los beneficios son cupos, no compras.</b> Tu empresa contrata una cantidad al mes. «Quedan 4 de 8» es literal. El primer día del mes vuelven a estar los ocho.</div>
+        <div class="note gold"><b>Por qué caduca:</b> para que el Oro se use, no se acumule. Un saldo dormido no le sirve a nadie — ni a ti, que no lo disfrutas, ni a la empresa, que tiene el cupo parado.</div>
+      </div>
+      <div class="sheet-f"><button class="btn wide" data-cerrar>Entendido</button></div>
+    </div></div>`;
+}
+
+/* =========================================================
+   MODALES DEL HUD · nivel, racha y zona
+   ========================================================= */
+const HITOS_RACHA = [
+  {n:10,  t:"Constancia",     d:"Trofeo «Constancia» y un día de gracia extra al mes."},
+  {n:20,  t:"Ritmo propio",   d:"Trofeo «Ritmo propio» y el escudo de foco sin gastar Oro, una vez."},
+  {n:50,  t:"Media centena",  d:"Trofeo «Media centena» y tu nombre en las noticias de la empresa, si quieres."},
+  {n:100, t:"Cien días",      d:"Trofeo «Cien días» y una salida anticipada, cortesía de la casa."}
+];
+const proxHito = r => HITOS_RACHA.find(h=>h.n>r) || null;
+
+function modalNivel(){
+  const lvl = nivelDe(state.xp);
+  const sig = xpParaNivel(lvl+1), ini = xpParaNivel(lvl);
+  const falta = Math.max(0, sig - state.xp);
+  const pct = Math.min(100, Math.round((state.xp-ini)/(sig-ini)*100));
+  const rango = rangoDe(lvl), sigRango = RANGOS.find(r=>r.min>lvl);
+  const abiertos = shop.filter(i=>!i.extra && (!i.gate || i.gate.t!=="nivel" || lvl>=i.gate.v));
+  const proximos = shop.filter(i=>i.gate && i.gate.t==="nivel" && i.gate.v>lvl)
+    .sort((a,b)=>a.gate.v-b.gate.v).slice(0,5);
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:540px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Tu progreso</span>
+        <h2 style="margin-top:4px">Nivel ${lvl} · ${rango.n}</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="card" style="padding:14px">
+          <div class="row g10" style="justify-content:space-between">
+            <span class="eyebrow">Para el nivel ${lvl+1}</span><span class="chip xp num">${pct}%</span>
+          </div>
+          <div class="bar-track" style="margin-top:10px"><span class="bar-fill c-xp" style="width:${pct}%"></span></div>
+          <div class="note" style="margin-top:11px">Te faltan <b class="num">${fmt(falta)} XP</b>. La XP <b>solo sube</b>: nunca se gasta y nunca baja, ni cuando pides algo en la Tienda ni cuando apagas el juego.</div>
+        </div>
+
+        <div class="card" style="padding:4px 13px">
+          <div class="kv"><span>Tu XP</span><span class="num">${fmt(state.xp)}</span></div>
+          <div class="kv"><span>Rango actual</span><span>${rango.n}</span></div>
+          ${sigRango?`<div class="kv"><span>Siguiente rango</span><span>${sigRango.n}, en el nivel ${sigRango.min}</span></div>`:`<div class="kv"><span>Siguiente rango</span><span>Ya estás en el último</span></div>`}
+          <div class="kv"><span>La fórmula</span><span class="num">280 × nivel^1,62</span></div>
+        </div>
+
+        <div class="card" style="padding:13px">
+          <span class="eyebrow">Qué te tiene abierto hoy</span>
+          <div class="row wrap g8" style="margin-top:10px">
+            <span class="chip ok">${abiertos.length} beneficios abiertos</span>
+            <span class="chip">${shop.length - abiertos.length} todavía cerrados</span>
+          </div>
+          ${proximos.length?`<div class="stack g8" style="margin-top:12px">
+            ${proximos.map(i=>`<div class="row g10" style="justify-content:space-between">
+              <span class="tline">${esc(i.n)}</span><span class="chip xp">Nv ${i.gate.v}</span></div>`).join("")}
+          </div>`:""}
+          <button class="btn wide" data-irtienda style="margin-top:12px">${IC.tienda} Ver el catálogo completo</button>
+        </div>
+
+        <div class="note">El nivel <b>abre catálogo, no da Oro</b>. Son dos cosas distintas: el nivel dice qué te puedes pedir, el Oro dice si te alcanza.</div>
+      </div>
+      <div class="sheet-f"><button class="btn wide" data-cerrar>Listo</button></div>
+    </div></div>`;
+}
+
+function modalRacha(){
+  const r = state.racha, h = proxHito(r);
+  const logrados = HITOS_RACHA.filter(x=>x.n<=r);
+  const felicitacion =
+    r>=100 ? "Pasaste los cien. Esto ya no es una racha, es tu forma de trabajar." :
+    r>=50  ? "Más de media centena seguidos. Muy poca gente llega acá." :
+    r>=20  ? "Más de veinte seguidos. Ya se te nota el ritmo." :
+    r>=10  ? "Más de diez seguidos. Eso ya es constancia, no suerte." :
+    r>=3   ? "Vas agarrando ritmo." :
+             "Apenas arrancando. Con dos días seguidos ya cuenta.";
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:520px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Días seguidos</span>
+        <h2 style="margin-top:4px">Racha de ${r}</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="note gold"><b>${esc(felicitacion)}</b></div>
+
+        <div class="card" style="padding:13px">
+          <span class="eyebrow">Cómo no perderla</span>
+          <div class="stack g8" style="margin-top:11px">
+            <div class="row g10" style="align-items:flex-start"><span class="paso-n">1</span><span class="tline">Cuenta cualquier movimiento real: cerrar una misión, responder un hilo o ayudar a alguien. <b>Abrir la app no cuenta.</b></span></div>
+            <div class="row g10" style="align-items:flex-start"><span class="paso-n">2</span><span class="tline">Tienes <b>un día de gracia al mes</b>. Si te saltas uno, no la pierdes.</span></div>
+            <div class="row g10" style="align-items:flex-start"><span class="paso-n">3</span><span class="tline">Sábado y domingo <b>no cuentan en contra</b>. Nadie tiene que trabajar el fin de semana para sostener un número.</span></div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:13px">
+          <span class="eyebrow">Los hitos</span>
+          <div class="stack g8" style="margin-top:11px">
+            ${HITOS_RACHA.map(x=>{
+              const ok = r>=x.n;
+              return `<div class="row g10" style="justify-content:space-between; align-items:flex-start">
+                <span class="row g8" style="flex:1; min-width:0; align-items:flex-start">
+                  <span class="chip ${ok?"ok":""} num">${x.n}</span>
+                  <span class="tline"><b>${esc(x.t)}</b><br>${esc(x.d)}</span>
+                </span>
+                ${ok?`<span class="chip ok">${IC.check} Tuyo</span>`:`<span class="chip">Faltan ${x.n-r}</span>`}
+              </div>`;
+            }).join("")}
+          </div>
+          ${h?`<div class="note" style="margin-top:11px">Lo próximo es <b>${esc(h.t)}</b>, a <b class="num">${h.n-r} días</b>.</div>`:
+              `<div class="note ok" style="margin-top:11px">Ya tienes todos los hitos. El siguiente lo inventamos cuando llegues.</div>`}
+        </div>
+
+        <div class="note">La racha <b>no entra en el ranking ni la ve tu líder</b>. Es tuya y sirve para una sola cosa: que el día que no tengas ganas, tengas una razón chiquita.</div>
+      </div>
+      <div class="sheet-f"><button class="btn wide" data-cerrar>Listo</button></div>
+    </div></div>`;
+}
+
+function modalZona(){
+  const z = state.zona;
+  const soloAqui = shop.filter(i=>i.zonas!=="todas" && i.zonas.includes(z));
+  const enTodas  = shop.filter(i=>i.zonas==="todas");
+  const fuera    = shop.filter(i=>i.zonas!=="todas" && !i.zonas.includes(z));
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:540px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Tu ciudad</span>
+        <h2 style="margin-top:4px">${esc(z)}</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="row wrap g8">
+          <span class="chip ok">${enTodas.length} para todo el mundo</span>
+          <span class="chip gold">${soloAqui.length} solo en ${esc(z)}</span>
+          <span class="chip">${fuera.length} en otras ciudades</span>
+        </div>
+
+        ${soloAqui.length?`<div class="card" style="padding:13px">
+          <span class="eyebrow">Lo que hay aquí y no en otro lado</span>
+          <div class="stack g8" style="margin-top:11px">
+            ${soloAqui.map(i=>`<div class="row g10" style="justify-content:space-between; align-items:flex-start">
+              <span class="tline"><b>${esc(i.n)}</b><br><span style="color:var(--ink-3)">${esc(i.d)}</span></span>
+              <span class="chip gold num">${fmt(i.p)}</span></div>`).join("")}
+          </div>
+        </div>`:`<div class="note">Hoy no hay nada contratado que sea exclusivo de ${esc(z)}. Todo lo que ves en tu Tienda está disponible en todas las ciudades.</div>`}
+
+        <div class="note gold"><b>La zona la carga RRHH de tu empresa, no tú.</b> Es a propósito: si la pudieras cambiar en la app, cualquiera se mudaría de ciudad para agarrar un cupo que no le toca.</div>
+        <div class="note"><b>Si aquí falta algo que sí quieres:</b> pídelo desde la Tienda. Esa sugerencia le llega a tu gerencia, a tu líder y a nosotros — y lo que más se pide es lo que se contrata primero.</div>
+      </div>
+      <div class="sheet-f"><button class="btn" data-cerrar>Cerrar</button>
+        <button class="btn primary" style="flex:1" data-irtienda>${IC.tienda} Ir a la Tienda</button></div>
+    </div></div>`;
+}
+
+/* --- Widget fijo del desafío entre áreas --- */
+function bloqueDuelo(){
+  const D = duelo;
+  const mia = D.mejora[D.mia], suya = D.mejora[D.rival];
+  const gano = mia >= suya;
+  return `<div class="duelo">
+    <div class="duelo-h"><span class="wi">${IC.bandera}</span>
+      <h3>${esc(D.mia)} contra ${esc(D.rival)}</h3>
+      <span class="chip ${D.restan<=1?"risk":""}">${D.restan} ${D.restan===1?"día":"días"}</span></div>
+    <div class="duelo-b">
+      <div class="duelo-s ${gano?"win":""}"><div class="an">${esc(D.mia)}</div><div class="av">${pctify(mia+"%")}</div></div>
+      <div class="duelo-m">de mejora<br>contra sí mismos</div>
+      <div class="duelo-s ${!gano?"win":""}"><div class="an">${esc(D.rival)}</div><div class="av">${pctify(suya+"%")}</div></div>
+    </div>
+    <div class="duelo-sum">
+      ${D.suman.map(x=>`<span class="chip xp">${esc(x.n.split(" ")[0])} +${x.v}</span>`).join("")}
+    </div>
+    <div class="duelo-f">
+      <button class="btn sm" data-duelo>Cómo se cuenta</button>
+      <span style="flex:1"></span>
+      <button class="btn sm ghost" data-salirduelo>${D.dentro?"Salirme":"Volver a entrar"}</button>
+    </div>
+  </div>`;
+}
+
+/* --- Desbloqueo privado del que quedó de primero --- */
+function wPrivado(){
+  const T = desbloqueoTop;
+  return `<div class="privado">
+    <div style="font-family:var(--display); font-weight:700; text-transform:uppercase; font-size:15px; line-height:1.15; color:var(--gold-ink)">${esc(T.n)}</div>
+    <div class="tline" style="margin-top:8px; color:var(--gold-ink)">${esc(T.d)}</div>
+    <div class="tline" style="margin-top:9px; color:var(--gold-ink); font-size:12px">Quedaste de primero en ${esc(T.ambito)} ${esc(T.periodo)}.</div>
+    <button class="btn gold wide" data-usartop style="margin-top:11px">Usarlo</button>
+    <div class="tline" style="margin-top:9px; color:var(--gold-ink); font-size:12px">Esto <b>no sale en el ranking</b> y no le llega a tu líder. Si no lo usas, tampoco pasa nada.</div>
+  </div>`;
+}
+
+function modalDuelo(){
+  const D = duelo;
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:540px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Desafío entre áreas</span>
+        <h2 style="margin-top:4px">Cómo se cuenta</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="note gold"><b>No gana el que cierre más misiones.</b> Gana el área que
+          <b>más mejore contra su propio mes pasado</b>, contando solo lo que salió a tiempo. Es a
+          propósito: contar misiones a secas premia partir el trabajo en pedacitos.</div>
+        <div class="card" style="padding:4px 13px">
+          <div class="kv"><span>Qué se mide</span><span>Mejora propia, a tiempo</span></div>
+          <div class="kv"><span>Contra quién compites</span><span>Contra ustedes mismos</span></div>
+          <div class="kv"><span>Quién revisa</span><span>Alguien de otra área</span></div>
+          <div class="kv"><span>Qué se lleva el que gana</span><span>Una medalla de equipo</span></div>
+          <div class="kv"><span>Qué pierde el que pierde</span><span>Nada</span></div>
+        </div>
+        <div class="note"><b>Por qué revisa alguien de afuera:</b> si el mismo líder que compite es
+          el que cierra las misiones de su gente, el reto se vicia solo. Las misiones que revisó
+          tu propio líder <b>no cuentan para el marcador</b> — sí para tu XP y tu Oro, como siempre.</div>
+        <div class="note"><b>Este reto salió a votación antes de existir.</b> Tu equipo votó
+          ${D.mia==="Producto"?"7 de 8":"la mayoría"} que sí, y ${esc(D.rival)} también. Si cualquiera de
+          los dos hubiera dicho que no, no habría pasado nada y nadie se entera.</div>
+      </div>
+      <div class="sheet-f"><button class="btn wide" data-cerrar>Listo</button></div>
+    </div></div>`;
+}
+
+function modalApoyo(){
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:520px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Esto solo lo ves tú</span>
+        <h2 style="margin-top:4px">¿Hablamos de tus tiempos?</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="tline" style="font-size:14px">Las últimas semanas te está costando llegar a las
+          fechas, y <b>lo que entregas se aprueba de una</b>. Eso normalmente quiere decir que las
+          fechas están mal puestas, no que estés trabajando mal.</div>
+        <div class="card" style="padding:13px">
+          <span class="eyebrow">¿Qué es lo que más te está estorbando?</span>
+          <div class="row wrap g8" style="margin-top:11px">
+            ${["Las fechas","Las interrupciones","No tengo la información","Me falta una herramienta","Tengo demasiado abierto","Otra cosa"]
+              .map(x=>`<button class="btn sm ghost">${x}</button>`).join("")}
+          </div>
+          <div class="note" style="margin-top:11px">Lo que marques <b>no se lo mandamos a tu líder</b>.
+            Sirve para una sola cosa: que si aceptas el 1-a-1, no arranque de cero — y para escoger
+            qué curso te ofrecemos, si quieres uno.</div>
+        </div>
+        <div class="note ok"><b>Si dices que ahora no, no pasa absolutamente nada.</b> No queda
+          registrado, no le llega a nadie, y este aviso no vuelve hasta dentro de un mes.</div>
+      </div>
+      <div class="sheet-f"><button class="btn" data-cerrar>Ahora no</button>
+        <button class="btn primary" style="flex:1" data-cerrar>Sí, agendar 20 minutos</button></div>
+    </div></div>`;
+}
+
+function modalTop(){
+  const T = desbloqueoTop;
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:500px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Solo lo ves tú</span>
+        <h2 style="margin-top:4px">${esc(T.n)}</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="tline" style="font-size:14px">${esc(T.d)}</div>
+        <div class="note gold"><b>Te lo ganaste quedando de primero en ${esc(T.ambito)} ${esc(T.periodo)}.</b>
+          No aparece en ninguna tabla, no se anuncia, y tu líder no recibe nada. Si te provoca contarlo,
+          es cosa tuya.</div>
+        <div class="note">Esto <b>no sale del cupo de nadie</b>: es aparte, y por eso no lo vas a
+          encontrar en la Tienda ni el mes que viene, salvo que vuelvas a quedar de primero.</div>
+      </div>
+      <div class="sheet-f"><button class="btn" data-cerrar>Después</button>
+        <button class="btn primary" style="flex:1" data-cerrar>Usarlo esta semana</button></div>
+    </div></div>`;
+}
+
+/* =========================================================
+   VISTA · RANKING
+   ========================================================= */
+const METRICAS = {
+  xp: {n:"Nivel", campo:"xp",  suf:" XP", sub:p=>`Nivel ${p.lvl} · ${p.area}`},
+  oro:{n:"Oro",   campo:"oro", suf:"",    sub:p=>p.area},
+  mis:{n:"Misiones", campo:"mis", suf:"", sub:p=>p.area}
+};
+function tablaOrdenada(){
+  const base = state.rankAmbito==="area" ? people.filter(p=>p.area===me.area) : people;
+  const c = METRICAS[state.rankMetrica].campo;
+  return [...base].sort((a,b)=>b[c]-a[c]);
+}
+function filaRank(p,pos){
+  const m=METRICAS[state.rankMetrica];
+  return `<div class="rank-row ${p.id===1?"me":""}">
+    <span class="rank-pos">${pos}</span>${av(p)}
+    <div class="rank-b"><div class="rank-n">${esc(p.id===1?state.nombre+" (tú)":p.n)}</div>
+      <div class="rank-s">${m.sub(p)}</div></div>
+    <span class="rank-v">${fmt(p[m.campo])}${m.suf}</span></div>`;
+}
+function alt(ico,n,why,campo,unidad){
+  const orden=[...people].sort((a,b)=>b[campo]-a[campo]);
+  const top=orden.slice(0,3), miPos=orden.findIndex(p=>p.id===1)+1;
+  return `<div class="altboard">
+    <div class="row g8" style="margin-bottom:3px"><span style="width:18px;height:18px;color:var(--ink-3)">${IC[ico]}</span><h3>${n}</h3></div>
+    <div class="why">${why}</div>
+    <div class="stack g8">${top.map((p,i)=>`<div class="row g10">
+      <span class="rank-pos" style="font-size:17px">${i+1}</span>${av(P(p.id),"sm")}
+      <div class="rank-b"><div class="rank-n">${esc(p.id===1?state.nombre+" (tú)":p.n)}</div></div>
+      <span class="rank-v">${p[campo]}</span></div>`).join("")}</div>
+    <div class="note" style="margin-top:10px">Tú vas de <b class="num">#${miPos}</b> con <b class="num">${me[campo]}</b> ${unidad}.</div>
+  </div>`;
+}
+function vistaRanking(){
+  const tabla=tablaOrdenada(), iMe=tabla.findIndex(p=>p.id===1);
+  const ini=Math.max(0,iMe-3), fin=Math.min(tabla.length,iMe+4), slice=tabla.slice(ini,fin);
+  const m=METRICAS[state.rankMetrica];
+  const arriba = iMe>0 ? tabla[iMe-1][m.campo]-me[m.campo] : 0;
+  const meta={hecho:87,total:120};
+
+  return `
+  <div class="page-h"><div><span class="eyebrow">Entre todos</span><h1>Ranking</h1></div></div>
+
+  ${bloqueMeta(false)}
+
+  <div class="card" style="padding:15px; margin:14px 0">
+    <div class="row" style="justify-content:space-between; margin-bottom:9px; gap:12px">
+      <div><span class="eyebrow">Meta del equipo</span>
+        <div class="score" style="font-size:30px; line-height:1; margin-top:5px; text-transform:uppercase">${meta.hecho} <span style="color:var(--ink-3)">de</span> ${meta.total} misiones</div></div>
+      <span class="chip ok">${Math.round(meta.hecho/meta.total*100)}%</span>
+    </div>
+    ${meter(meta.hecho, meta.total, "gold")}
+    <p class="sub" style="margin-top:9px">Si el equipo llega, todos suben un escalón. El denominador son <b>los que participan</b>, no la plantilla completa.</p>
+  </div>
+
+  <button class="btn wide primary" style="margin-bottom:14px" data-planpos>${IC.sube} Quiero subir de posición</button>
+
+  <div class="row wrap g8" style="margin-bottom:12px">
+    <div class="seg">${Object.entries(METRICAS).map(([k,v])=>`<button data-metrica="${k}" aria-pressed="${state.rankMetrica===k}">${v.n}</button>`).join("")}</div>
+    <div class="seg">
+      <button data-ambito="equipo" aria-pressed="${state.rankAmbito==="equipo"}">Toda la empresa</button>
+      <button data-ambito="area" aria-pressed="${state.rankAmbito==="area"}">Mi área</button>
+    </div>
+  </div>
+  <div class="seg" style="margin-bottom:12px">
+    <button data-rmodo="cerca" aria-pressed="${state.rankModo==="cerca"}">Cerca de mí</button>
+    <button data-rmodo="completa" aria-pressed="${state.rankModo==="completa"}">Tabla completa</button>
+  </div>
+
+  ${state.rankModo==="cerca"?`
+    <div class="note" style="margin-bottom:10px">Ves tu puesto y los tres de arriba y los tres de abajo. La tabla completa existe, pero viene apagada: las tablas abiertas de arriba a abajo desinflan al que va de último.</div>
+    ${ini>0?`<div class="gap-mark">${ini} por encima, sin mostrar</div>`:""}
+    <div class="stack g8">${slice.map((p,i)=>filaRank(p,ini+i+1)).join("")}</div>
+    ${fin<tabla.length?`<div class="gap-mark">${tabla.length-fin} por debajo, sin mostrar</div>`:""}
+    ${arriba>0?`<div class="note gold" style="margin-top:10px">Te faltan <b class="num">${fmt(arriba)}</b> para alcanzar a ${esc(tabla[iMe-1].n)}.</div>`:""}
+  `:`
+    <div class="note risk" style="margin-bottom:10px">Estás viendo la tabla completa. La prendiste tú; vuelves a «Cerca de mí» cuando quieras.</div>
+    <div class="stack g8">${tabla.map((p,i)=>filaRank(p,i+1)).join("")}</div>
+  `}
+
+  <div class="sec-h"><h2>Otras tablas</h2><span class="sub">No todo es cerrar misiones</span></div>
+  <div class="stack g10">
+    ${alt("panas","Más colaborador","Misiones donde te metiste a echarle una mano a otra persona.","colab","colaboraciones")}
+    ${alt("sube","El que más mejoró","Cuánto creciste contra tu propia semana pasada, no contra los demás.","mejora","% de mejora")}
+    ${alt("chat","Más presente en los hilos","Mensajes en hilos de misión que alguien respondió o marcó como útiles.","hilos","mensajes")}
+  </div>`;
+}
+
+function modalPlanPosicion(){
+  const amb = state.posAmbito;
+  const pos = posicionDe(amb);
+  if(!pos.arriba){
+    return `<div class="veil" data-cerrar><div class="sheet" style="max-width:480px" data-stop role="dialog" aria-modal="true">
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Tu posición</span><h2 style="margin-top:4px">Vas de primero</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b"><div class="note ok">No hay a quién alcanzar en ${amb==="area"?esc(me.area):"la empresa"}. Y eso tampoco es la meta: es lo que pasó mientras trabajabas.</div></div>
+      <div class="sheet-f"><button class="btn wide" data-cerrar>Cerrar</button></div></div></div>`;
+  }
+  const gap = pos.arriba.xp - me.xp;
+  const mias = misMisiones().map(m=>({m, parte:miParte(m)})).filter(x=>x.parte);
+  const xpDisponible = mias.reduce((a,x)=>a+x.parte.xp,0);
+  const alcanza = xpDisponible >= gap;
+  const enRiesgo = missions.filter(m=>m.est==="riesgo" && m.resp!==1 && !m.col.includes(1));
+  const ordenadas = [...mias].sort((a,b)=>b.parte.xp-a.parte.xp).slice(0,4);
+  let acc=0; const pasos = ordenadas.map(x=>{ acc+=x.parte.xp; return {...x, acc}; });
+
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:560px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Subir de posición</span>
+        <h2 style="margin-top:4px">Cómo alcanzar a ${esc(pos.arriba.n.split(" ")[0])}</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="seg" style="align-self:flex-start">
+          <button data-posambito="area" aria-pressed="${amb==="area"}">Mi área</button>
+          <button data-posambito="equipo" aria-pressed="${amb==="equipo"}">Toda la empresa</button>
+        </div>
+
+        <div class="card" style="padding:13px">
+          <div class="kv"><span>Vas de</span><span class="num">#${pos.pos} de ${pos.total}</span></div>
+          <div class="kv"><span>Quien va arriba</span><span>${esc(pos.arriba.n)}</span></div>
+          <div class="kv"><span>Te faltan</span><span class="num" style="color:var(--xp)">${fmt(gap)} XP</span></div>
+          <div class="kv"><span>Ya tienes comprometidos</span><span class="num">${fmt(xpDisponible)} XP</span></div>
+        </div>
+
+        ${alcanza
+          ? `<div class="note ok"><b>Con lo que ya tienes asignado te alcanza.</b> No hace falta que agarres nada nuevo — solo cerrar lo tuyo.</div>`
+          : `<div class="note gold">Con lo tuyo llegas a <b class="num">${fmt(xpDisponible)}</b> de los ${fmt(gap)} que faltan. El resto no te lo voy a inventar: sale del trabajo que venga, o de sumarte donde de verdad hagas falta.</div>`}
+
+        <div>
+          <span class="eyebrow">Lo que ya es tuyo</span>
+          <div class="stack g8" style="margin-top:11px">
+            ${pasos.length?pasos.map((p,i)=>`<div class="paso">
+              <span class="paso-n num">${i+1}</span>
+              <div style="flex:1; min-width:0"><div class="mini-t">${esc(p.m.t)}</div>
+                <div class="mini-x">${restante(p.m.due).txt}</div></div>
+              <span class="chip xp">+${p.parte.xp}</span>
+              <span class="mini-x num">${fmt(p.acc)}</span>
+            </div>`).join(""):`<div class="empty">No tienes misiones asignadas.</div>`}
+          </div>
+        </div>
+
+        ${!alcanza && enRiesgo.length ? `
+        <div>
+          <span class="eyebrow">Donde harías falta de verdad</span>
+          <div class="stack g8" style="margin-top:11px">
+            ${enRiesgo.slice(0,3).map(m=>`<button class="mini" data-mision="${m.id}">
+              <div class="mini-b"><div class="mini-t">${esc(m.t)}</div>
+              <div class="mini-m"><span class="chip risk">${restante(m.due).txt}</span>
+              <span class="mini-x">${esc(nom(m.resp).split(" ")[0])} la lleva</span></div></div>
+              <span class="chip xp">+${Math.round(m.xp*0.4/Math.max(1,m.col.length+1))}</span>
+            </button>`).join("")}
+          </div>
+          <div class="note" style="margin-top:10px">Estas están en riesgo y las lleva otra persona. Sumarte da XP <b>y</b> le quita un peso de encima a alguien. Es la única forma de subir que también le sirve a otro.</div>
+        </div>` : ""}
+
+        <div class="card" style="padding:13px">
+          <span class="eyebrow">Lo que este plan nunca va a hacer</span>
+          <div class="stack g8" style="margin-top:10px">
+            <div class="regla"><span class="num">1</span><span>Sugerirte que <b>le quites trabajo</b> a un compañero para pasarlo.</span></div>
+            <div class="regla"><span class="num">2</span><span>Proponerte <b>trocear</b> una misión en cinco para sumar más veces.</span></div>
+            <div class="regla"><span class="num">3</span><span>Decirte que trabajes <b>fuera de tu horario</b>.</span></div>
+            <div class="regla"><span class="num">4</span><span>Contárselo a tu jefe. <b>Tu posición no es un objetivo de nadie más.</b></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="sheet-f"><button class="btn wide" data-cerrar>Entendido</button></div>
+    </div></div>`;
+}
+
+function modalMeta(){
+  const m = state.metaMes;
+  const prom = 9;
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:460px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Solo tuya</span>
+        <h2 style="margin-top:4px">Tu meta del mes</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <p class="sub">¿Cuántas misiones quieres cerrar este mes? La pones tú. Tu líder no la ve, no entra en el BackOffice y no afecta tu evaluación.</p>
+        <div class="field"><label>Misiones este mes</label>
+          <input id="metain" type="number" min="1" max="60" value="${m.objetivo}">
+        </div>
+        <div class="note">El promedio de tu área el mes pasado fue <b class="num">${prom}</b>. Te lo digo como referencia, no como vara.</div>
+        <div class="note gold">Cumplir tu propia meta desbloquea una medalla que no está en la lista. Ponte una que puedas cumplir: <b>ponerte una imposible no da más</b>.</div>
+      </div>
+      <div class="sheet-f">
+        ${m.puesta?`<button class="btn" data-quitarmeta>Quitarla</button>`:`<button class="btn" data-cerrar>Ahorita no</button>`}
+        <button class="btn primary" style="flex:1" data-guardarmeta>${m.puesta?"Cambiarla":"Ponérmela"}</button></div>
+    </div></div>`;
+}
+
+/* =========================================================
+   VISTA · PERFIL
+   ========================================================= */
+const ESTADO_BEN = {
+  activo:{chip:"ok",txt:"Activo"}, proceso:{chip:"sync",txt:"En proceso"},
+  indeterminado:{chip:"sync",txt:"No sabemos"}, usado:{chip:"",txt:"Usado"}
+};
+function seccionPlegable(clave, titulo, sub, cuerpo){
+  const abierto = !state.plegado[clave];
+  return `<div class="pleg">
+    <button class="pleg-h" data-plegar="${clave}" aria-expanded="${abierto}">
+      <h2>${titulo}</h2>
+      <span class="sub">${sub}</span>
+      <span class="pleg-i ${abierto?"open":""}">${IC.abajo}</span>
+    </button>
+    ${abierto?`<div class="pleg-b">${cuerpo}</div>`:""}
+  </div>`;
+}
+function vistaPerfil(){
+  const lvl=nivelDe(state.xp), sig=xpParaNivel(lvl+1), ini=xpParaNivel(lvl);
+  const ganados=trofeos.filter(t=>t.got).length;
+  const medGanadas=medallasEquipo.filter(m=>m.got).length;
+  const pos = posicionDe(state.posAmbito);
+  const viejo = loteMasViejo();
+  const visibles = trofeos.filter(t=>!t.oculto || t.got);
+
+  return `
+  <div class="page-h"><div><span class="eyebrow">Tu cuenta</span><h1>Perfil</h1></div></div>
+
+  <div class="hero" style="margin-bottom:14px">
+    <div class="hero-top">
+      <span class="av-wrap">
+        <span class="av lg" style="background:${state.color}">${state.nombre.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}</span>
+        ${state.optIn?`<span class="seal sm"><b>${lvl}</b></span>`:""}
+      </span>
+      <div style="flex:1; min-width:0">
+        <div class="hero-n">${esc(state.nombre)}</div>
+        <div class="sub">${esc(me.area)} · ${esc(state.zona)} · desde marzo 2026</div>
+        <div class="row wrap g8" style="margin-top:9px">
+          ${state.optIn?`<span class="chip gold">${rangoDe(lvl).n}</span><span class="chip risk">Racha de ${state.racha}</span>`:""}
+        </div>
+      </div>
+      <button class="iconbtn" data-ajustes title="Ajustes" aria-label="Ajustes"><span class="ti">${IC.tuerca}</span></button>
+    </div>
+    ${state.optIn?`
+    <div style="margin-top:15px">
+      <div class="row" style="justify-content:space-between; margin-bottom:7px">
+        <span class="eyebrow">Para el nivel ${lvl+1}</span>
+        <span class="num" style="font-size:12px; color:var(--ink-2)">${fmt(state.xp-ini)} / ${fmt(sig-ini)}</span>
+      </div>
+      ${meter(state.xp-ini, sig-ini)}
+    </div>
+
+    <div class="pos-card" style="margin-top:15px">
+      <div class="row" style="justify-content:space-between; gap:12px; margin-bottom:10px">
+        <span class="eyebrow">Tu posición</span>
+        <div class="seg">
+          <button data-posambito="area" aria-pressed="${state.posAmbito==="area"}">Mi área</button>
+          <button data-posambito="equipo" aria-pressed="${state.posAmbito==="equipo"}">Empresa</button>
+        </div>
+      </div>
+      <div class="row" style="align-items:flex-end; gap:12px">
+        <div class="score" style="font-size:40px; line-height:.9">#${pos.pos}</div>
+        <div class="sub" style="padding-bottom:5px">de ${pos.total} ${state.posAmbito==="area"?"en "+esc(me.area):"en la empresa"}</div>
+        <div style="flex:1"></div>
+        <button class="btn sm" data-planpos>${IC.sube} Subir</button>
+      </div>
+    </div>
+
+    <div class="stat-strip" style="margin-top:15px">
+      <div class="stat"><div class="l">Oro</div><div class="v" style="color:var(--gold)">${fmt(state.oro)}</div>
+        <div class="mini-x" style="margin-top:4px">${viejo.oro} vencen en ${viejo.dias} d</div></div>
+      <div class="stat"><div class="l">Misiones</div><div class="v">${me.mis}</div></div>
+      <div class="stat"><div class="l">Trofeos</div><div class="v">${ganados}</div></div>
+    </div>
+    <div class="note" style="margin-top:12px">La racha tiene un día de gracia: si te saltas un día no la pierdes, y el fin de semana no cuenta en contra.</div>`:""}
+  </div>
+
+  ${state.optIn?`
+  ${bloqueMeta(false)}
+
+  <div style="height:14px"></div>
+
+  ${seccionPlegable("medallas","Medallas del equipo", `${medGanadas} ganadas`, `
+    <div class="note" style="margin-bottom:11px">Estas las gana el equipo completo. <b>Ninguna bloquea un beneficio base</b>: cada una <b>añade</b> uno extra para todo el mundo.</div>
+    <div class="trophy-grid">
+      ${medallasEquipo.map(m=>`<button class="trophy equipo ${m.got?"":"locked"}" data-medalla="${m.id}">
+        <span class="tico">${IC[m.ico]}</span><span class="tn">${esc(m.n)}</span>
+        ${m.got?`<span class="td">${m.got}</span>`:`<span class="td">${m.prog[0]} / ${m.prog[1]}</span>${meter(m.prog[0],m.prog[1],"sm")}`}
+      </button>`).join("")}
+    </div>`)}
+
+  ${seccionPlegable("trofeos","Tus trofeos", `${ganados} ganados`, `
+    <div class="trophy-grid">
+      ${visibles.map(t=>`<button class="trophy ${t.got?"":"locked"} ${t.oculto?"oculto":""}" data-trofeo="${t.id}">
+        <span class="tico">${IC[t.ico]}</span><span class="tn">${esc(t.n)}</span>
+        ${t.got?`<span class="td">${t.got}</span>`:`<span class="td">${t.prog[0]} / ${t.prog[1]}</span>${meter(t.prog[0],t.prog[1],"sm gold")}`}
+      </button>`).join("")}
+      <div class="trophy oculto-card">
+        <span class="tico">${IC.interro}</span>
+        <span class="tn">Ocultos</span>
+        <span class="td">${trofeos.filter(t=>t.oculto&&!t.got).length} por descubrir</span>
+      </div>
+    </div>`)}
+
+  ${seccionPlegable("beneficios","Tus beneficios", `${beneficios.filter(b=>b.estado!=="usado").length} activos`, `
+    <div class="stack g8">
+    ${beneficios.map(b=>{
+      const e=ESTADO_BEN[b.estado];
+      return `<div class="benefit ${b.estado==="indeterminado"?"ind":""}">
+        <span class="item-ico">${IC[b.ico]}</span>
+        <div style="flex:1; min-width:0">
+          <h4>${esc(b.n)}</h4>
+          <div class="area-tag" style="margin-top:3px">Pedido ${b.pedido} · ${b.estado==="usado"?`usado ${b.vence}`:`vence ${b.vence}`}</div>
+          <div class="row wrap g8" style="margin-top:8px">
+            <span class="chip ${e.chip}">${e.txt}</span>
+            ${b.regaloDe?`<span class="chip gold">${IC.regalo} Regalo de ${esc(nom(b.regaloDe))}</span>`:""}
+            ${b.cod!=="—"?`<span class="chip"><span class="num">${b.cod}</span></span>`:""}
+            ${b.estado==="activo"&&b.dias<=7?`<span class="chip ${b.dias<=3?"risk":"gold"}">Se vence en ${b.dias} días</span>`:""}
+          </div>
+          ${b.estado==="indeterminado"?`
+          <div class="note sync" style="margin-top:10px">
+            <b>No sabemos si el aliado registró tu canje.</b> No es culpa tuya y tampoco es un fallo confirmado. Tu Oro sigue descontado mientras averiguamos; si en 48 horas nadie confirma, te vuelve completo.
+            <div class="row wrap g8" style="margin-top:9px">
+              <button class="btn sm" data-reintentar="${b.id}">Revisar otra vez</button>
+              <button class="btn sm" data-reintentar="${b.id}">Devuélveme el Oro</button>
+            </div>
+          </div>`:""}
+        </div>
+      </div>`;
+    }).join("")}
+    </div>`)}
+  `:""}
+
+  <div class="note" style="margin-top:16px">Prototipo MVP · Levelop! v0.4 · Los datos son de mentira y se reinician al recargar.</div>`;
+}
+
+function modalAjustes(){
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:500px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Tu cuenta</span>
+        <h2 style="margin-top:4px">Ajustes</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="field"><label>Cómo te ven</label><input id="nombrein" value="${esc(state.nombre)}" maxlength="34"></div>
+        <div class="field"><label>Color</label>
+          <div class="pickav">${AV.map(c=>`<button data-color="${c}" style="background:${c}" aria-pressed="${state.color===c}" aria-label="Color"></button>`).join("")}</div>
+        </div>
+        <div class="field"><label>Tu zona</label>
+          <div class="row g10"><span class="chip">${IC.pin} ${esc(state.zona)}</span><span class="mini-x">la fija RRHH</span></div>
+          <div class="note" style="margin-top:8px">La zona decide qué beneficios te aparecen. <b>No la puedes cambiar tú</b>: la carga RRHH de tu empresa, para que nadie se mude de ciudad en la app para conseguir un cupo.</div>
+        </div>
+
+        <div class="card" style="margin-top:4px">
+          <div class="setting" style="box-shadow:inset 0 -1px 0 var(--line)">
+            <div class="setting-b">
+              <div class="t">Jugar o no jugar</div>
+              <div class="d">Es tuyo apagarlo cuando quieras, sin pedirle permiso a nadie y sin peo.</div>
+            </div>
+            <button class="switch" id="optin" role="switch" aria-checked="${state.optIn}" aria-label="Participar en el juego"></button>
+          </div>
+          <div style="padding:13px 14px"><div class="stack g8">
+            <div class="note risk"><b>Si lo apagas:</b> dejas de ganar Oro nuevo, y se apagan XP, niveles, trofeos, medallas, tablas, rachas y los avisos del juego. Nadie ve tu puesto porque sales de las tablas.</div>
+            <div class="note gold"><b>Tu Oro acumulado sigue ahí</b> y lo puedes gastar, pero <b>sigue caducando a los 90 días</b> como el de todo el mundo. No hay trato especial en ninguna dirección.</div>
+            <div class="note ok"><b>Sigue funcionando:</b> misiones, fechas, quién está metido, los hilos, tu historial y los beneficios que ya pediste.</div>
+          </div></div>
+        </div>
+      </div>
+      <div class="sheet-f"><button class="btn" data-cerrar>Cerrar</button>
+        <button class="btn primary" style="flex:1" data-guardar>Guardar</button></div>
+    </div></div>`;
+}
+
+function modalTrofeo(t, equipo){
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:410px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-b" style="align-items:center; text-align:center; padding-top:28px">
+        <span class="tico" style="width:80px;height:80px;display:grid;place-items:center;
+          color:${equipo?"var(--xp)":"var(--gold-ink)"};background:${equipo?"var(--xp-bg)":"var(--gold-bg)"};
+          box-shadow:inset 0 0 0 1px ${equipo?"var(--xp-line)":"var(--gold-line)"};
+          clip-path:polygon(24% 0,76% 0,100% 26%,100% 74%,76% 100%,24% 100%,0 74%,0 26%);
+          ${t.got?"":"opacity:.5"}"><span style="width:36px;height:36px">${IC[t.ico]}</span></span>
+        <h2 style="font-size:22px">${esc(t.n)}</h2>
+        <p style="font-size:14px; color:var(--ink-2)">${esc(t.d)}</p>
+        ${equipo&&t.extra?`<div class="note gold" style="width:100%">Con esta medalla el equipo <b>añadió</b>: ${esc(t.extra)}</div>`:""}
+        ${t.got?`<span class="chip ok">${IC.check} Conseguida en ${t.got}</span>`
+               :`<div style="width:100%">${meter(t.prog[0],t.prog[1],equipo?"":"gold")}
+                 <div class="num" style="font-size:12.5px; color:var(--ink-2); margin-top:8px">${t.prog[0]} de ${t.prog[1]}</div></div>`}
+      </div>
+      <div class="sheet-f"><button class="btn wide" data-cerrar>Cerrar</button></div>
+    </div></div>`;
+}
+
+function modalProyecto(pr){
+  const ms = missions.filter(m=>m.proy===pr.id);
+  const listas = ms.filter(m=>m.est==="completada").length;
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:520px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">${esc(pr.cliente)}</span>
+        <h2 style="margin-top:4px">${esc(pr.n)}</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="row" style="justify-content:space-between; gap:12px">
+          <div class="score" style="font-size:32px; line-height:.95">${listas} <span style="color:var(--ink-3)">de</span> ${ms.length}</div>
+          <span class="chip">${pr.vence==="—"?"Sin fecha de cierre":"Cierra "+pr.vence}</span>
+        </div>
+        ${meter(listas, ms.length||1, "gold")}
+        <div class="stack g8">
+          ${ms.map(m=>`<button class="mini" data-mision="${m.id}">
+            <div class="mini-b"><div class="mini-t">${esc(m.t)}</div>
+            <div class="mini-m"><span class="chip ${ESTADOS[m.est].c}">${ESTADOS[m.est].n}</span>
+            <span class="mini-x">${esc(m.area)}</span></div></div>
+            ${av(P(m.resp),"sm")}</button>`).join("")}
+        </div>
+      </div>
+      <div class="sheet-f"><button class="btn wide" data-cerrar>Cerrar</button></div>
+    </div></div>`;
+}
+
+function modalNueva(){
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:470px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Nueva misión</span>
+        <h2 style="margin-top:4px">¿Qué hay que hacer?</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="field"><label>Título</label><input id="nt" placeholder="Ej. Revisar el reporte de agosto"></div>
+        <div class="field"><label>Proyecto</label>
+          <select id="nproy">${proyectos.map(p=>`<option value="${p.id}">${esc(p.n)}</option>`).join("")}</select></div>
+        <div class="row wrap g8">
+          <div class="field" style="flex:1; min-width:150px"><label>Urgencia</label>
+            <div class="seg" id="nurg">${["baja","media","alta"].map((v,i)=>`<button data-v="${v}" aria-pressed="${i===1}">${v}</button>`).join("")}</div></div>
+          <div class="field" style="flex:1; min-width:150px"><label>Importancia</label>
+            <div class="seg" id="nimp">${["baja","media","alta"].map((v,i)=>`<button data-v="${v}" aria-pressed="${i===1}">${v}</button>`).join("")}</div></div>
+        </div>
+        <div class="field"><label>Esfuerzo</label>
+          <div class="seg" id="nesf">${["bajo","medio","alto"].map((v,i)=>`<button data-v="${v}" aria-pressed="${i===1}">${v}</button>`).join("")}</div></div>
+        <div class="field"><label>Días para entregar</label><input id="nd" type="number" min="1" max="60" value="5"></div>
+        <div class="note gold" id="preview"></div>
+        <div class="note">Las misiones que te montas tú mismo dan XP pero no dan Oro hasta que otra persona las acepte. Ese es el tope para que nadie se aproveche.</div>
+      </div>
+      <div class="sheet-f"><button class="btn" data-cerrar>Cancelar</button>
+        <button class="btn primary" style="flex:1" data-crear>Montarla</button></div>
+    </div></div>`;
+}
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+const VIEWS = {inicio:vistaInicio, misiones:vistaMisiones, tienda:vistaTienda, ranking:vistaRanking, perfil:vistaPerfil};
+function render(){
+  if(!tabsVisibles().some(t=>t.id===state.tab)) state.tab="inicio";
+  pintarNav(); pintarHud(); pintarChrome();
+  document.getElementById("view").innerHTML = VIEWS[state.tab]();
+  window.scrollTo({top:0, behavior:"instant"});
+}
+function abrirModal(h){ document.getElementById("modal").innerHTML=h; document.body.style.overflow="hidden"; toggleAvisos(false); }
+function cerrarModal(){ document.getElementById("modal").innerHTML=""; document.body.style.overflow=""; }
+
+/* =========================================================
+   ACCIONES
+   ========================================================= */
+function gastar(n){
+  let falta = n;
+  lotesOro.sort((a,b)=>a.dias-b.dias);
+  for(const l of lotesOro){
+    const usa = Math.min(l.oro, falta);
+    l.oro -= usa; falta -= usa;
+    if(falta<=0) break;
+  }
+  lotesOro = lotesOro.filter(l=>l.oro>0);
+  state.oro = oroTotal();
+}
+function ganar(n, dias=DECAY_DIAS){ lotesOro.push({oro:n, dias}); state.oro = oroTotal(); }
+
+function enviarARevision(id){
+  const m=missions.find(x=>x.id===id);
+  if(!m || m.est==="revision" || m.est==="completada") return;
+  m.est="revision"; m.sync="pendiente"; m.revBy=1; m.revH=0;
+  cerrarModal();
+  toast("sync","sync","Enviada a revisión","Le llegó al líder de área. Cuando la valide se acredita el reparto.",4200);
+  setTimeout(()=>{
+    m.sync="confirmada";
+    toast("ok","check","El líder la validó", `Se acreditó lo que te toca del reparto.`);
+    const parte = reparto(m).find(r=>r.id===1);
+    if(state.optIn && parte){
+      state.xp += parte.xp; ganar(parte.oro);
+      state.metaMes.hecho += 1;
+      m.est="completada";
+      const l1=nivelDe(state.xp-parte.xp), l2=nivelDe(state.xp);
+      if(l2>l1) setTimeout(()=>toast("ok","corona",`Subiste al nivel ${l2}`,`Rango ${rangoDe(l2).n}. Se te abrieron cosas nuevas en la Tienda.`,5400),700);
+      if(state.metaMes.puesta && state.metaMes.hecho===state.metaMes.objetivo){
+        const tr = trofeos.find(t=>t.n==="Determinación");
+        if(tr && !tr.got){ tr.got = fecha(new Date()); tr.oculto=false;
+          setTimeout(()=>toast("ok","bandera","Trofeo oculto: Determinación","Te pusiste tu propia meta del mes y la cumpliste.",6000),1400); }
+      }
+    } else { m.est="completada"; }
+    render();
+  },2800);
+  render();
+}
+
+function pedir(item){
+  if(state.oro<item.p || item.cupo[0]<=0) return;
+  gastar(item.p); item.cupo[0] -= 1;
+  cerrarModal();
+  const hoy=new Date(), fin=new Date(Date.now()+30*24*H);
+  const nuevo={id:"b"+Date.now(), ico:item.ico, n:item.n, pedido:fecha(hoy), vence:fecha(fin), estado:"proceso", cod:"—", dias:30};
+  beneficios.unshift(nuevo);
+  if(state.objetivo===item.id) state.objetivo=null;
+  toast("sync","sync","Pedido en proceso", `Te descontamos ${fmt(item.p)} de Oro, empezando por el lote más viejo.`, 3200);
+  setTimeout(()=>{
+    nuevo.estado="activo"; nuevo.cod="LVL-"+Math.floor(1000+Math.random()*8999);
+    toast("ok","ticket","Confirmado", `${item.n} · código ${nuevo.cod}. Lo ves en tu Perfil.`, 5400);
+    render();
+  },3000);
+  render();
+}
+
+function regalar(item, paraId){
+  if(state.oro<item.p) return;
+  gastar(item.p); item.cupo[0] = Math.max(0, item.cupo[0]-1);
+  cerrarModal();
+  toast("ok","regalo","Regalo enviado", `${nom(paraId)} ya tiene «${item.n}», con tu nombre.`, 5400);
+  render();
+}
+
+/* =========================================================
+   EVENTOS
+   ========================================================= */
+document.addEventListener("click", e=>{
+  const dentroAvisos = e.target.closest("#avisosdrop, #bell");
+  if(!dentroAvisos) toggleAvisos(false);
+
+  const t=e.target.closest("[data-tab],[data-periodo],[data-filtro],[data-filtro-ir],[data-mision],[data-proyecto],[data-cerrar],[data-revisar],[data-formula],[data-enviar],[data-sumarme],[data-shopcat],[data-shoptab],[data-pedidos],[data-pedir],[data-confirmar],[data-reglas],[data-objetivo],[data-fijarobjetivo],[data-quitarobjetivo],[data-regalar],[data-confirmarregalo],[data-sugerir],[data-mandarsug],[data-pedirayuda],[data-confirmarayuda],[data-ayudar],[data-metrica],[data-ambito],[data-rmodo],[data-posambito],[data-planpos],[data-meta],[data-guardarmeta],[data-quitarmeta],[data-trofeo],[data-medalla],[data-color],[data-guardar],[data-ajustes],[data-plegar],[data-reintentar],[data-limpiar],[data-nueva],[data-crear],[data-info],[data-irtienda],[data-duelo],[data-salirduelo],[data-usartop],[data-aviso],#optin,#bell,#themebtn,[data-stop]");
+  if(!t) return;
+
+  if(t.id==="themebtn"){
+    const cur=document.documentElement.getAttribute("data-theme")||"dark";
+    const nuevo = cur==="dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", nuevo);
+    try{ localStorage.setItem("lvl-tema", nuevo); }catch(err){}
+    return;
+  }
+  if(t.id==="bell"){ toggleAvisos(); return; }
+  if(t.dataset.info){
+    const q = t.dataset.info;
+    abrirModal(q==="oro" ? modalReglas() : q==="nivel" ? modalNivel() : q==="racha" ? modalRacha() : modalZona());
+    return;
+  }
+  if(t.hasAttribute("data-irtienda")){ cerrarModal(); state.tab="tienda"; render(); return; }
+  if(t.hasAttribute("data-duelo")){ abrirModal(modalDuelo()); return; }
+  if(t.hasAttribute("data-usartop")){ abrirModal(modalTop()); return; }
+  if(t.hasAttribute("data-salirduelo")){
+    duelo.dentro = !duelo.dentro;
+    toast(duelo.dentro?"ok":"", duelo.dentro?"check":"bandera",
+      duelo.dentro?"Volviste al desafío":"Te saliste del desafío",
+      duelo.dentro?"Vuelves a sumar al marcador de tu área."
+                  :"Nadie recibe un aviso de esto, ni tu líder ni tu equipo.");
+    render(); return;
+  }
+  if(t.dataset.aviso){
+    const a = t.dataset.aviso;
+    abrirModal(a==="duelo"?modalDuelo():a==="apoyo"?modalApoyo():modalTop());
+    return;
+  }
+  if(t.hasAttribute("data-limpiar")){ avisos=[]; pintarAvisos(); pintarHud(); return; }
+
+  if(t.hasAttribute("data-tab")){ cerrarModal(); state.tab=t.dataset.tab; render(); return; }
+  if(t.hasAttribute("data-periodo")){ state.periodo=t.dataset.periodo; render(); return; }
+  if(t.hasAttribute("data-filtro")){ state.filtro=t.dataset.filtro; render(); return; }
+  if(t.hasAttribute("data-filtro-ir")){ state.tab="misiones"; state.filtro=t.dataset.filtroIr; render(); return; }
+  if(t.hasAttribute("data-shopcat")){ state.shopCat=t.dataset.shopcat; render(); return; }
+  if(t.hasAttribute("data-shoptab")){ state.shopTab=t.dataset.shoptab; render(); return; }
+  if(t.hasAttribute("data-pedidos")){ state.pedidosRango=t.dataset.pedidos; render(); return; }
+  if(t.hasAttribute("data-metrica")){ state.rankMetrica=t.dataset.metrica; render(); return; }
+  if(t.hasAttribute("data-ambito")){ state.rankAmbito=t.dataset.ambito; render(); return; }
+  if(t.hasAttribute("data-rmodo")){ state.rankModo=t.dataset.rmodo; render(); return; }
+  if(t.hasAttribute("data-posambito")){
+    state.posAmbito=t.dataset.posambito;
+    if(document.querySelector(".veil")) abrirModal(modalPlanPosicion()); else render();
+    return;
+  }
+  if(t.hasAttribute("data-plegar")){ const k=t.dataset.plegar; state.plegado[k]=!state.plegado[k]; render(); return; }
+
+  if(t.hasAttribute("data-mision")){
+    const m=missions.find(x=>x.id===+t.dataset.mision);
+    state.abierta=m.id; abrirModal(detalleMision(m)); return;
+  }
+  if(t.hasAttribute("data-proyecto")){ abrirModal(modalProyecto(PR(t.dataset.proyecto))); return; }
+  if(t.hasAttribute("data-cerrar")){ cerrarModal(); state.abierta=null; return; }
+  if(t.hasAttribute("data-revisar")){ enviarARevision(+t.dataset.revisar); return; }
+  if(t.hasAttribute("data-formula")){ document.getElementById("formula").classList.toggle("hide"); return; }
+
+  if(t.hasAttribute("data-sumarme")){
+    const m=missions.find(x=>x.id===state.abierta);
+    if(m && !m.col.includes(1) && m.resp!==1){
+      m.col.push(1); abrirModal(detalleMision(m));
+      toast("ok","panas","Te metiste en la misión","Tu equipo ya se enteró por el hilo. El reparto se recalculó solo.");
+      render();
+    }
+    return;
+  }
+  if(t.hasAttribute("data-enviar")){
+    const ta=document.getElementById("msgin"), v=ta.value.trim();
+    if(!v) return;
+    const m=missions.find(x=>x.id===state.abierta);
+    m.msgs.push({u:1,t:v,h:0});
+    abrirModal(detalleMision(m));
+    const b=document.querySelector(".sheet-b"); if(b) b.scrollTop=b.scrollHeight;
+    return;
+  }
+
+  if(t.hasAttribute("data-pedirayuda")){ abrirModal(modalPedirAyuda(missions.find(x=>x.id===+t.dataset.pedirayuda))); return; }
+  if(t.hasAttribute("data-confirmarayuda")){
+    const m=missions.find(x=>x.id===+t.dataset.confirmarayuda);
+    const alcance=document.querySelector('#alcance [aria-pressed="true"]').dataset.v;
+    const oro=Math.max(10,Math.min(80,+document.getElementById("oroayuda").value||oroSugerido(m)));
+    const para=alcance==="uno" ? +document.getElementById("quien").value : null;
+    m.ayuda={abierta:true, alcance, para, oro, respuestas:[]};
+    cerrarModal(); render();
+    toast("ok","mano","Pedido publicado", alcance==="equipo"
+      ? `Le llegó a todo el equipo. Ofreces ${oro} de Oro del pozo.`
+      : `Le llegó a ${nom(para)}. Ofreces ${oro} de Oro del pozo.`, 5200);
+    return;
+  }
+  if(t.hasAttribute("data-ayudar")){
+    const [id,resp]=t.dataset.ayudar.split("|");
+    const m=missions.find(x=>x.id===+id);
+    if(!m.col.includes(1)) m.col.push(1);
+    m.ayuda.abierta=false;
+    if(resp==="si"){
+      ganar(m.ayuda.oro);
+      toast("ok","mano","Te sumaste y tomaste el Oro", `+${m.ayuda.oro} de Oro del pozo. Ya apareces en el reparto.`, 5200);
+    } else {
+      const tr=trofeos.find(x=>x.n==="Porque soy pana");
+      if(tr && tr.prog){ tr.prog[0]=Math.min(tr.prog[1], tr.prog[0]+1);
+        if(tr.prog[0]>=tr.prog[1] && !tr.got){ tr.got=fecha(new Date()); tr.oculto=false; } }
+      toast("ok","panas","Ayudaste porque eres pana", `Los ${m.ayuda.oro} de Oro volvieron al pozo. Suma para un trofeo que no está en la lista.`, 5600);
+    }
+    abrirModal(detalleMision(m)); render();
+    return;
+  }
+
+  if(t.hasAttribute("data-pedir")){ abrirModal(modalPedir(shop.find(i=>i.id===t.dataset.pedir))); return; }
+  if(t.hasAttribute("data-confirmar")){ pedir(shop.find(i=>i.id===t.dataset.confirmar)); return; }
+  if(t.hasAttribute("data-reglas")){ abrirModal(modalReglas()); return; }
+  if(t.hasAttribute("data-objetivo")){ abrirModal(modalObjetivo(shop.find(i=>i.id===t.dataset.objetivo))); return; }
+  if(t.hasAttribute("data-fijarobjetivo")){
+    state.objetivo=t.dataset.fijarobjetivo; cerrarModal(); state.tab="tienda"; render();
+    toast("ok","bandera","Objetivo puesto","Lo ves arriba en la Tienda. Lo quitas cuando quieras y nadie se entera.",5000);
+    return;
+  }
+  if(t.hasAttribute("data-quitarobjetivo")){ state.objetivo=null; cerrarModal(); render(); return; }
+  if(t.hasAttribute("data-regalar")){ abrirModal(modalRegalar(shop.find(i=>i.id===t.dataset.regalar))); return; }
+  if(t.hasAttribute("data-confirmarregalo")){
+    const item=shop.find(i=>i.id===t.dataset.confirmarregalo);
+    regalar(item, +document.getElementById("paraquien").value);
+    return;
+  }
+  if(t.hasAttribute("data-sugerir")){ abrirModal(modalSugerencia(t.dataset.sugerir)); return; }
+  if(t.hasAttribute("data-mandarsug")){
+    const txt=document.getElementById("sugtxt").value.trim();
+    if(!txt){ toast("risk","alerta","Escribe algo primero","Sin la idea no hay nada que mandar."); return; }
+    const conNombre=document.getElementById("sugnombre").checked;
+    sugerencias.push({cat:t.dataset.mandarsug, txt, nombre:conNombre?state.nombre:null});
+    cerrarModal();
+    toast("ok","check","Mandada", conNombre
+      ? "Va con tu nombre a los líderes de tu empresa y al equipo de Levelop."
+      : "Va sin tu nombre a los líderes de tu empresa y al equipo de Levelop.", 5200);
+    return;
+  }
+
+  if(t.hasAttribute("data-planpos")){ abrirModal(modalPlanPosicion()); return; }
+  if(t.hasAttribute("data-meta")){ abrirModal(modalMeta()); return; }
+  if(t.hasAttribute("data-guardarmeta")){
+    const v=Math.max(1,Math.min(60,+document.getElementById("metain").value||12));
+    state.metaMes.objetivo=v; state.metaMes.puesta=true;
+    cerrarModal(); render();
+    toast("ok","bandera","Meta puesta", `${v} misiones este mes. Solo tú la ves.`, 4600);
+    return;
+  }
+  if(t.hasAttribute("data-quitarmeta")){ state.metaMes.puesta=false; cerrarModal(); render(); return; }
+
+  if(t.hasAttribute("data-trofeo")){ abrirModal(modalTrofeo(trofeos.find(x=>x.id===+t.dataset.trofeo), false)); return; }
+  if(t.hasAttribute("data-medalla")){ abrirModal(modalTrofeo(medallasEquipo.find(x=>x.id===t.dataset.medalla), true)); return; }
+
+  if(t.hasAttribute("data-ajustes")){ abrirModal(modalAjustes()); return; }
+  if(t.hasAttribute("data-color")){
+    state.color=t.dataset.color;
+    document.querySelectorAll("[data-color]").forEach(b=>b.setAttribute("aria-pressed", b.dataset.color===state.color));
+    return;
+  }
+  if(t.hasAttribute("data-guardar")){
+    const v=document.getElementById("nombrein").value.trim();
+    if(v) state.nombre=v;
+    cerrarModal(); render();
+    toast("ok","check","Listo","Así te ven en misiones, hilos y tablas.");
+    return;
+  }
+  if(t.hasAttribute("data-reintentar")){
+    const b=beneficios.find(x=>x.id===t.dataset.reintentar);
+    b.estado="proceso";
+    toast("sync","sync","Averiguando con el aliado","Te avisamos apenas tengamos una respuesta de verdad.");
+    setTimeout(()=>{
+      b.estado="activo"; b.cod="LVL-"+Math.floor(1000+Math.random()*8999);
+      toast("ok","check","Sí quedó registrado","Código "+b.cod+". Ya lo puedes usar.",5200);
+      render();
+    },2800);
+    render(); return;
+  }
+
+  if(t.id==="optin"){
+    state.optIn=!state.optIn;
+    cerrarModal(); render();
+    toast(state.optIn?"ok":"", state.optIn?"check":"tema",
+      state.optIn?"Juego prendido":"Juego apagado",
+      state.optIn?"Vuelves a ganar Oro y a aparecer en las tablas."
+                 :"Dejas de ganar Oro nuevo. El que tienes sigue caducando a los 90 días, como el de todos.",5600);
+    return;
+  }
+
+  if(t.hasAttribute("data-nueva")){ abrirModal(modalNueva()); previewNueva(); return; }
+  if(t.hasAttribute("data-crear")){
+    const titulo=document.getElementById("nt").value.trim();
+    if(!titulo){ toast("risk","alerta","Falta el título","Escribe qué hay que hacer para poder montarla."); return; }
+    const g=id=>document.querySelector(`#${id} [aria-pressed="true"]`).dataset.v;
+    const dias=Math.max(1,+document.getElementById("nd").value||5);
+    const m={id:120+missions.length, t:titulo, area:me.area, proy:document.getElementById("nproy").value,
+      est:"proxima", urg:g("nurg"), imp:g("nimp"), esf:g("nesf"),
+      due:dias*24*H, resp:1, col:[], sync:"confirmada", d:"Todavía sin descripción.", msgs:[]};
+    m.xp=calcXP(m); m.oro=0;
+    missions.push(m); cerrarModal(); state.tab="misiones"; state.filtro="mias"; render();
+    toast("ok","check","Misión montada", `${m.xp} XP cuando la validen. El Oro se activa cuando alguien más la acepte.`, 5400);
+    return;
+  }
+});
+
+/* Segmentos internos de los modales */
+document.addEventListener("click", e=>{
+  const b=e.target.closest("#nurg button, #nimp button, #nesf button, #alcance button");
+  if(!b) return;
+  b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  if(b.closest("#alcance")){
+    document.getElementById("quienwrap").classList.toggle("hide", b.dataset.v!=="uno");
+  } else previewNueva();
+});
+function previewNueva(){
+  const p=document.getElementById("preview"); if(!p) return;
+  const g=id=>document.querySelector(`#${id} [aria-pressed="true"]`).dataset.v;
+  const fake={urg:g("nurg"), imp:g("nimp"), esf:g("nesf")};
+  p.innerHTML=`Te va a dejar <b class="num">${calcXP(fake)} XP</b> y <b class="num">${calcOro(fake)} de Oro</b> cuando otra persona la acepte.`;
+}
+
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape"){ cerrarModal(); toggleAvisos(false); state.abierta=null; }
+  if(e.key==="Enter" && (e.metaKey||e.ctrlKey)){ const s=document.querySelector("[data-enviar]"); if(s) s.click(); }
+});
+
+render();
+})();
+</script>

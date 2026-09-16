@@ -1,0 +1,1 @@
+I beleive the file "LEVELOP_Cashea integration spec" is something we can arrange to have a call between the CFO, the Lead Researcher, the CEO and the CMO, besides you are free to add or modify this chat in order to have the correct agents for this Spec.

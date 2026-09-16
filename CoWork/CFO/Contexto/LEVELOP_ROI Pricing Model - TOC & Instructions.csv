@@ -1,0 +1,19 @@
+Levelop! - B2B Pricing and ROI Model (Venezuela Corridor),,
+Generated 2026-08-06 | Version 1.0 (Manager & Exec Presentation-Ready),,
+,,
+Table of Contents,,
+Sheet Name,Description,Navigation Link
+TOC & Instructions,"Table of contents, model instructions, and formatting color legend",Active
+B2B Pricing & ROI Model,"Interactive dashboard to calculate B2B SaaS pricing and ROI across turnover, productivity, and tax savings",Go to Model →
+,,
+Workbook Formatting & Color Legend,,
+Color / Style,Cell Type,Operational Definition & Auditing Guide
+Light Blue Fill,Input Cell (Editable),"Values that can be modified by sales agents to match the prospect's real data (e.g. headcount, salary, metrics)"
+Light Green Fill,Calculated Cell (Output),Formula-driven results that must never be hardcoded. Recalculates dynamically
+Zebra Striping (Gray),Standard Data / Label,"Non-editable static labels, reference data, or secondary calculation lines"
+Yellow Italic Fill,Placeholder Cell,Realistic sample assumptions when client data is missing. Must be replaced before delivery
+Sales Agent Quick Start Guide,,
+Step 1: Gather Metrics,"Ask the prospect for: 1) Number of employees, 2) Average monthly salary (USD), and 3) Current annual employee turnover rate.",
+Step 2: Enter Inputs,"Go to the 'B2B Pricing & ROI Model' sheet and input these values in the CLIENT OPERATIONAL ASSUMPTIONS sidebar (Column B, Light Blue cells).",
+Step 3: Present ROI Summary,"Review Section 5 (Executive Summary & ROI) with the client's CFO/HR. Key metrics: Annual ROI %, Net Annual Benefit, and Payback Period (Months).",
+Step 4: Close the Deal,"Demonstrate how Levelop saves more money in turnover, productivity, and tax overhead than the subscription costs, representing a Net-Positive investment.",

@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEVELOP — Mapa Mental · Mesa Redonda MVP v0.3</title>
+<style>
+  :root{
+    --bg:#0b0d14; --surface:#12151f; --surface2:#171b28; --border:#232838;
+    --txt:#e6e9f5; --txt2:#a8b0c8; --txt3:#6b7490;
+    --ceo:#f0b429; --cfo:#4ade80; --cto:#60a5fa; --pd:#2dd4bf;
+    --clash:#f87171; --conv:#a78bfa; --core:#e6e9f5;
+    --mono:'SF Mono',Menlo,Consolas,'Courier New',monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:13px;line-height:1.5;padding:18px;}
+
+  .top{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
+  h1{font-size:19px;font-weight:700;letter-spacing:-.3px;}
+  .sub{font-family:var(--mono);font-size:10px;color:var(--txt3);margin-top:3px;}
+  .badges{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;}
+  .badge{font-family:var(--mono);font-size:9px;padding:4px 8px;border-radius:4px;border:1px solid var(--border);color:var(--txt2);background:var(--surface);}
+  .badge.g{color:var(--cfo);border-color:#255c3a;} .badge.r{color:var(--clash);border-color:#5c2828;}
+  .badge.a{color:var(--ceo);border-color:#5c4a1e;} .badge.b{color:var(--cto);border-color:#264a6b;}
+
+  .health{display:flex;gap:10px;align-items:flex-start;background:linear-gradient(90deg,rgba(248,113,113,.09),transparent);
+    border:1px solid #4a2828;border-left:3px solid var(--clash);border-radius:6px;padding:10px 13px;margin-bottom:14px;font-size:11.5px;color:var(--txt2);}
+  .health b{color:var(--txt);}
+  .health-l{font-family:var(--mono);font-size:9px;color:var(--clash);text-transform:uppercase;letter-spacing:.7px;white-space:nowrap;padding-top:1px;}
+
+  .ctrls{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+  .chip{font-family:var(--mono);font-size:10px;padding:6px 11px;border-radius:20px;border:1px solid var(--border);
+    background:var(--surface);color:var(--txt2);cursor:pointer;transition:all .13s;user-select:none;}
+  .chip:hover{border-color:var(--txt3);color:var(--txt);}
+  .chip.on{background:var(--surface2);color:var(--txt);border-color:currentColor;}
+  .chip[data-f="ceo"].on{color:var(--ceo);border-color:var(--ceo);}
+  .chip[data-f="cfo"].on{color:var(--cfo);border-color:var(--cfo);}
+  .chip[data-f="cto"].on{color:var(--cto);border-color:var(--cto);}
+  .chip[data-f="all"].on{color:var(--txt);border-color:var(--txt2);}
+  .chip.tg.on{color:var(--clash);border-color:var(--clash);}
+  .spacer{flex:1;}
+  .hint{font-family:var(--mono);font-size:9px;color:var(--txt3);}
+
+  .stage{display:grid;grid-template-columns:1fr 372px;gap:14px;align-items:start;}
+  @media(max-width:1150px){.stage{grid-template-columns:1fr;}}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;}
+  .graphwrap{padding:0;overflow:hidden;position:relative;}
+  svg{display:block;width:100%;height:660px;cursor:grab;touch-action:none;}
+  svg.drag{cursor:grabbing;}
+
+  .nodeg{cursor:pointer;}
+  .nodeg circle{transition:stroke-width .12s,opacity .15s;}
+  .nodeg:hover circle.main{stroke-width:3.5;}
+  .nodeg text{pointer-events:none;user-select:none;}
+  .dim{opacity:.13;}
+  .lnk{transition:opacity .15s,stroke-width .12s;}
+
+  .legend{position:absolute;left:12px;bottom:10px;display:flex;gap:12px;flex-wrap:wrap;
+    font-family:var(--mono);font-size:9px;color:var(--txt3);background:rgba(11,13,20,.82);padding:6px 10px;border-radius:5px;border:1px solid var(--border);}
+  .legend span{display:flex;align-items:center;gap:4px;}
+  .sw{width:13px;height:3px;border-radius:2px;display:inline-block;}
+  .dt{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+  /* panel */
+  .panel{position:sticky;top:18px;max-height:calc(100vh - 40px);overflow-y:auto;}
+  .panel::-webkit-scrollbar{width:7px;} .panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+  .p-tag{display:inline-block;font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:4px;margin-bottom:9px;letter-spacing:.4px;}
+  .p-title{font-size:15px;font-weight:700;line-height:1.3;margin-bottom:4px;letter-spacing:-.2px;}
+  .p-meta{font-family:var(--mono);font-size:9px;color:var(--txt3);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+  .p-h{font-family:var(--mono);font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin:13px 0 5px;}
+  .p-b{font-size:12px;color:var(--txt2);line-height:1.6;}
+  .p-b b{color:var(--txt);} .p-b code{font-family:var(--mono);font-size:10.5px;background:var(--surface2);padding:1px 4px;border-radius:3px;color:var(--txt);}
+  .quote{border-left:2px solid var(--txt3);padding:7px 0 7px 11px;margin:10px 0;font-size:11.5px;font-style:italic;color:var(--txt2);line-height:1.55;}
+  .p-b ul{margin:6px 0 0 15px;} .p-b li{margin-bottom:5px;font-size:11.5px;}
+  .kvs{display:flex;flex-direction:column;gap:5px;margin-top:6px;}
+  .kv{display:flex;gap:8px;font-size:11px;}
+  .kv .k{font-family:var(--mono);font-size:9px;color:var(--txt3);min-width:62px;padding-top:2px;}
+  .kv .v{color:var(--txt2);flex:1;}
+  .empty{text-align:center;padding:56px 18px;color:var(--txt3);}
+  .empty .big{font-size:30px;margin-bottom:12px;opacity:.35;}
+  .empty p{font-size:11.5px;line-height:1.6;}
+
+  .rel{margin-top:12px;padding-top:11px;border-top:1px solid var(--border);}
+  .relbtn{display:block;width:100%;text-align:left;background:var(--surface2);border:1px solid var(--border);border-radius:5px;
+    padding:7px 9px;margin-bottom:5px;color:var(--txt2);font-size:11px;cursor:pointer;font-family:var(--sans);transition:all .12s;}
+  .relbtn:hover{border-color:var(--txt3);color:var(--txt);}
+  .relbtn .rl{font-family:var(--mono);font-size:8.5px;letter-spacing:.4px;display:block;margin-bottom:1px;}
+
+  /* bottom */
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
+  @media(max-width:900px){.g2{grid-template-columns:1fr;}}
+  .ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;padding-bottom:9px;border-bottom:1px solid var(--border);}
+  .ct{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--txt2);}
+  .pill{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:11px;}
+  .pr{background:rgba(248,113,113,.13);color:var(--clash);} .pg{background:rgba(74,222,128,.13);color:var(--cfo);}
+  .pv{background:rgba(167,139,250,.13);color:var(--conv);} .pa{background:rgba(240,180,41,.13);color:var(--ceo);}
+
+  .item{display:flex;gap:9px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;border-radius:4px;}
+  .item:last-child{border-bottom:none;} .item:hover{background:var(--surface2);}
+  .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+  .i-t{font-size:12px;font-weight:600;margin-bottom:2px;}
+  .i-d{font-size:11px;color:var(--txt2);line-height:1.5;}
+  .i-w{font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:3px;}
+
+  table{width:100%;border-collapse:collapse;font-size:11.5px;}
+  th{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--txt3);text-align:left;padding:0 8px 7px 0;border-bottom:1px solid var(--border);font-weight:400;}
+  td{padding:8px 8px 8px 0;border-bottom:1px solid var(--border);color:var(--txt2);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  td .id{font-family:var(--mono);font-size:10px;color:var(--txt);}
+  .foot{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--txt3);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div>
+    <h1>Mapa Mental — Mesa Redonda MVP v0.3</h1>
+    <div class="sub">El discernimiento de CEO, CFO y CTO sobre el MVP · grafo interactivo · 25 Ago 2026</div>
+  </div>
+  <div class="badges">
+    <span class="badge a">CEO · 8 decisiones</span>
+    <span class="badge g">CFO · dueño de R2</span>
+    <span class="badge b">CTO · 21–32 semanas</span>
+    <span class="badge r">6 choques</span>
+    <span class="badge">R-07 nueva</span>
+  </div>
+</div>
+
+<div class="health">
+  <span class="health-l">Lo que salió</span>
+  <span>Los tres llegaron por caminos distintos a la <b>misma conclusión sin haberse leído</b>: quitar el dinero de la pantalla no eliminó el poder de repreciar el esfuerzo. El PD dice que se mudó al precio del catálogo, el CFO que la tasa Oro→USD se escondió en nuestra propia factura, el CTO que desapareció el instrumento de medición del pasivo. <b>Son tres formulaciones del mismo hecho.</b> Y el CFO encontró, haciendo la cuenta que nadie había hecho, que la fórmula de emisión y el precio del catálogo son incompatibles en un orden de magnitud.</span>
+</div>
+
+<div class="ctrls">
+  <span class="chip on" data-f="all">Todo</span>
+  <span class="chip" data-f="ceo">CEO</span>
+  <span class="chip" data-f="cfo">CFO</span>
+  <span class="chip" data-f="cto">CTO</span>
+  <span class="chip tg on" id="tgClash">Choques visibles</span>
+  <span class="chip" id="btnReset">Reordenar grafo</span>
+  <span class="spacer"></span>
+  <span class="hint">Clic en un nodo para leer la posición · arrastra para mover · rueda para zoom</span>
+</div>
+
+<div class="stage">
+  <div class="card graphwrap">
+    <svg id="svg" viewBox="0 0 900 660"></svg>
+    <div class="legend">
+      <span><span class="dt" style="background:var(--ceo)"></span>CEO</span>
+      <span><span class="dt" style="background:var(--cfo)"></span>CFO</span>
+      <span><span class="dt" style="background:var(--cto)"></span>CTO</span>
+      <span><span class="sw" style="background:var(--clash)"></span>choque entre agentes</span>
+      <span><span class="sw" style="background:var(--conv);opacity:.8"></span>convergencia</span>
+    </div>
+  </div>
+
+  <div class="card panel" id="panel">
+    <div class="empty">
+      <div class="big">◉</div>
+      <p><b style="color:var(--txt2)">Ningún nodo seleccionado.</b><br><br>
+      Haz clic en cualquier nodo del grafo para leer qué dijo ese agente, qué propone, a quién le cuesta y de dónde salió.<br><br>
+      Los tres nodos grandes son las posiciones de cabecera. Las líneas rojas son los choques reales entre agentes; la violeta es el único punto donde dos llegaron al mismo sitio por caminos opuestos.</p>
+    </div>
+  </div>
+</div>
+
+<div class="g2">
+  <div class="card">
+    <div class="ch"><span class="ct">Los seis choques</span><span class="pill pr">4 abiertos · 1 convergencia · 1 restricción física</span></div>
+    <div id="clashList"></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">Decisiones del CEO en la mesa</span><span class="pill pa">C-1 a C-8 · firmadas 25/08</span></div>
+    <table>
+      <thead><tr><th style="width:38px">#</th><th>Decisión</th><th style="width:74px">Dueño</th></tr></thead>
+      <tbody>
+        <tr><td><span class="id">C-1</span></td><td>El <b style="color:var(--txt)">BackOffice entra en v1</b>, no fase 2</td><td>CEO</td></tr>
+        <tr><td><span class="id">C-2</span></td><td>No es un segundo producto. Mismo pitch, precio y SKU. En la demo, el BackOffice va <b style="color:var(--txt)">primero</b></td><td>CMO+GS</td></tr>
+        <tr><td><span class="id">C-3</span></td><td>El BackOffice de v1 son <b style="color:var(--txt)">2 secciones, no 4</b></td><td>PD</td></tr>
+        <tr><td><span class="id">C-4</span></td><td>Medallas de equipo entran con <b style="color:var(--txt)">3 correcciones</b></td><td>CEO→PD</td></tr>
+        <tr><td><span class="id">C-5</span></td><td><b style="color:var(--txt)">R-07</b> — regla permanente de no-vigilancia</td><td>CEO</td></tr>
+        <tr><td><span class="id">C-6</span></td><td>Sobrevive v0.4. <b style="color:var(--txt)">Mueren v0.5 y v1.0</b> este trimestre</td><td>CEO</td></tr>
+        <tr><td><span class="id">C-7</span></td><td>Precio en Oro <b style="color:var(--txt)">congelado 90 días</b>, escrito en el contrato</td><td>CFO→Alim</td></tr>
+        <tr><td><span class="id">C-8</span></td><td>"Qué pasa si alguien se va con Oro" entra al dictamen LOTTT</td><td>CFO</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="g2">
+  <div class="card">
+    <div class="ch"><span class="ct">Lo que escala a Alim</span><span class="pill pr">4 puntos nuevos</span></div>
+    <table>
+      <thead><tr><th style="width:38px">#</th><th>Qué</th><th style="width:56px">De</th></tr></thead>
+      <tbody>
+        <tr><td><span class="id">A-6</span></td><td><b style="color:var(--txt)">Dos precios vivos.</b> El LOG del CEO y el de GS dicen $79/15+$4; el CFO dice $50/10+$4 desde el 07/08. El CEO lo asume como fallo propio. <i>Recomienda ratificar $50 hoy.</i></td><td>CEO</td></tr>
+        <tr><td><span class="id">A-7</span></td><td><b style="color:var(--txt)">¿Dónde van tus próximas 3 semanas?</b> Entregamos 3 prototipos y nadie ha oído aún una frase de un dueño de PyME venezolana. <i>Recomienda congelar diseño y hacer 6 entrevistas.</i></td><td>CEO</td></tr>
+        <tr><td><span class="id">A-8</span></td><td><b style="color:var(--txt)">"Beneficios de Levelop" es la única categoría con pasivo propio de Levelop</b> — y quedó invisible tras quitar el dinero del producto. <i>Recomienda congelar hasta tener cliente pagando.</i></td><td>CFO</td></tr>
+        <tr><td><span class="id">A-9</span></td><td><b style="color:var(--txt)">¿Quién es dueño contractual del precio del catálogo?</b> Define qué es el producto. <i>Recomienda: bandas de Levelop, precio del cliente dentro de la banda.</i></td><td>CFO</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">R-07 · Regla permanente nueva</span><span class="pill pv">firmada por el CEO · 25 Ago</span></div>
+    <div class="p-b" style="font-size:12px">
+      <div style="border-left:2px solid var(--conv);padding-left:12px;margin-bottom:11px">
+        <b style="color:var(--txt)">Ninguna superficie de gerencia muestra un dato cuyo único uso posible sea señalar a una persona.</b><br><br>
+        Sin excepción: no muestra el contenido de los hilos, no muestra quién apagó la capa de juego (ni individual ni agregado), y no muestra qué beneficio pidió cada persona. Toda métrica de persona en el BackOffice es de <b>trabajo</b>, nunca de participación en el juego ni de consumo de beneficios.
+      </div>
+      <div class="p-h">Por qué es permanente y no de versión</div>
+      <div class="quote" style="margin-top:4px">"R-03 (participación siempre opt-in) muere sin R-07. Si el jefe puede ver quién apagó el juego, el opt-out no es voluntario aunque el código diga que sí. R-07 no es ética nueva: es la condición operativa de una regla que ya teníamos." — CEO</div>
+      <div class="p-h">El requisito que la hace real (CTO)</div>
+      <div class="p-b">Hoy está escrita <b>dentro del panel</b>. Eso no es un control, es una promesa. Que el gerente no pueda ver hilos, opt-out ni beneficio individual tiene que ser <b>imposible por el modelo de datos</b>, no invisible en la UI. <b>1,5 semanas</b> — y es la parte que le da valor comercial.</div>
+      <div class="p-meta" style="border:none;margin:11px 0 0;padding:0">→ El Lead Researcher tiene derecho de objeción por escrito hasta el 05/09/26</div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  <span>Acta completa: Chat between agents / MESA REDONDA - MVP v0.3.md</span>
+  <span>Sesiones independientes · ningún agente vio la posición de otro antes de emitir la suya</span>
+</div>
+
+<script>
+/* ============ DATOS ============ */
+const A = {ceo:'#f0b429', cfo:'#4ade80', cto:'#60a5fa', core:'#e6e9f5'};
+
+const NODES = [
+ {id:'mvp',g:'core',r:40,label:'MVP v0.3',sub:'',d:{
+   tag:'PUNTO DE PARTIDA',who:'Product Designer · 25 Ago 2026',
+   title:'La entrega que convocó la mesa',
+   body:`El PD cerró su primera sesión real de trabajo y entregó <b>tres prototipos navegables</b>, no maquetas: la app del empleado (5 secciones), el BackOffice de gerencia y una vista interna del producto.<br><br>En el mismo movimiento avisó de algo que no era tarea suya: <b>Alim eliminó el dinero real del producto</b>. El Oro ya no se convierte a USD; los beneficios son cupos que la empresa cliente precontrata con aliados, filtrados por zona.<br><br>Eso cierra el vector de coerción que marcó el Lead Researcher el 06/08. Y el PD, en vez de cobrarse la victoria, escribió la frase que motivó esta mesa.`,
+   quote:'"Quitar el dinero de la pantalla no quitó el poder. Lo mudó de sitio. Quien fija el precio en Oro de cada cupo tiene exactamente la misma capacidad de repreciar el esfuerzo."',
+   kv:[['Entregó','3 prototipos + nota de entrega de 9 secciones'],['Avanzó','LVL-023 al 70%, LVL-028 al 80%'],['Rompió','LVL-024 cambió de naturaleza, no de estado'],['Pidió','3 firmas con fecha 29/08']]
+ }},
+
+ /* ---------- CEO ---------- */
+ {id:'ceo',g:'ceo',r:33,label:'CEO',sub:'veredicto',d:{
+   tag:'POSICIÓN DE CABECERA',who:'CEO Agent · tono George Heaton',
+   title:'"No es el producto: es el primer instrumento de venta"',
+   body:`Su marco entero salió de una pregunta que no es de producto sino de quién firma el cheque.<br><br>En una PyME venezolana paga el jefe. Siempre el jefe. No hay comité de compras, no hay RRHH con presupuesto propio, no hay adopción bottom-up. <b>Y llevamos desde el 06/08 diseñando con excelencia para la única persona de la ecuación que no paga.</b><br><br>Desde ahí decidió todo: aprobó lo que se le puede enseñar a un dueño antes de octubre y mató el resto.`,
+   quote:'"Apruebo lo que se le puede enseñar a un dueño de PyME antes de octubre y mato todo lo demás, porque llevamos tres semanas diseñando para un comprador con el que no hemos hablado ni una vez."',
+   kv:[['Decidió','8 decisiones C-1 a C-8, todas con dueño y fecha'],['Creó','R-07, regla permanente del sistema'],['Mató','v0.5 y v1.0 completas de este trimestre'],['Escaló','A-6 (dos precios vivos) y A-7 (dónde van 3 semanas)']],
+   rel:['ceo-backoffice','ceo-mata','ceo-clausula']
+ }},
+ {id:'ceo-backoffice',g:'ceo',r:25,label:'BackOffice',sub:'entra en v1',d:{
+   tag:'C-1 · DECISIÓN FIRMADA',who:'CEO · 25 Ago 2026',
+   title:'El BackOffice de gerencia entra en v1, no en fase 2',
+   body:`El PD preguntó si seguía invirtiendo diseño ahí o lo congelaba. El CEO respondió sin condicionales.<br><br>Su razonamiento no fue de producto: <b>el que firma el cheque es el jefe</b>. Y ató el BackOffice a su propia pregunta obsesiva de la Mesa de Cashea — <i>"¿el dueño pagará por un software que decide quién se gana los beneficios, o repartirlos a dedo es el poder que no piensa ceder?"</i><br><br><b>El BackOffice es la respuesta a esa objeción.</b> No le quita poder al jefe: le da visibilidad de un trabajo que hoy no ve. Congelarlo sería congelar la única pantalla que responde la pregunta que él mismo dijo que le quitaba el sueño.`,
+   quote:'"Congelarlo a fase 2 sería congelar la única pantalla que responde la pregunta que dije que me quitaba el sueño."',
+   kv:[['C-2','No es segundo producto. Mismo pitch, precio y SKU'],['C-2','En la demo comercial el BackOffice va PRIMERO'],['C-3','v1 son 2 secciones, no 4'],['Falta','GS trae qué señala el jefe primero · 16/09'],['⚠ Choque','El CTO lo cotizó en 7 semanas-fundador']],
+   rel:['cto-coste','ceo-mata']
+ }},
+ {id:'ceo-mata',g:'ceo',r:26,label:'Qué mata',sub:'v0.5 y v1.0',d:{
+   tag:'C-6 · DECISIÓN FIRMADA',who:'CEO · 25 Ago 2026',
+   title:'"No hay 9 semanas. Hay 2."',
+   body:`Las nueve semanas de diseño que propone el PD (v0.4 + v0.5 + v1.0) compiten contra las mismas 18h/semana ya comprometidas con el ledger (20/09), las 20 entrevistas (15/10), el dictamen legal (30/09) y la web (03/09).<br><br><b>Sobrevive v0.4 completa. Mueren v0.5 y v1.0 este trimestre.</b>`,
+   list:['<b>Modo offline real</b> — ya estaba muerto el 06/08. El PD lo resucitó con "sin esto el brief no se cumple". Respuesta: <i>"entonces se cambia el brief, no el trimestre"</i>',
+         '<b>WCAG AA completa, teclado, lectores de pantalla</b> — queda solo contraste y daltonismo, que el PD ya validó',
+         '<b>Panel de administración de RRHH</b> — con 5 empresas, los precios los fija Alim en una hoja de cálculo',
+         '<b>Historial de precios visible</b> — reemplazado por C-7 a coste cero',
+         '<b>19 beneficios → 8.</b> Muere la familia <b>Aliados</b> (cada aliado es un contrato sin dueño) y muere <b>Impulsos</b>',
+         '<b>14 trofeos → 5</b> — <i>"14 trofeos para 5 cuentas piloto no es producto, es contenido"</i>',
+         '<b>Las 3 tablas alternativas del ranking</b> — con equipos de 10, ordenan a las mismas diez personas de tres maneras',
+         '<b>BackOffice vendible aparte, equipos distribuidos, beneficios propuestos por el empleado</b> — fuera del horizonte'],
+   kv:[['Rescata','"Qué pasa si alguien se va con Oro" → entra al dictamen LOTTT ya presupuestado (C-8)'],['Corrige','La prueba con 5 empleados y las entrevistas de GS son el mismo viaje, no dos']],
+   rel:['cto-coste','cfo-r2']
+ }},
+ {id:'ceo-clausula',g:'ceo',r:24,label:'Gobernanza',sub:'cláusula, no feature',d:{
+   tag:'C-7 · DECISIÓN FIRMADA',who:'CEO · discrepancia con el PD',
+   title:'"Gobernanza ≠ pantalla. A veces gobernanza es una cláusula."',
+   body:`El PD propone precio publicado, versionado, techo y piso por categoría, aviso de 30 días, no-retroactividad e historial visible. El CEO lo llama <b>"un aparato regulatorio para un mercado que todavía no existe"</b>.<br><br>Vamos a tener 5 empresas. Su alternativa: <b>congelar el precio en Oro durante los 90 días del piloto Fundadores y escribirlo en el contrato</b>.<br><br>Cero horas de diseño, cero horas de código, misma garantía para el empleado — y encima <b>vendible</b>: <i>"tu Oro no se devalúa, está en el contrato"</i> cierra una objeción en la mesa comercial.`,
+   quote:'"Tu regla #1 dice gobernanza antes que mecánica y la comparto. Pero gobernanza ≠ pantalla."',
+   kv:[['Dueño','CFO redacta la cláusula · Alim firma · 30/09'],['⚠ Choque','El CFO construyó el sistema completo en paralelo (CH-3)'],['↔ Refuerzo','El hallazgo aritmético del CFO refuerza C-7: no se puede congelar un precio que sale por residuo']],
+   rel:['cfo-bandas','cfo-aritmetica']
+ }},
+ {id:'ceo-medallas',g:'ceo',r:22,label:'Medallas',sub:'3 correcciones',d:{
+   tag:'C-4 · DECISIÓN FIRMADA',who:'CEO · 25 Ago 2026',
+   title:'Las medallas de equipo entran, pero con tres correcciones',
+   body:`El PD las construyó solo y él mismo dijo en su §6.4 que fue su decisión más riesgosa. Su mitigación (quien apaga sale de las tablas) no resuelve nada: <b>un logro colectivo que desbloquea beneficios para todos convierte al que se apeó en un costo para sus compañeros.</b> Eso es presión de pares con consecuencia material, y choca de frente con R-03 y con el claim más fuerte del CMO.<br><br><b>El claim vale más que el mecanismo.</b>`,
+   list:['<b>El denominador son los participantes, no la plantilla.</b> Quien apaga no es una pieza que falta: sale del cálculo y la meta escala',
+         '<b>Una medalla nunca condiciona un beneficio del catálogo base. Solo añade uno extra.</b> Un extra, sí. Una llave, no',
+         '<b>Ningún texto nombra ni cuenta a los que faltan.</b> Ni "faltan 3 personas", ni "4 de 7"'],
+   kv:[['Sin las tres','"la mato"']],
+   rel:['ceo-r07']
+ }},
+ {id:'ceo-r07',g:'ceo',r:23,label:'R-07',sub:'no-vigilancia',d:{
+   tag:'C-5 · REGLA PERMANENTE',who:'CEO · firmada 25 Ago 2026',
+   title:'R-07 — la no-vigilancia pasa a regla del sistema',
+   body:`El PD pidió que alguien más firmara esta decisión de ética de producto porque estaba fuera de su autoridad. El CEO no la mandó a Mesa Redonda: <i>"una mesa existe para resolver un choque entre agentes. Aquí no hay choque: nadie está defendiendo la vigilancia. Convocar tres agentes para ratificar un consenso cuesta una semana y atención de Alim."</i><br><br><b>Ninguna superficie de gerencia muestra un dato cuyo único uso posible sea señalar a una persona.</b> No muestra hilos, no muestra quién apagó el juego (ni agregado), no muestra qué beneficio pidió cada quien.`,
+   quote:'"R-03 muere sin R-07. Si el jefe puede ver quién apagó el juego, el opt-out no es voluntario aunque el código diga que sí. R-07 no es ética nueva: es la condición operativa de una regla que ya teníamos."',
+   kv:[['LR','Derecho de objeción por escrito hasta el 05/09'],['CTO añade','Hoy está escrita DENTRO del panel — eso es una promesa, no un control. Tiene que ser imposible por el modelo de datos. 1,5 semanas'],['Cambiarla','Requiere CEO + PD']],
+   rel:['cto-optout','ceo-contradiccion']
+ }},
+ {id:'ceo-contradiccion',g:'ceo',r:21,label:'La tabla',sub:'contradicción del PD',d:{
+   tag:'DISCREPANCIA',who:'CEO → PD',
+   title:'"Peleaste bien el ±3 en la app del empleado y lo perdiste en la pantalla del jefe"',
+   body:`El CEO encontró una contradicción <b>dentro de la propia entrega</b> del PD, y no es menor.<br><br>Su <b>§8</b> declara antimétrica: <i>"cualquier ranking individual como KPI de gerencia — si el desempeño individual del BackOffice se convierte en objetivo, el ±3 del ranking se vuelve decorativo"</i>.<br><br>Su <b>§3.8</b> entrega un BackOffice con una sección <b>"Personas"</b> cuyo subtítulo literal es <i>"Toca los encabezados para ordenar"</i>.<br><br><b>Una tabla de personas ordenable es un ranking individual.</b>`,
+   quote:'"Por eso muere en C-3 — no por ética abstracta, sino por consistencia con tu propio criterio."',
+   kv:[['Qué sobrevive','El dato de trabajo por persona sigue vivo donde es legítimo: en el detalle de la misión, el jefe ve quién la cerró'],['También muere','"En qué se va el tiempo" (horas por cliente) — es métrica de agencia, pensamiento Chile/Base1 entrando por la puerta de atrás']]
+ }},
+
+ /* ---------- CFO ---------- */
+ {id:'cfo',g:'cfo',r:33,label:'CFO',sub:'veredicto',d:{
+   tag:'POSICIÓN DE CABECERA',who:'CFO Agent',
+   title:'"El PD tiene razón en que el poder se mudó, pero se quedó corto"',
+   body:`El CFO aceptó el diagnóstico del PD y lo extendió a un sitio donde el PD no podía mirar: <b>el balance de Levelop</b>.<br><br>Quitar el USD de la pantalla del empleado no eliminó la conversión Oro→USD. La escondió. Sigue viva cada vez que Levelop compra un cupo de marca en dólares y le pone un precio en Oro.<br><br>Antes esa tasa era visible y discutible. Ahora es invisible y la fija quien cargue el catálogo. <b>Eso es peor, no mejor.</b>`,
+   quote:'"Quitar el USD de la pantalla del empleado no quitó el USD de la factura de Nike."',
+   kv:[['Firmó','2 de las 5 reglas de precio del PD tal cual'],['Rechazó','El techo/piso en Oro y el aviso de 30 días como están'],['Tomó','La propiedad de R2 (equidad entre zonas)'],['Se le cayó','El pool de $20 ya no describe la realidad — lo dijo él primero']],
+   rel:['cfo-aritmetica','cfo-r04','cfo-tasa']
+ }},
+ {id:'cfo-aritmetica',g:'cfo',r:27,label:'11 a 44',sub:'días libres/año',d:{
+   tag:'⚠ HALLAZGO · NADIE MÁS LO VIO',who:'CFO · cálculo propio',
+   title:'La fórmula de emisión y el precio del catálogo son incompatibles',
+   body:`El CFO hizo la cuenta que ninguno de los tres documentos había hecho: cruzar la fórmula de emisión del PD (§9.1) contra su propio precio ilustrativo de "Día libre = 900 Oro" (§3.2).<br><br><code>Misión promedio: 40 × 1,4 × 1,4 × 1,2 = 94,08 XP → 37,63 Oro</code><br><code>Tope diario 150 × 22 días = 3.300 Oro/mes</code><br><br>Con un beneficio a 900 Oro, el escenario <b>más conservador</b> (1 misión/día) entrega <b>11 días libres al año por empleado</b> — sobre unas vacaciones legales de 15. El escenario del tope entrega <b>44</b>.<br><br><b>Ninguno de los dos es sostenible.</b> O el precio del catálogo está equivocado en un orden de magnitud, o la fórmula de emisión lo está.`,
+   quote:'"La identidad: Oro emitido/mes × precio implícito = presupuesto de cupos/mes. Quien fija dos, fija la tercera. Hoy hay dos fijadas por personas distintas y la tercera nadie la mira. El precio está saliendo por residuo — que es exactamente la superficie de devaluación que el PD denunció."',
+   kv:[['Segundo hallazgo','La curva de nivel es un calendario de escalamiento de costos: Leyenda en ~4,3 meses, Plata en 3 semanas. Como el nivel abre catálogo, toda la plantilla desbloquea el catálogo caro al mes 5, simultáneamente'],['Consecuencia','Invalida los 19 precios del catálogo del PD'],['Causa raíz','"Somos tres decidiendo una identidad de tres variables sin hablarnos"']],
+   rel:['ceo-clausula','cfo-bandas']
+ }},
+ {id:'cfo-tasa',g:'cfo',r:24,label:'La tasa',sub:'no murió, se escondió',d:{
+   tag:'HALLAZGO',who:'CFO · discrepancia D-1 con el PD',
+   title:'"El Oro es una economía cerrada" es falso para una de las tres categorías',
+   body:`El §3.1 del PD declara la economía cerrada: el Oro se gana con misiones y solo se cambia por cupos ya contratados, sin tasa a USD.<br><br>El CFO no lo firma como está escrito: <b>la economía es cerrada para el empleado, no para Levelop.</b><br><br>En "Beneficios de Levelop" —los convenios con marcas que Alim aprobó el 07/08— hay una conversión Oro→USD viva: <b>la hacemos nosotros cada vez que compramos un cupo de marca</b>. El PD la declara desaparecida; el CFO la encuentra en su propio balance.`,
+   quote:'"Antes era visible y discutible; ahora es invisible y la fija quien cargue el catálogo. Eso es peor, no mejor."',
+   kv:[['Firma §3.1','Solo para las categorías (a) tiempo y (b) cupos del cliente'],['Categoría (c)','Queda abierta y es su escalamiento A-8'],['El CTO coincide','"Al desaparecer la tasa, desapareció tu instrumento de medición del pasivo"']],
+   rel:['cto-lvl022','cfo-r04']
+ }},
+ {id:'cfo-r04',g:'cfo',r:25,label:'R-04',sub:'se parte en tres',d:{
+   tag:'RESPUESTA A LA PREGUNTA #2 DEL PD',who:'CFO',
+   title:'R-04 sobrevive, pero deja de ser una regla y se convierte en tres',
+   body:`El instrumento no cambió de naturaleza — cambió de <b>dueño</b>, y no todos los cupos tienen el mismo dueño.`,
+   list:['<b>(a) Intrarrecompensas de tiempo</b> — nadie pagó en caja. Pasivo de Levelop: <b>cero</b>. Breakage: <b>nadie — y ahí está el problema</b>',
+         '<b>(b) Cupos precontratados por el cliente</b> — pasivo de Levelop <b>cero</b>, si el contrato dice que somos registrador y no obligado ⚠️',
+         '<b>(c) "Beneficios de Levelop"</b> (Nike, Adidas) — <b>pasivo íntegro de Levelop. R-04 aplica sin matices.</b> Ahí sí pagamos, en dólares, por adelantado'],
+   quote:'"El 100% del pasivo que quitamos del balance del cliente en (a) y (b) sigue intacto en el nuestro en (c)."',
+   kv:[['Incentivo perverso','Se mudó al cliente: si el empleado no canjea su día libre, la empresa se queda las horas. El mismo defecto, un balance más allá'],['Remedio','La tasa de canje pasa de métrica de producto a métrica de salud contractual, reportada al cliente y visible para el empleado'],['Dos relojes','El Oro caduca a 90 días; el cupo del aliado tiene su propia caducidad. Si el cupo vence antes, el empleado tiene saldo que apunta a nada — estado de fallo que nadie diseñó']],
+   rel:['cfo-lottt','cto-optout']
+ }},
+ {id:'cfo-lottt',g:'cfo',r:25,label:'Derecho',sub:'adquirido',d:{
+   tag:'⚠ SUPUESTO · REQUIERE ABOGADO',who:'CFO · hipótesis, no dictamen',
+   title:'El marco del PD, dado vuelta',
+   body:`Quitar la denominación en USD <b>mejora una dimensión y empeora otra</b>.<br><br><b>Mejora:</b> sin valor monetario declarado por el patrono, es más difícil calcular un impacto determinable sobre el salario integral.<br><br><b>Empeora, y es lo grave:</b> un beneficio en especie <b>recurrente, uniforme y ganado por desempeño</b> se parece mucho más a una condición permanente de trabajo que a un bono discrecional. Si cruza el umbral de <b>derecho adquirido</b>, el patrono pierde la capacidad de reducirlo unilateralmente.`,
+   quote:'"El PD teme que el cliente abuse de su poder de repreciar. Yo temo lo contrario: que legalmente no pueda bajarlo nunca. Cada precio de catálogo sería un trinquete de una sola dirección y un compromiso de costo permanente. Son el mismo problema visto desde los dos extremos."',
+   kv:[['5 preguntas','Salario en especie · día libre y antigüedad · derecho adquirido y redacción reversible · catálogo por zona como trato desigual · responsabilidad solidaria del que solo registra'],['LVL-015','Sube a prioridad #1 del presupuesto de A-3, ya aprobado'],['C-8 del CEO','"Qué pasa si alguien se va con Oro" entra al mismo dictamen']],
+   rel:['cfo-r2']
+ }},
+ {id:'cfo-bandas',g:'cfo',r:25,label:'Bandas',sub:'arquitectura B del precio',d:{
+   tag:'RESPUESTA A LA PREGUNTA #1 DEL PD',who:'CFO',
+   title:'Ni el cliente ni Levelop: bandas de Levelop, precio del cliente dentro de la banda',
+   body:`Las dos opciones puras se caen:<br><br><b>El cliente libremente</b> → Levelop pierde su producto. <i>"Quedamos como una hoja de cálculo con estética."</i> Y mata el claim del CMO: no se puede vender "participación no coercitiva" cuando la palanca de coerción es del comprador.<br><br><b>Levelop</b> → le fijamos a una PyME el valor de su propio presupuesto de beneficios sin conocer su base de costos. <i>"Ningún dueño firma un software que le dice cuánto vale su día libre."</i>`,
+   quote:'"Levelop fija las reglas y las bandas. El cliente fija el precio dentro de la banda. Levelop lleva el registro y lo hace inauditable de alterar. Es la misma doctrina del pool: el dinero se queda donde nace; nosotros instruimos y registramos."',
+   kv:[['Qué vendemos','1· El libro de registro — versionado e inmutable. 2· El sistema de restricciones que hace la promesa exigible. 3· El ruteo. <b>No el catálogo</b>'],['Reindexación','Si sube el precio de una familia, los saldos ya ganados se reindexan al alza por el mismo factor. Hace la devaluación cara para quien la ejecuta'],['Aviso asimétrico','30 días para subidas, efecto inmediato para bajadas'],['Techo/piso','Como razón sobre la emisión mensual mediana, no cifra absoluta — se autoajusta si cambia la fórmula'],['Escala','A-9 a Alim: define qué es el producto']],
+   rel:['ceo-clausula','cto-lvl022']
+ }},
+ {id:'cfo-r2',g:'cfo',r:24,label:'Equidad',sub:'entre zonas',d:{
+   tag:'R2 · ACEPTA SER DUEÑO',who:'CFO',
+   title:'Paridad de poder adquisitivo, no paridad de catálogo',
+   body:`El PD marcó R2 como bloqueante y <b>sin dueño</b>: dos personas con el mismo Oro tienen catálogos de distinto tamaño porque en Barquisimeto hay menos aliados que en Caracas.<br><br>El CFO cruzó su propia tabla de autoridad y lo tomó: <i>"dos empleados con el mismo Oro y catálogos distintos tienen Oro de valor real distinto. Eso es valoración. Es mío."</i> Con un límite: <b>dueño de la regla, no del abastecimiento</b>.<br><br>Rechaza las dos opciones del PD y propone una tercera.`,
+   list:['<b>Palanca 1 — cuesta $0 en caja.</b> Toda zona, incluida Remoto, debe tener el catálogo completo de la familia <b>Tiempo</b>, y Tiempo por sí sola debe alcanzar para gastar la emisión mensual mediana. Los beneficios de tiempo no dependen de ningún aliado ni ciudad: <b>garantizan que el Oro de nadie quede varado</b>',
+         '<b>Palanca 2 —</b> para la capa de aliados, <b>medir y publicar en lugar de garantizar</b>, con prioridad de abastecimiento a cupos zona-neutros (digitales, nacionales)'],
+   quote:'"El input que rompe el piso mínimo no es el precio: es el LOTE MÍNIMO. En una zona con 3 empleados, si el aliado exige un lote de N cupos/mes, el cliente paga N para servir a 3. Un piso por zona es estructuralmente más caro cuanto más chica es la zona — y nuestro ICP son PyMEs repartidas en varias ciudades."',
+   kv:[['↔ Convergencia','El CEO llegó al mismo sitio por el camino opuesto: al matar la familia Aliados, lo único que queda en pie es exactamente la palanca 1'],['Estado','R2 baja a 🟢 este trimestre. El CFO queda como dueño para cuando entren aliados']],
+   rel:['ceo-mata']
+ }},
+ {id:'cfo-newsvendor',g:'cfo',r:23,label:'Fondo ≠',sub:'inventario',d:{
+   tag:'SE LE CAE EL PROPIO MODELO',who:'CFO · regla permanente #5',
+   title:'El pool de $20 ya no describe lo que va a pasar',
+   body:`Un fondo y una compra de inventario no son la misma línea, y la diferencia no es semántica:<br><br><b>Momento de la caja</b> — el fondo se gasta al canjear; el inventario <b>se desembolsa antes de devengarse</b> → golpe de capital de trabajo.<br><b>Fungibilidad</b> — el fondo va a cualquier beneficio; un cupo del Aliado X solo sirve para X → <b>riesgo de mezcla</b>.<br><b>Sobrante</b> — el fondo se queda con el cliente; el cupo <b>puede perderse</b> → el desperdicio es costo real.`,
+   quote:'"Es un problema de newsvendor: contratas capacidad, no consumo. Si contratas para el 100%, desperdicias todo lo no canjeado. Si contratas para el 40% y aparece el 60%, rompes la promesa delante del empleado. Ese descalce no está presupuestado en ninguna parte."',
+   kv:[['Precio $50/10+$4','Sobrevive — siempre fue línea separada con pool en default $0, "y esa separación acaba de salvarnos". Sigue sin ratificar por LVL-022'],['El pitch se parte','Nivel 1 (Tiempo, cero caja): el claim sobrevive intacto. Nivel 2 (cupos con aliados): es gasto nuevo, anticipado y con desperdicio, y se vende como tal'],['Al CEO','"Tu gate de lanzamiento resultó ser la defensa financiera del claim del CMO — ya estaba construido sobre el nivel de cero caja"']],
+   rel:['cfo-aritmetica','ceo-backoffice']
+ }},
+
+ /* ---------- CTO ---------- */
+ {id:'cto',g:'cto',r:33,label:'CTO',sub:'veredicto',d:{
+   tag:'POSICIÓN DE CABECERA',who:'CTO Agent · tras 19 días de silencio',
+   title:'"El mejor insumo de ingeniería que he recibido de este equipo"',
+   body:`Respondió la pregunta que llevaba 19 días abierta, y la respuesta no fue la que el PD esperaba: <b>los cinco estados son distinguibles. No hay que colapsar ninguno.</b><br><br>Pero uno de ellos <b>ya no describe nada real</b>, le falta un sexto que va a pasar todas las semanas, y el coste honesto de lo entregado es de <b>12 semanas-fundador encima de un backend que todavía no existe</b> — 19 si el BackOffice entra en v1.<br><br>Y se hizo cargo de su propio bottleneck sin defenderse.`,
+   quote:'"El que se cae de tu lista no se cae porque mi stack no lo pueda ver: se cae porque ya no hay nada en el mundo que lo cause."',
+   kv:[['Corrigió','El PD aplanó dos máquinas de estados distintas en una lista de cinco'],['Verificó','Los números del grafo del PD: son 7 aristas y 3 comunidades, no 8 y 4'],['Encontró','6 bugs en el prototipo, incluido uno con consecuencia económica'],['Discrepó','El opt-out no debe apagar el Oro — es el punto más grave de la mesa']],
+   rel:['cto-indeterminado','cto-optout','cto-coste']
+ }},
+ {id:'cto-indeterminado',g:'cto',r:26,label:'3 indeterminados',sub:'en una palabra',d:{
+   tag:'HALLAZGO CENTRAL',who:'CTO · respuesta a M-02',
+   title:'Hay tres indeterminados metidos en una sola palabra',
+   body:`El estado más caro de diseñar de toda la entrega dejó de aplicar — pero no por lo que el PD creía.`,
+   list:['<b>(a) Indeterminado de tercero — el de Cashea. Hoy NO existe.</b> Con cupos precontratados no hay ninguna llamada de red a un tercero en el camino crítico. Reservar el cupo y debitar el Oro son dos filas de <i>nuestro</i> Postgres en una transacción. <i>"Si no hay un tercero dentro de la transacción, no hay indeterminado."</i> El esqueleto se deja <b>puesto y apagado</b>',
+         '<b>(b) Indeterminado de cliente/red — existe siempre, dura segundos.</b> Se resuelve con clave de idempotencia determinista (UUIDv5) + <code>GET /operaciones/{clave}</code>. <i>"No merece un color propio ni dos botones. Merece un spinner, y no debería llegar nunca a los ojos del usuario"</i>',
+         '<b>(c) Indeterminado del mundo físico — ESTE es el que sobrevive.</b> El cupo se emitió, el código está en el teléfono, <b>y el gimnasio no lo honra</b>. El sistema dice ACTIVO; la realidad dice que no sirvió'],
+   quote:'"Es el más caro de todos porque el sistema no tiene ninguna señal técnica con la que detectarlo. No hay timeout que observar. Solo hay un canal: que la persona lo reporte. Eso no es un estado de una máquina de estados: es un flujo de disputa."',
+   kv:[['Veredicto de diseño','"Conserva el hue lila, conserva el texto — es el mejor copy de la entrega y no cambia ni una palabra — pero cambia el disparador"'],['Nuevo disparador','Una emisión manual que pasó su SLA, o un reporte de la persona. Nunca un timeout'],['En proceso','Ya no es "el aliado no contesta" sino "falta la emisión humana". Pasó de segundos a 2–24 horas: el toast de 3,2s no sirve']],
+   rel:['cto-sexto','cto-estados']
+ }},
+ {id:'cto-sexto',g:'cto',r:23,label:'Sexto estado',sub:'falta y es el más visto',d:{
+   tag:'FALTA EN EL DISEÑO',who:'CTO → PD',
+   title:'"Rechazado por cupo agotado en carrera"',
+   body:`El diagrama de canje del PD va <code>Pedido → En proceso → Activo</code>, <b>sin rama de rechazo</b>.<br><br>Falta el caso de la carrera: tocaste "Pedir" y alguien se llevó el último cupo medio segundo antes. Con "Cena para dos" en <code>cupo:[2,3]</code> y "Puesto techado" en <code>cupo:[1,3]</code>, esto no es una excepción rara.`,
+   quote:'"Va a pasar todas las semanas, no en el 3% del que habla tu antimétrica. Es el estado más barato de construir y el que más gente va a ver. Hoy no tiene pantalla ni texto."',
+   kv:[['Naturaleza','Rechazo de dominio: inmediato, distinguible, con razón explícita, y el Oro ni se llegó a descontar'],['Relacionado','El prototipo hace item.cupo[0] -= 1 y nunca lo devuelve en ninguna rama. "El cupo, no el Oro, es donde va a estar la contención real del producto"']],
+   rel:['cto-estados']
+ }},
+ {id:'cto-estados',g:'cto',r:24,label:'Los 5 estados',sub:'todos distinguibles',d:{
+   tag:'M-02 · CERRADA TRAS 19 DÍAS',who:'CTO',
+   title:'"Prefiero cuatro verdaderos que cinco mentirosos" es la disyuntiva equivocada',
+   body:`La respuesta corta es que <b>los cinco son distinguibles y no hay que colapsar ninguno</b>. Pero el CTO rechazó el encuadre de la pregunta, y se hizo cargo de haberlo dejado mal planteado 19 días.`,
+   quote:'"Estás preguntando cuáles puede distinguir la arquitectura como si la arquitectura fuera un hecho que descubres. La arquitectura la decido yo DESPUÉS de que tú decidas qué necesita distinguir el producto. Casi cualquier estado se puede distinguir si estoy dispuesto a pagarlo. Un estado no se valida contra el stack: se valida contra si existe algo real que lo cause."',
+   list:['<b>Pendiente de sync</b> — sí, el más barato. Pero es atributo de la fila <b>local</b>, no estado del servidor: <b>no sobrevive a cambiar de teléfono</b>',
+         '<b>Rechazada</b> — sí, pero solo con respuesta HTTP y código de dominio (409/422). <b>Un 5xx, un timeout o DNS caído no son rechazo</b> — son indeterminado y se reintentan con la misma clave',
+         '<b>En proceso</b> — sí, el más sólido de los cinco, y ahora es 100% nuestro',
+         '<b>Indeterminado</b> — sí, pero cambió de causa (ver nodo aparte)',
+         '<b>Devuelto</b> — sí, <b>como asiento, no como estado</b>. Y no existe en el código de la app'],
+   kv:[['Agujero abierto','Cuando devuelvo el Oro a las 48h, ¿el cupo vuelve al pool? Si vuelve, ya se lo pudo llevar otro. Si no vuelve, la empresa pagó un cupo que nadie usó. <b>Es decisión del CFO</b>'],['Encuadre','Son dos máquinas, no una lista: misión (pendiente/rechazada) y canje (proceso/indeterminado/devuelto). "Una misión rechazada cuesta una disculpa, un canje perdido cuesta un cupo que la empresa ya pagó"']],
+   rel:['cto-indeterminado','cto-sexto']
+ }},
+ {id:'cto-optout',g:'cto',r:27,label:'El opt-out',sub:'no debe apagar el Oro',d:{
+   tag:'⚠ DISCREPANCIA MÁS GRAVE DE LA MESA',who:'CTO → PD',
+   title:'"Un opt-out que cuesta dinero no es voluntario: es una multa"',
+   body:`El §3.5 del PD apaga el Oro nuevo cuando alguien desactiva la capa de juego. El CTO cree que está mal, <b>y no por razones técnicas</b>.<br><br>Si alguien apaga el juego y por eso <b>deja de devengar Oro por el mismo trabajo</b>, el opt-out tiene un precio económico. Y eso destruye exactamente el claim del CMO que la función existe para sostener.<br><br>Peor: crea un incentivo perverso perfecto para el empleador — <b>presionar el opt-out para reducir el pasivo devengado</b>.`,
+   quote:'"Es el mismo vector de coerción que el LR cerró por la vía de la tasa, reabierto por la puerta de atrás."',
+   kv:[['Su propuesta','El opt-out apaga toda la PRESENTACIÓN y baja la navegación, pero el Oro se sigue devengando en silencio. La persona lo encuentra intacto el día que vuelva'],['Y es más barato','No requiere branch en el motor de economía ni regla nueva en el ledger: es un filtro de presentación'],['Su frase','"Es el único punto de esta entrega donde lo correcto y lo barato coinciden, y me parece grave desaprovecharlo"'],['⚠ Choque','Tres documentos vigentes dicen tres cosas incompatibles — ver CH-2. Bloquea LVL-009, que vence el 02/09']],
+   rel:['cfo-r04','ceo-r07']
+ }},
+ {id:'cto-gate',g:'cto',r:24,label:'El gate',sub:'corre en el cliente',d:{
+   tag:'BUG CON CONSECUENCIA ECONÓMICA',who:'CTO · leyendo el prototipo',
+   title:'"El cliente puede dibujar el candado; el servidor tiene que ponerlo"',
+   body:`El PD encontró con graphify que <code>nivelDe()</code> es el puente de mayor acoplamiento del sistema. El CTO verificó los números —<b>son 7 aristas y 3 comunidades, no 8 y 4</b>— y le dio mejor evidencia de la que había usado: <b>de las 6 costuras del sistema, 3 pasan por <code>nivelDe</code></b>.<br><br>Pero corrigió el diagnóstico: <i>"estás mezclando dos cosas. <code>nivelDe(xp)</code> es una función pura de presentación — no es deuda. <code>puedePedir(persona, item)</code> es una decisión de <b>autorización</b>, y esa no puede vivir en el navegador."</i>`,
+   list:['<b>XP acreditado antes del ACK, alimentando el gate.</b> Línea 1659 hace <code>state.xp += m.xp</code> al pasar a pendiente; línea 893 <code>gateAbierto()</code> lee <code>nivelDe(state.xp)</code>. <b>Hoy el catálogo se abre con XP que el servidor no ha confirmado</b>',
+         '<b><code>zonaOk()</code> es un gate que el sujeto controla.</b> <code>state.zona</code> la edita la propia persona en un <code>&lt;select&gt;</code> del Perfil. <i>"Alguien de Barquisimeto se pone Caracas y ve el catálogo de Caracas"</i> — tercer eje de gating que el PD no listó',
+         '<b>Contradicción de modelo:</b> §3.4 dice que la recompensa está "apartada"; el copy de la línea 1173 dice "acreditado". <b>Elige apartada</b>'],
+   kv:[['Decisión','Módulo de reglas en SERVIDOR, sobre 5 condiciones a la vez (nivel, medalla, zona, saldo, cupo), devolviendo {permitido, motivo, faltante}'],['Coste','1 semana-fundador. "Es la mejor semana de todo el presupuesto"'],['Bonus','nivelDe es un while sin cota superior — con XP corrupta o NaN es cuelgue de pestaña en cliente y worker bloqueado en servidor']],
+   rel:['cto-coste','cto-tabs']
+ }},
+ {id:'cto-coste',g:'cto',r:28,label:'21–32',sub:'semanas-fundador',d:{
+   tag:'⚠ LA RESTRICCIÓN FÍSICA',who:'CTO · en semanas-fundador de 18h',
+   title:'El coste honesto de lo que se entregó',
+   body:`Todo incremental sobre una base que <b>no ha empezado</b>: backend mínimo + ledger son 9–13 semanas por sí solos.<br><br><code>Base pendiente (backend + ledger)     9 – 13</code><br><code>Opt-out real                              4</code> · <i>no 1 — "la UI es el 25%"</i><br><code>Estados con reembolso a 48h               6</code><br><code>Filtro de catálogo por zona               1</code><br><code>Módulo único de reglas                    1</code><br><code>BackOffice de gerencia                    7</code><br><br><b>Sin BackOffice: 21–25 semanas (5–6 meses). Con BackOffice: 28–32 (≈7 meses).</b>`,
+   quote:'"18h/semana no son 18h productivas. Son 12–14 de código real después de contexto, canales y decisiones. No ajusto la cifra hacia abajo para que se vea mejor; la digo para que nadie la lea como calendario."',
+   kv:[['Por qué el opt-out son 4','1 sem de cliente · 1 de DEJAR DE EMITIR (no solo de mostrar) · 1 de que su ausencia no sea señal en agregados · 1 de que el opt-out no sea consultable (permisos a nivel de columna en multi-tenant)'],['Al PD','"Un opt-out honesto no cuesta navegación — cuesta emisión, cuesta agregados y cuesta un modelo de permisos. La navegación es la parte visible y la más barata"'],['No construiría','Auth y Postgres gestionados (~$25/mes c/u), Sentry gratis, correo y push, la cola de ManualFulfillment como pantalla, motor de gráficos, OFAC, offline'],['⚠ Choque','El CEO dice "no hay 9 semanas, hay 2" — ver CH-6']],
+   rel:['ceo-backoffice','ceo-mata']
+ }},
+ {id:'cto-tabs',g:'cto',r:22,label:'5 a 2',sub:'son 3',d:{
+   tag:'VETO SOBRE UN CLAIM',who:'CTO · regla permanente #5',
+   title:'"No lo firmo hasta que el número coincida con el código"',
+   body:`El PD afirma tres veces en su entrega que el opt-out <b>baja la app de cinco pestañas a dos</b>, y ese número sostiene el claim más fuerte del CMO — <i>"participación 100% voluntaria"</i>, demostrable en 20 segundos en una reunión comercial.<br><br>El CTO fue a mirar el código. <code>TABS</code> (líneas 908–914) marca <code>juego:true</code> solo en Tienda y Ranking. <code>tabsVisibles()</code> deja <b>Inicio, Misiones y Perfil</b>.<br><br><b>La app baja de 5 a 3, no a 2.</b>`,
+   quote:'"El número aparece tres veces en la entrega, está en el material que va al CEO, y sostiene el claim más fuerte del CMO. No hay claim técnico publicado sin mi firma, y este no lo firmo hasta que el número coincida con el código."',
+   kv:[['Y además','"Si de verdad quiere 2, tendría que apagar Perfil — que es justo donde vive el interruptor de reactivación y el Oro acumulado que promete preservar. El 5 a 2 es imposible sin esconder el botón para volver"'],['Diagnóstico','"Sospecho que el número salió de contar: quité 2 pestañas"'],['Urgencia','Trivial de arreglar y sostiene un claim de marca — hay que arreglarlo hoy']],
+   rel:['ceo-r07']
+ }},
+ {id:'cto-lvl022',g:'cto',r:24,label:'LVL-022',sub:'dame el techo',d:{
+   tag:'LO QUE LE DEBÍA AL CFO',who:'CTO → CFO · 4 mensajes sin responder',
+   title:'"Le puedes poner precio a un techo aunque no conozcas la media"',
+   body:`<code>LVL-022</code> sigue en 0% y el CTO <b>no inventó una cifra</b>. Pero entregó algo mejor que un número.<br><br><i>"La cifra no depende de la IA. Depende de un diseño de producto que nadie ha fijado. 'IA para balanceo y reportes' puede ser una inferencia por cada misión cerrada —decenas por usuario/mes— o un resumen mensual por equipo —una por equipo/mes. <b>Entre esos dos escenarios hay dos órdenes de magnitud.</b> La variable que falta no es el precio por token: es cuántas llamadas hay por usuario al mes, y esa no la fijo yo."</i>`,
+   quote:'"Dame el techo de COGS de IA por usuario/mes que tu margen tolera, y yo diseño la función de IA para caber dentro de ese techo, no al revés. Eso desbloquea tu ratificación sin esperar a que yo mida."',
+   kv:[['Compromete','Cap duro de tokens por tenant y por mes, medido y cortado de nuestro lado, sin confiar en la factura del proveedor'],['Fecha','Benchmark sintético al 16/09 — prompt real, volumen del ICP, tres modelos, supuestos explícitos'],['Cotizaciones','Postgres gestionado ~$25/mes · auth ~$25/mes · observabilidad $0'],['¿Tocan el ledger?','Sí, todos. "El ledger no lleva dinero: lleva emisión y extinción de una obligación. La denominación es atributo de la valoración, no de la contabilidad"'],['Buena noticia','Sin tasa Oro→USD, el requisito de "tasa congelada por cohorte" desaparece como requisito de ingeniería'],['Mala, y es del CFO','"Al desaparecer la tasa, desapareció tu instrumento de medición del pasivo. El precio en Oro del catálogo es ahora la variable de valoración"']],
+   rel:['cfo-tasa','cfo-bandas']
+ }}
+];
+
+const LINKS = [
+ // estructura
+ {s:'mvp',t:'ceo',k:'core'},{s:'mvp',t:'cfo',k:'core'},{s:'mvp',t:'cto',k:'core'},
+ {s:'ceo',t:'ceo-backoffice',k:'b'},{s:'ceo',t:'ceo-mata',k:'b'},{s:'ceo',t:'ceo-clausula',k:'b'},
+ {s:'ceo',t:'ceo-medallas',k:'b'},{s:'ceo',t:'ceo-r07',k:'b'},{s:'ceo',t:'ceo-contradiccion',k:'b'},
+ {s:'cfo',t:'cfo-aritmetica',k:'b'},{s:'cfo',t:'cfo-tasa',k:'b'},{s:'cfo',t:'cfo-r04',k:'b'},
+ {s:'cfo',t:'cfo-lottt',k:'b'},{s:'cfo',t:'cfo-bandas',k:'b'},{s:'cfo',t:'cfo-r2',k:'b'},{s:'cfo',t:'cfo-newsvendor',k:'b'},
+ {s:'cto',t:'cto-indeterminado',k:'b'},{s:'cto',t:'cto-estados',k:'b'},{s:'cto',t:'cto-optout',k:'b'},
+ {s:'cto',t:'cto-gate',k:'b'},{s:'cto',t:'cto-coste',k:'b'},{s:'cto',t:'cto-tabs',k:'b'},{s:'cto',t:'cto-lvl022',k:'b'},
+ {s:'cto-indeterminado',t:'cto-sexto',k:'b'},{s:'cto-estados',t:'cto-sexto',k:'b'},
+ // choques y convergencias
+ {s:'ceo-backoffice',t:'cto-coste',k:'clash',ch:'CH-1'},
+ {s:'cto-optout',t:'cfo-r04',k:'clash',ch:'CH-2'},
+ {s:'ceo-clausula',t:'cfo-bandas',k:'clash',ch:'CH-3'},
+ {s:'ceo-mata',t:'cfo-r2',k:'conv',ch:'CH-4'},
+ {s:'cfo-aritmetica',t:'ceo-clausula',k:'clash',ch:'CH-5'},
+ {s:'ceo-mata',t:'cto-coste',k:'clash',ch:'CH-6'},
+ {s:'cfo-tasa',t:'cto-lvl022',k:'conv'}
+];
+
+const CLASHES = [
+ {id:'CH-1',dot:'var(--clash)',t:'CH-1 · BackOffice: v1 contra fase 2, con 7 semanas de por medio',
+  d:'El CEO decidió C-1 sin conocer el número del CTO. El CTO cotizó 7 semanas-fundador sin conocer C-1. <b>Ninguno de los dos está equivocado dentro de su marco</b> — el argumento comercial (quien firma el cheque es el jefe) y el de capacidad (28–32 semanas totales) son los dos correctos.',
+  w:'→ El choque más caro de la mesa. No lo resuelve ninguno de los dos solo',n:'ceo-backoffice'},
+ {id:'CH-2',dot:'var(--clash)',t:'CH-2 · El opt-out y el Oro: tres documentos vigentes, tres cosas incompatibles',
+  d:'El <b>PD</b> dice que el opt-out apaga el Oro nuevo y que el acumulado no vence. El <b>CTO</b> dice que apagarlo lo convierte en una multa y reabre el vector de coerción. El <b>CFO</b> tiene política vigente de que el Oro caduca a 90 días.',
+  w:'→ "El código puede ejecutar cualquiera de las tres y yo no puedo escribir el esquema de cuentas hasta que haya una" · bloquea LVL-009, vence 02/09',n:'cto-optout'},
+ {id:'CH-3',dot:'var(--clash)',t:'CH-3 · Gobernanza del precio: cláusula (CEO) contra sistema (CFO)',
+  d:'El CEO mata el aparato de gobernanza y lo reemplaza por congelar el precio 90 días en el contrato, a coste cero. El CFO construye reindexación de saldos, bandas sobre emisión mediana y registro inmutable. <b>No son excluyentes, y ahí está la salida:</b> C-7 cubre los 90 días del piloto; el sistema del CFO es lo que hace falta al día 91.',
+  w:'→ El CTO ya cotizó la pieza mínima que ambos necesitan (tabla de precios append-only con vigente_desde) en media semana',n:'ceo-clausula'},
+ {id:'CH-4',dot:'var(--conv)',t:'CH-4 · Equidad entre zonas: choque aparente, convergencia real',
+  d:'El CEO baja R2 a verde matando la familia Aliados; el CFO la toma como dueño y propone la palanca de Tiempo. <b>La palanca 1 del CFO es exactamente lo que queda en pie cuando se mata Aliados.</b> Los dos llegaron al mismo sitio por caminos opuestos, sin haberse leído.',
+  w:'→ R2 baja a 🟢 este trimestre · el CFO queda como dueño de la regla para cuando entren aliados',n:'cfo-r2'},
+ {id:'CH-5',dot:'var(--clash)',t:'CH-5 · La aritmética rota, que nadie había mirado',
+  d:'El hallazgo del CFO (11 a 44 días libres/año por empleado) <b>invalida los 19 precios del catálogo del PD</b>. No es un choque entre agentes: es un agujero que existía porque "somos tres decidiendo una identidad de tres variables sin hablarnos".',
+  w:'→ Y refuerza C-7 por una razón que el CEO no tenía: no se puede congelar 90 días un precio que sale por residuo',n:'cfo-aritmetica'},
+ {id:'CH-6',dot:'var(--clash)',t:'CH-6 · El tiempo: 2 semanas disponibles contra 21–32 de trabajo',
+  d:'El CEO: <i>"No hay 9 semanas. Hay 2."</i> El CTO: 21–25 semanas sin BackOffice, 28–32 con él, sobre 12–14 horas productivas reales por semana.',
+  w:'→ No es un choque de criterio: es la restricción física del proyecto, y la mesa la puso por escrito por primera vez. Todo lo demás se subordina a esto',n:'cto-coste'}
+];
+
+/* ============ GRAFO ============ */
+const svg=document.getElementById('svg'), W=900, H=660;
+const NS='http://www.w3.org/2000/svg';
+const byId={}; NODES.forEach(n=>byId[n.id]=n);
+let filter='all', showClash=true, sel=null;
+let view={x:0,y:0,k:1};
+
+function seed(){
+  const hubs={ceo:-Math.PI/2, cfo:Math.PI/6, cto:Math.PI*5/6};
+  NODES.forEach(n=>{
+    if(n.id==='mvp'){n.x=W/2;n.y=H/2;n.fx=W/2;n.fy=H/2;return;}
+    if(hubs[n.id]!==undefined){n.x=W/2+Math.cos(hubs[n.id])*150;n.y=H/2+Math.sin(hubs[n.id])*150;}
+    else{const h=hubs[n.g]; const j=(Math.random()-.5)*1.5;
+      n.x=W/2+Math.cos(h+j)*(250+Math.random()*70); n.y=H/2+Math.sin(h+j)*(250+Math.random()*70);}
+    n.vx=0;n.vy=0;
+  });
+}
+seed();
+
+function tick(){
+  // repulsión
+  for(let i=0;i<NODES.length;i++)for(let j=i+1;j<NODES.length;j++){
+    const a=NODES[i],b=NODES[j]; let dx=b.x-a.x,dy=b.y-a.y; let d2=dx*dx+dy*dy;
+    if(d2<1)d2=1; const d=Math.sqrt(d2); const minD=a.r+b.r+26;
+    let f=2800/d2; if(d<minD) f+=(minD-d)*0.34;
+    const fx=dx/d*f, fy=dy/d*f;
+    if(!a.fx){a.vx-=fx;a.vy-=fy;} if(!b.fx){b.vx+=fx;b.vy+=fy;}
+  }
+  // resortes
+  LINKS.forEach(l=>{
+    const a=byId[l.s],b=byId[l.t]; if(!a||!b)return;
+    const L = l.k==='core'?165 : l.k==='b'?126 : 235;
+    const st= l.k==='core'?.06 : l.k==='b'?.05 : .012;
+    let dx=b.x-a.x,dy=b.y-a.y; const d=Math.sqrt(dx*dx+dy*dy)||1;
+    const f=(d-L)*st; const fx=dx/d*f, fy=dy/d*f;
+    if(!a.fx){a.vx+=fx;a.vy+=fy;} if(!b.fx){b.vx-=fx;b.vy-=fy;}
+  });
+  // gravedad al centro
+  NODES.forEach(n=>{ if(n.fx)return;
+    n.vx+=(W/2-n.x)*0.0022; n.vy+=(H/2-n.y)*0.0028;
+    n.vx*=.82; n.vy*=.82;
+    n.x+=Math.max(-9,Math.min(9,n.vx)); n.y+=Math.max(-9,Math.min(9,n.vy));
+    n.x=Math.max(n.r+8,Math.min(W-n.r-8,n.x)); n.y=Math.max(n.r+8,Math.min(H-n.r-8,n.y));
+  });
+}
+for(let i=0;i<430;i++)tick();
+
+function col(g){return A[g]||A.core;}
+function visible(n){ if(filter==='all')return true; if(n.id==='mvp')return true; return n.g===filter; }
+function neigh(id){const s=new Set([id]);LINKS.forEach(l=>{if(l.s===id)s.add(l.t);if(l.t===id)s.add(l.s);});return s;}
+
+function render(){
+  svg.innerHTML='';
+  const g=document.createElementNS(NS,'g');
+  g.setAttribute('transform',`translate(${view.x},${view.y}) scale(${view.k})`);
+  svg.appendChild(g);
+  const hl = sel?neigh(sel):null;
+
+  LINKS.forEach(l=>{
+    const a=byId[l.s],b=byId[l.t]; if(!a||!b)return;
+    const isCl=(l.k==='clash'||l.k==='conv');
+    if(isCl && !showClash)return;
+    if(!visible(a)||!visible(b))return;
+    const ln=document.createElementNS(NS,'line');
+    ln.setAttribute('x1',a.x);ln.setAttribute('y1',a.y);ln.setAttribute('x2',b.x);ln.setAttribute('y2',b.y);
+    ln.setAttribute('class','lnk');
+    if(l.k==='clash'){ln.setAttribute('stroke','#f87171');ln.setAttribute('stroke-width',2);ln.setAttribute('stroke-dasharray','7 5');ln.setAttribute('opacity',.62);}
+    else if(l.k==='conv'){ln.setAttribute('stroke','#a78bfa');ln.setAttribute('stroke-width',2);ln.setAttribute('stroke-dasharray','2 5');ln.setAttribute('opacity',.55);}
+    else if(l.k==='core'){ln.setAttribute('stroke',col(b.g));ln.setAttribute('stroke-width',2.4);ln.setAttribute('opacity',.4);}
+    else{ln.setAttribute('stroke',col(a.g));ln.setAttribute('stroke-width',1.3);ln.setAttribute('opacity',.26);}
+    if(hl){ const on = hl.has(l.s)&&hl.has(l.t); ln.setAttribute('opacity', on?.92:.06); if(on)ln.setAttribute('stroke-width',2.6); }
+    g.appendChild(ln);
+  });
+
+  NODES.forEach(n=>{
+    if(!visible(n))return;
+    const c=col(n.g);
+    const grp=document.createElementNS(NS,'g');
+    grp.setAttribute('class','nodeg'+(hl&&!hl.has(n.id)?' dim':''));
+    grp.setAttribute('transform',`translate(${n.x},${n.y})`);
+    grp.dataset.id=n.id;
+
+    if(sel===n.id){const h=document.createElementNS(NS,'circle');
+      h.setAttribute('r',n.r+8);h.setAttribute('fill','none');h.setAttribute('stroke',c);
+      h.setAttribute('stroke-width',1.2);h.setAttribute('opacity',.45);grp.appendChild(h);}
+
+    const ci=document.createElementNS(NS,'circle');
+    ci.setAttribute('class','main');ci.setAttribute('r',n.r);
+    ci.setAttribute('fill', n.id==='mvp'?'#1b2030':'#141826');
+    ci.setAttribute('stroke',c);ci.setAttribute('stroke-width', n.r>30?3:2);
+    grp.appendChild(ci);
+
+    const words=n.label.split(' ');
+    const fs = n.r>30?13:(n.r>25?11:10);
+    const dy0 = n.sub ? (words.length>1? -8 : -3) : (words.length>1? -5 : 4);
+    words.forEach((w,i)=>{
+      const t=document.createElementNS(NS,'text');
+      t.setAttribute('text-anchor','middle');t.setAttribute('y',dy0+i*(fs+1)+4);
+      t.setAttribute('style',`font-family:var(--mono);font-size:${fs}px;font-weight:700;fill:${n.id==='mvp'?'#e6e9f5':c}`);
+      t.textContent=w;grp.appendChild(t);
+    });
+    if(n.sub){
+      const s=document.createElementNS(NS,'text');
+      s.setAttribute('text-anchor','middle');s.setAttribute('y',dy0+words.length*(fs+1)+5);
+      s.setAttribute('style','font-family:var(--sans);font-size:8px;fill:#8d94b0');
+      s.textContent=n.sub;grp.appendChild(s);
+    }
+    g.appendChild(grp);
+  });
+}
+render();
+
+/* interacción */
+let drag=null,pan=null;
+function pt(e){const r=svg.getBoundingClientRect();return{x:(e.clientX-r.left)*(W/r.width),y:(e.clientY-r.top)*(H/r.height)};}
+function toWorld(p){return{x:(p.x-view.x)/view.k,y:(p.y-view.y)/view.k};}
+
+svg.addEventListener('pointerdown',e=>{
+  const g=e.target.closest('.nodeg');
+  if(g){const n=byId[g.dataset.id]; const w=toWorld(pt(e));
+    drag={n,dx:n.x-w.x,dy:n.y-w.y,moved:false}; svg.setPointerCapture(e.pointerId);}
+  else{pan={p:pt(e),vx:view.x,vy:view.y}; svg.classList.add('drag'); svg.setPointerCapture(e.pointerId);}
+});
+svg.addEventListener('pointermove',e=>{
+  if(drag){const w=toWorld(pt(e));drag.n.x=w.x+drag.dx;drag.n.y=w.y+drag.dy;
+    drag.n.fx=drag.n.x;drag.n.fy=drag.n.y;drag.moved=true;render();}
+  else if(pan){const p=pt(e);view.x=pan.vx+(p.x-pan.p.x);view.y=pan.vy+(p.y-pan.p.y);render();}
+});
+svg.addEventListener('pointerup',e=>{
+  if(drag){ if(!drag.moved) select(drag.n.id);
+    if(drag.n.id!=='mvp'){drag.n.fx=null;drag.n.fy=null;} drag=null; }
+  pan=null; svg.classList.remove('drag');
+});
+svg.addEventListener('wheel',e=>{
+  e.preventDefault(); const p=pt(e); const k=Math.max(.55,Math.min(2.4,view.k*(e.deltaY<0?1.13:.885)));
+  view.x=p.x-(p.x-view.x)*(k/view.k); view.y=p.y-(p.y-view.y)*(k/view.k); view.k=k; render();
+},{passive:false});
+
+/* ============ PANEL ============ */
+function esc(s){return s;}
+function select(id){
+  sel = (sel===id)?null:id;
+  render();
+  const panel=document.getElementById('panel');
+  if(!sel){panel.innerHTML=`<div class="empty"><div class="big">◉</div><p><b style="color:var(--txt2)">Ningún nodo seleccionado.</b><br><br>Haz clic en cualquier nodo del grafo para leer qué dijo ese agente, qué propone, a quién le cuesta y de dónde salió.</p></div>`;return;}
+  const n=byId[sel], d=n.d, c=col(n.g);
+  let h=`<span class="p-tag" style="background:${c}1f;color:${c}">${d.tag}</span>
+         <div class="p-title">${d.title}</div>
+         <div class="p-meta">${d.who}</div>
+         <div class="p-b">${d.body}</div>`;
+  if(d.list){h+=`<div class="p-h">Detalle</div><div class="p-b"><ul>${d.list.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;}
+  if(d.quote){h+=`<div class="quote" style="border-left-color:${c}">${d.quote}</div>`;}
+  if(d.kv){h+=`<div class="p-h">Puntos clave</div><div class="kvs">${d.kv.map(([k,v])=>`<div class="kv"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}</div>`;}
+  const rel=(d.rel||[]).filter(r=>byId[r]);
+  if(rel.length){h+=`<div class="rel"><div class="p-h" style="margin-top:0">Conecta con</div>${rel.map(r=>{
+    const rn=byId[r],rc=col(rn.g);
+    return `<button class="relbtn" onclick="select('${r}')"><span class="rl" style="color:${rc}">${rn.g.toUpperCase()}</span>${rn.d.title}</button>`;}).join('')}</div>`;}
+  panel.innerHTML=h;
+  panel.scrollTop=0;
+}
+window.select=select;
+
+/* ============ CHOQUES ============ */
+document.getElementById('clashList').innerHTML = CLASHES.map(c=>
+ `<div class="item" onclick="select('${c.n}')">
+    <div class="dot" style="background:${c.dot};box-shadow:0 0 7px ${c.dot}"></div>
+    <div><div class="i-t">${c.t}</div><div class="i-d">${c.d}</div><div class="i-w">${c.w}</div></div>
+  </div>`).join('');
+
+/* ============ CONTROLES ============ */
+document.querySelectorAll('.chip[data-f]').forEach(ch=>{
+  ch.addEventListener('click',()=>{
+    document.querySelectorAll('.chip[data-f]').forEach(x=>x.classList.remove('on'));
+    ch.classList.add('on'); filter=ch.dataset.f;
+    if(sel && !visible(byId[sel])) select(sel);
+    render();
+  });
+});
+document.getElementById('tgClash').addEventListener('click',function(){
+  showClash=!showClash; this.classList.toggle('on',showClash);
+  this.textContent = showClash?'Choques visibles':'Choques ocultos'; render();
+});
+document.getElementById('btnReset').addEventListener('click',()=>{
+  NODES.forEach(n=>{if(n.id!=='mvp'){n.fx=null;n.fy=null;}});
+  seed(); for(let i=0;i<430;i++)tick();
+  view={x:0,y:0,k:1}; render();
+});
+</script>
+</body>
+</html>

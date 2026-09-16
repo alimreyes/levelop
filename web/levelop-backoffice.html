@@ -1,0 +1,1048 @@
+<title>Levelop BackOffice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quantico:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+
+<script>
+try{ document.documentElement.setAttribute("data-theme", localStorage.getItem("lvl-tema") || "dark"); }
+catch(e){ document.documentElement.setAttribute("data-theme","dark"); }
+</script>
+
+<style>
+/* ---------- TOKENS ---------- */
+:root{
+  --ground:#EAEAE4; --surface:#FFFFFF; --surface-2:#F1F1EB; --surface-3:#DFDFD7;
+  --line:#D0D0C8; --line-strong:#ABABA1;
+  --ink:#0B0B0C; --ink-2:#4A4A47; --ink-3:#7A7A75;
+  --grid:rgba(11,11,12,.055);
+  --gold:#4E6606; --gold-ink:#3C5004; --gold-bg:#E7F7B7; --gold-line:#C4E273; --gold-solid:#C3F03A;
+  --xp:#0B0B0C;   --xp-bg:#E2E2DB;   --xp-line:#BEBEB4;  --xp-solid:#0B0B0C;
+  --ok:#0A6B7A;   --ok-bg:#D7EFF4;   --ok-line:#9BD2DE;
+  --risk:#C0361F; --risk-bg:#FADFD9; --risk-line:#EEAE9F;
+  --sync:#4A38C4; --sync-bg:#E2DEFA; --sync-line:#B4ABF0;
+  /* series — validadas con el validador de paleta (claro, superficie #FFFFFF) */
+  --s1:#6E8F06; --s2:#0090A8; --s3:#5B4ED6; --s4:#C24430; --s5:#1F6FB5; --s6:#B03E7C;
+  --chart-grid:#D0D0C8;
+  --shadow-sm:none;
+  --shadow:4px 4px 0 rgba(11,11,12,.10);
+  --shadow-lg:8px 8px 0 rgba(11,11,12,.18);
+  --cut:0px;
+  --display:'Silkscreen','Courier New',monospace;
+  --body:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --mono:'Space Mono','SFMono-Regular',Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#08080A; --surface:#121215; --surface-2:#1A1A1E; --surface-3:#26262C;
+    --line:#2A2A31; --line-strong:#43434E;
+    --ink:#EDEDE7; --ink-2:#9B9B95; --ink-3:#6A6A66;
+    --grid:rgba(237,237,231,.045);
+    --gold:#C3F03A; --gold-ink:#D6F871; --gold-bg:#2A3607; --gold-line:#4A5F0D; --gold-solid:#C3F03A;
+    --xp:#EDEDE7;   --xp-bg:#26262C;   --xp-line:#43434E;  --xp-solid:#EDEDE7;
+    --ok:#4FD8E8;   --ok-bg:#0A2C33;   --ok-line:#18505C;
+    --risk:#FF6A52; --risk-bg:#331310; --risk-line:#57241D;
+    --sync:#A79AFF; --sync-bg:#1D1846; --sync-line:#332B70;
+    --s1:#7FA30E; --s2:#1E9AAB; --s3:#8078EE; --s4:#E05C48; --s5:#3390D6; --s6:#CB5694;
+    --chart-grid:#2A2A31;
+    --shadow-sm:none;
+    --shadow:4px 4px 0 rgba(0,0,0,.5);
+    --shadow-lg:8px 8px 0 rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#08080A; --surface:#121215; --surface-2:#1A1A1E; --surface-3:#26262C;
+  --line:#2A2A31; --line-strong:#43434E;
+  --ink:#EDEDE7; --ink-2:#9B9B95; --ink-3:#6A6A66;
+  --grid:rgba(237,237,231,.045);
+  --gold:#C3F03A; --gold-ink:#D6F871; --gold-bg:#2A3607; --gold-line:#4A5F0D; --gold-solid:#C3F03A;
+  --xp:#EDEDE7;   --xp-bg:#26262C;   --xp-line:#43434E;  --xp-solid:#EDEDE7;
+  --ok:#4FD8E8;   --ok-bg:#0A2C33;   --ok-line:#18505C;
+  --risk:#FF6A52; --risk-bg:#331310; --risk-line:#57241D;
+  --sync:#A79AFF; --sync-bg:#1D1846; --sync-line:#332B70;
+  --s1:#7FA30E; --s2:#1E9AAB; --s3:#8078EE; --s4:#E05C48; --s5:#3390D6; --s6:#CB5694;
+  --chart-grid:#2A2A31;
+  --shadow-sm:none;
+  --shadow:4px 4px 0 rgba(0,0,0,.5);
+  --shadow-lg:8px 8px 0 rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+body{margin:0; background:var(--ground); color:var(--ink); font-family:var(--body);
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased}
+button{font:inherit; color:inherit; border:0; background:none; cursor:pointer}
+:focus-visible{outline:2px solid var(--xp-solid); outline-offset:2px}
+p{margin:0}
+svg{display:block}
+h1,h2,h3,h4{margin:0; font-family:var(--display); text-wrap:balance}
+h1{font-weight:700; text-transform:uppercase; line-height:1; font-size:40px; letter-spacing:0}
+h2{font-weight:700; text-transform:uppercase; letter-spacing:0; line-height:1.05; font-size:19px}
+h3{font-weight:700; line-height:1.12; font-size:16px}
+.num{font-family:var(--mono); font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+
+.topbar{position:sticky; top:0; z-index:40; background:var(--surface); box-shadow:inset 0 -1px 0 var(--line)}
+.topbar-in{max-width:1320px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.brand{display:flex; align-items:center; gap:8px; font-family:var(--display); font-weight:700;
+  font-size:22px; text-transform:uppercase; line-height:1}
+.brand em{font-style:normal; color:var(--gold)}
+.brand-mark{width:25px; height:25px; display:grid; place-items:center; font-size:13px; font-weight:700;
+  font-family:var(--display); color:var(--ground); background:var(--gold-solid);
+  clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.tag-int{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+  padding:4px 9px; color:var(--risk); background:var(--risk-bg); box-shadow:inset 0 0 0 1px var(--risk-line);
+  clip-path:polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))}
+.spacer{flex:1}
+.wrap{max-width:1320px; margin:0 auto; padding:22px 20px 60px}
+
+.eyebrow{display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:10px;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--ink-3)}
+.eyebrow::after{content:""; width:24px; height:1px; background:var(--line-strong)}
+.sub{color:var(--ink-2); font-size:13px}
+.sec-h{display:flex; align-items:center; gap:12px; margin:28px 0 12px}
+.sec-h h2{flex:none}
+.sec-h .sub{order:3; text-align:right; flex:none; max-width:44%}
+.sec-h::before{content:""; order:2; flex:1; height:1px; background:var(--line); min-width:18px}
+
+.card{background:var(--surface); box-shadow:var(--shadow-sm), inset 0 0 0 1px var(--line); padding:16px 17px;}
+.row{display:flex; align-items:center}
+.g8{gap:8px} .g12{gap:12px}
+.wrapf{flex-wrap:wrap}
+
+.seg{display:inline-flex; background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); padding:3px; gap:2px}
+.seg button{padding:6px 13px; font-family:var(--mono); font-size:11.5px; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--ink-3); white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--ink); color:var(--surface)}
+.seg-sm{flex:none} .seg-sm button{padding:5px 10px; font-size:10.5px}
+.iconbtn{width:33px; height:33px; display:grid; place-items:center; color:var(--ink-3);
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line);
+  clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))}
+.iconbtn svg{width:18px; height:18px}
+.chip{display:inline-flex; align-items:center; gap:5px; padding:3px 9px; font-family:var(--mono); font-size:11px;
+  white-space:nowrap; background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); color:var(--ink-2)}
+.chip.ok{background:var(--ok-bg); box-shadow:inset 0 0 0 1px var(--ok-line); color:var(--ok)}
+.chip.risk{background:var(--risk-bg); box-shadow:inset 0 0 0 1px var(--risk-line); color:var(--risk)}
+.chip.gold{background:var(--gold-bg); box-shadow:inset 0 0 0 1px var(--gold-line); color:var(--gold-ink)}
+.chip.sync{background:var(--sync-bg); box-shadow:inset 0 0 0 1px var(--sync-line); color:var(--sync)}
+.note{padding:11px 13px; font-size:12.5px; line-height:1.5; background:var(--surface-2);
+  box-shadow:inset 0 0 0 1px var(--line); color:var(--ink-2)}
+.note b{color:var(--ink)}
+.note.gold{background:var(--gold-bg); box-shadow:inset 0 0 0 1px var(--gold-line); color:var(--gold-ink)}
+.note.gold b{color:var(--gold-ink)}
+
+/* ---------- TILES ---------- */
+.tiles{display:grid; gap:2px; background:var(--line); border:2px solid var(--line);
+  grid-template-columns:repeat(2,1fr)}
+.tile{background:var(--surface); padding:14px 15px; min-width:0}
+.tile:nth-child(5){grid-column:1 / -1}
+@media(min-width:760px){
+  .tiles{grid-template-columns:repeat(5,1fr)}
+  .tile:nth-child(5){grid-column:auto}
+  .tile .v{font-size:29px}
+}
+@media(min-width:1120px){.tile .v{font-size:40px}}
+.tile .l{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3)}
+.tile .v{font-family:var(--display); font-weight:700; font-size:40px; line-height:.92; margin-top:4px;
+  font-variant-numeric:tabular-nums}
+.tile .d{font-family:var(--mono); font-size:11px; margin-top:5px; color:var(--ink-3)}
+.tile .d.up{color:var(--ok)} .tile .d.down{color:var(--risk)}
+
+/* ---------- GRÁFICOS ---------- */
+.charts{display:grid; gap:12px; grid-template-columns:1fr}
+@media(min-width:1000px){.charts{grid-template-columns:1fr 1fr}}
+.chart-h{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px}
+.chart-h h3{text-transform:uppercase}
+.chart-h .sub{margin-top:3px}
+
+.legend{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:13px}
+.legend span{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--ink-2)}
+.legend i{width:11px; height:11px; border-radius:0; display:block}
+
+/* barras horizontales */
+.bars{display:flex; flex-direction:column; gap:9px}
+.bar-row{display:grid; grid-template-columns:104px 1fr auto; gap:11px; align-items:center}
+.bar-row .bl{font-size:12.5px; color:var(--ink-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.bar-track{display:block; height:16px; background:var(--surface-2); position:relative}
+.bar-fill{display:block; height:100%; border-radius:0 4px 4px 0; transition:width .5s cubic-bezier(.2,.8,.25,1)}
+.bar-row .bv{font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums; color:var(--ink);
+  min-width:52px; text-align:right}
+.bar-row .bx{font-family:var(--mono); font-size:10.5px; color:var(--ink-3)}
+
+/* barras apiladas */
+.stack-row{display:grid; grid-template-columns:118px 1fr auto; gap:11px; align-items:center}
+.stack-track{display:flex; gap:2px; height:18px}
+.stack-seg{display:block; transition:width .5s cubic-bezier(.2,.8,.25,1)}
+.stack-seg:last-child{border-radius:0 4px 4px 0}
+
+/* tabla */
+.tbl-wrap{overflow-x:auto; background:var(--surface); box-shadow:inset 0 0 0 1px var(--line);}
+table{border-collapse:collapse; width:100%; min-width:760px}
+th{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);
+  text-align:left; padding:12px 13px; white-space:nowrap; cursor:pointer; user-select:none}
+th:hover{color:var(--ink)}
+th[aria-sort]{color:var(--gold)}
+td{padding:11px 13px; font-size:13px; border-top:1px solid var(--line); white-space:nowrap}
+td.n{font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right}
+th.n{text-align:right}
+tbody tr:hover{background:var(--surface-2)}
+.who{display:flex; align-items:center; gap:9px}
+.av{width:26px; height:26px; flex:none; display:grid; place-items:center; font-family:var(--mono); font-size:9.5px;
+  color:#fff; clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.mini-bar{width:60px; height:6px; background:var(--surface-2); display:inline-block; vertical-align:middle}
+.mini-bar i{display:block; height:100%; border-radius:0 2px 2px 0}
+
+/* tooltip */
+#tip{position:fixed; z-index:90; pointer-events:none; opacity:0; transition:opacity .12s;
+  background:var(--surface); box-shadow:0 18px 40px -18px rgba(0,0,0,.8), inset 0 0 0 1px var(--line-strong);
+  padding:9px 11px; font-size:12.5px; max-width:240px}
+#tip .tk{font-family:var(--display); font-weight:700; font-size:13px; text-transform:uppercase; line-height:1.15}
+#tip .tr{display:flex; justify-content:space-between; gap:14px; font-family:var(--mono); font-size:11.5px;
+  color:var(--ink-2); margin-top:4px}
+#tip .tr b{color:var(--ink); font-weight:500}
+#tip .sw{display:inline-block; width:9px; height:9px; border-radius:0; margin-right:6px}
+
+.hide{display:none !important}
+
+@media (max-width:700px){
+  .sec-h{flex-wrap:wrap}
+  .sec-h .sub{flex:1 0 100%; max-width:100%; text-align:left; order:3}
+}
+
+/* ---------- RETO DE LA EMPRESA ---------- */
+.reto-h{display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap}
+.reto-prem{flex:none; width:74px; height:74px; display:grid; place-items:center; font-size:32px;
+  background:var(--gold-bg); box-shadow:inset 0 0 0 1px var(--gold-line);
+  clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
+.reto-t{font-family:var(--display); font-weight:700; font-size:20px; text-transform:uppercase; line-height:1.1}
+.prop{background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); padding:14px 15px}
+.prop + .prop{margin-top:9px}
+.prop-t{font-family:var(--display); font-weight:700; font-size:15px; text-transform:uppercase; line-height:1.15}
+.prop-w{font-family:var(--mono); font-size:9.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--gold)}
+.prop-b{font-size:13px; line-height:1.5; color:var(--ink-2); margin-top:8px}
+.prop-b b{color:var(--ink)}
+.gauge{display:flex; gap:2px; margin-top:11px}
+.gauge i{flex:1; height:8px; background:var(--surface-3)}
+.gauge i.on{background:var(--gold-solid)}
+.gauge i.hot{background:var(--risk)}
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 14px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); color:var(--ink); cursor:pointer}
+.btn.gold{background:var(--gold-solid); color:#0B0B0C; box-shadow:none; font-weight:700}
+.btn.ghost{background:none}
+.btn.wide{width:100%}
+
+/* ---------- MODALES ---------- */
+.veil{position:fixed; inset:0; z-index:100; background:rgba(0,0,0,.62); display:grid; place-items:center;
+  padding:18px; overflow:auto}
+.sheet{background:var(--surface); box-shadow:0 30px 70px -30px rgba(0,0,0,.9), inset 0 0 0 2px var(--line-strong);
+  width:100%; max-width:520px; max-height:92vh; overflow:auto}
+.sheet-h{display:flex; align-items:flex-start; gap:12px; padding:16px 17px 13px; box-shadow:inset 0 -1px 0 var(--line)}
+.sheet-b{padding:16px 17px; display:flex; flex-direction:column; gap:12px}
+.sheet-f{padding:13px 17px; display:flex; gap:9px; box-shadow:inset 0 1px 0 var(--line)}
+.closebtn{width:30px; height:30px; display:grid; place-items:center; flex:none; color:var(--ink-3);
+  background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line)}
+.closebtn svg{width:15px; height:15px}
+.mirror{background:var(--ground); box-shadow:inset 0 0 0 2px var(--line-strong); padding:15px}
+.mirror .mh{font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-3); margin-bottom:9px}
+
+/* ---------- capa arcade ---------- */
+body{background-color:var(--ground);
+  background-image:linear-gradient(var(--grid) 1px, transparent 1px),
+                   linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:32px 32px}
+h1,h2,h3,h4{text-transform:uppercase; letter-spacing:.01em}
+.card,.panel,.graph-box,.tbl-wrap,.w,.altboard{box-shadow:none !important; border:1px solid var(--line)}
+.tiles{box-shadow:none !important}
+.tile{border:0}
+.chip,.btn,.seg,.iconbtn,.note,.fchip{border-radius:0}
+.seg button[aria-pressed="true"]{background:var(--gold-solid); color:#0B0B0C; font-weight:600}
+.eyebrow::after{height:4px; width:22px; background:none;
+  background-image:linear-gradient(90deg,var(--line-strong) 0 4px,transparent 4px 8px); background-size:8px 4px}
+.sec-h::before{height:4px; background:none;
+  background-image:linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px); background-size:8px 4px}
+.note{border-left-width:4px}
+.tag-int{border-radius:0}
+.bar-fill{border-radius:0 !important; transition:width .3s steps(8)}
+.mini-bar i{border-radius:0 !important}
+.legend i{border-radius:0}
+#tip{border-radius:0}
+
+/* =========================================================
+   CIFRAS SIEMPRE EN REGULAR 400
+   Silkscreen y Space Mono en 700 engordan el dígito y le
+   quitan el contraforma. Los números se leen mejor en 400,
+   así que ningún número del sistema va en negrita — ni los
+   grandes ni los de una tabla. La jerarquía la hace el
+   tamaño, no el peso.
+   ========================================================= */
+
+/* SIGNO % EN QUANTICO — Silkscreen pierde la forma del '%',
+   así que en cualquier valor con Silkscreen se aísla el signo
+   en .pct para que se lea con Quantico en su lugar. */
+.pct{font-family:'Quantico','Courier New',monospace; font-weight:400}
+.num, .hud .num, .score, .seal b, .stat .v, .stat b, .tile .v, .price b,
+.rank-pos, .rank-v, .bv, .bar-row .bv, .w-h .c, .paso-n, .chip.num,
+td.n, #tip .tr b, #tip .tr span, .pat-sig .sv, .plist .pr b, .fstep .fn,
+.duelo-s .av, .duel-side .av2, .cal .dn, .cal-more, .mini-bar + span,
+.ranklist b, .lote .bv, .meter-v, .gauge-v{
+  font-weight:400 !important;
+}
+
+/* =========================================================
+   AÑADIDO EN LA CONEXIÓN AL BACKEND (15/09/26)
+   -----------------------------------------------------------
+   El CSS de arriba es del PD y no se toca. Esto es solo lo que
+   hace falta para login, avisos y el marcado de "sin conectar" —
+   mismo criterio que levelop-mvp.html (14/09): lo que el backend
+   no soporta hoy queda VISIBLE y MARCADO, nunca oculto ni
+   simulado con datos inventados. Detalle: CTO/LVL-013.
+   ========================================================= */
+.nc{position:relative; border-style:dashed; border-color:var(--line-strong)}
+.nc .w-h h3, .nc h2, .nc h3{color:var(--ink-3)}
+.nc-chip{background:var(--surface-3); border-color:var(--line-strong); color:var(--ink-3)}
+.nc-body{display:flex; flex-direction:column; gap:8px; align-items:flex-start}
+.nc-body p{font-size:12.5px; line-height:1.5; color:var(--ink-3)}
+
+.auth{min-height:100vh; display:grid; place-items:center; padding:24px 16px}
+.auth-card{width:100%; max-width:420px; background:var(--surface); border:2px solid var(--ink);
+  box-shadow:var(--shadow-lg); padding:26px 24px}
+.auth-card .brand{margin-bottom:20px}
+.auth-card h1{font-size:26px; margin-bottom:6px}
+.auth-f{display:flex; flex-direction:column; gap:14px; margin-top:20px}
+.auth-err{padding:11px 12px; font-size:12.5px; line-height:1.5; background:var(--risk-bg);
+  border:1px solid var(--risk-line); border-left:4px solid var(--risk); color:var(--risk)}
+.auth-pick{display:flex; flex-direction:column; gap:8px}
+.auth-pick button{display:flex; align-items:center; gap:11px; padding:13px 14px; text-align:left;
+  background:var(--surface-2); border:1px solid var(--line)}
+.auth-pick button:hover{border-color:var(--gold-solid); background:var(--surface-3)}
+.cargando{padding:60px 18px; text-align:center; color:var(--ink-3); font-family:var(--mono);
+  font-size:10px; text-transform:uppercase; letter-spacing:.02em}
+
+.toasts{position:fixed; left:12px; right:12px; bottom:20px; z-index:70; display:flex; flex-direction:column;
+  gap:8px; align-items:center; pointer-events:none}
+@media (min-width:960px){.toasts{left:auto; right:20px; align-items:flex-end}}
+.toast{pointer-events:auto; max-width:400px; width:100%; padding:11px 13px; background:var(--surface);
+  border:2px solid var(--ink); box-shadow:var(--shadow); display:flex; gap:10px; align-items:flex-start}
+.toast .ti{flex:none; width:17px; height:17px; margin-top:2px; color:var(--ink-2)}
+.toast .tt{font-family:var(--display); font-size:15px; font-weight:700; text-transform:uppercase; line-height:1.15}
+.toast .td{font-size:12.5px; color:var(--ink-2); margin-top:2px; line-height:1.5}
+.toast.ok{border-color:var(--ok)} .toast.ok .td, .toast.ok .ti{color:var(--ok)}
+.toast.risk{border-color:var(--risk)} .toast.risk .td, .toast.risk .ti{color:var(--risk)}
+
+.field{display:flex; flex-direction:column; gap:6px}
+.field label{font-family:var(--mono); font-size:8.5px; text-transform:uppercase; letter-spacing:.01em; color:var(--ink-3)}
+.field input, .field select, .field textarea{padding:10px 12px; border:1px solid var(--line); background:var(--surface-2);
+  font-size:14px; font-family:var(--body)}
+.field textarea{line-height:1.5; resize:vertical}
+.field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--gold-solid); background:var(--surface)}
+.field select{appearance:none}
+.check{display:flex; align-items:center; gap:9px; font-size:13.5px; color:var(--ink-2); cursor:pointer}
+.check input{width:16px; height:16px; accent-color:var(--gold-solid)}
+</style>
+
+<div class="auth" id="auth"></div>
+
+<div class="hide" id="app">
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><span class="brand-mark">L</span>Levelop<em>!</em></div>
+    <span class="tag-int" id="tagRol">BackOffice · gerencia</span>
+    <div class="spacer"></div>
+    <button class="iconbtn" id="themebtn" title="Cambiar tema" aria-label="Cambiar tema"></button>
+    <button class="iconbtn" id="logoutbtn" title="Salir" aria-label="Salir"></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div style="margin-bottom:20px">
+    <span class="eyebrow" id="empresaNombre">Panel de equipos</span>
+    <h1 style="margin-top:6px">BackOffice</h1>
+    <p class="sub" style="margin-top:8px; max-width:64ch">Lo que gerencia necesita para decidir: si el workspace ya lanzó, cómo va cada área y qué se canjea. Datos reales del backend — lo que todavía no da queda marcado abajo, nunca inventado.</p>
+  </div>
+
+  <div class="tiles" id="tiles"><div class="cargando">Cargando…</div></div>
+
+  <div class="sec-h"><h2>Desempeño por área</h2><span class="sub">Tareas cerradas y Oro ganado por persona, promedio anual. Agregado — nunca por individuo (R-07)</span></div>
+  <div class="card" id="porArea"></div>
+
+  <div class="sec-h"><h2>Catálogo de beneficios</h2><span class="sub">Lo que gerencia puede cambiar: precio y si necesita aprobación</span></div>
+  <div class="row g8 wrapf" style="margin-bottom:12px">
+    <button class="btn gold" id="btnNuevoItem">+ Nuevo ítem</button>
+  </div>
+  <div class="tbl-wrap"><table id="tblCatalogo"></table></div>
+
+  <div class="sec-h"><h2>Canjes por familia</h2><span class="sub">Solo canjes confirmados de este mes. Agregado por familia — nunca por ítem ni por persona</span></div>
+  <div class="card"><div id="canjesFamilia"></div></div>
+
+  <!-- 16/09/26 — Personas, áreas e invitaciones. Administración, no evaluación:
+       nombres y roles SIN ningún número de desempeño. Ver nota al pie. -->
+  <div class="sec-h" style="margin-top:26px"><h2>Personas y áreas</h2><span class="sub">Quién está en la empresa, en qué área y con qué rol. Invitar es el único camino de alta</span></div>
+  <div class="row g8 wrapf" style="margin-bottom:12px">
+    <button class="btn gold" id="btnInvitar">+ Invitar a alguien</button>
+    <button class="btn ghost" id="btnNuevaArea">+ Nueva área</button>
+  </div>
+  <div class="tbl-wrap" style="margin-bottom:14px"><table id="tblPersonas"></table></div>
+  <div class="sec-h" style="margin-top:18px"><h2 style="font-size:15px">Áreas</h2><span class="sub">Asignar líder también le cambia el rol a esa persona</span></div>
+  <div class="tbl-wrap" style="margin-bottom:14px"><table id="tblAreas"></table></div>
+  <div class="sec-h" style="margin-top:18px"><h2 style="font-size:15px">Invitaciones</h2><span class="sub">Cada link dura 14 días y sirve una sola vez. Se comparte por donde quieras — todavía no se manda por correo</span></div>
+  <div class="tbl-wrap"><table id="tblInvitaciones"></table></div>
+
+  <div id="ncSecciones"></div>
+
+  <div class="note gold" style="margin-top:20px">
+    <b>Lo que este panel NO muestra, a propósito:</b> ninguna tabla de personas <b>con desempeño</b>, ni ordenable ni fija. La lista de «Personas y áreas» de arriba es administración (quién trabaja aquí, en qué área, con qué rol — lo que RRHH ya sabe por nómina) y no tiene un solo número al lado del nombre. Tampoco se muestra el contenido de los hilos de misión, quién apagó la capa de juego, ni qué beneficio pidió cada quien. Si un dato solo sirve para señalar a alguien, no entra aquí — y no es que falte conectarlo: el rol de base de datos de este panel no tiene permiso para leerlo (R-07 lo hace cumplir Postgres, no el código).
+  </div>
+</main>
+</div>
+
+<div id="tip"></div>
+<div id="modal"></div>
+<div class="toasts" id="toasts"></div>
+
+<script src="levelop-config.js"></script>
+<script src="levelop-api.js"></script>
+<script>
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const fmt = n => Number(n||0).toLocaleString("es-VE");
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* =========================================================
+   LEVELOP! — BackOffice de gerencia, conectado al backend real.
+   =========================================================
+   QUÉ CAMBIÓ Y POR QUÉ (15/09/26)
+   -------------------------------------------------------
+   Este archivo era un prototipo con datos inventados: nombres
+   de personas ("María Bracho"...), y nombres de EMPRESAS
+   CLIENTE reales — Cashea, Banplus, Farmatodo — como si fueran
+   clientes de Levelop con datos de uso (esto era, literalmente,
+   el hallazgo CH-19/C-018 del Documento Maestro). Al conectar
+   contra el backend real, esos datos desaparecen — no porque
+   se hayan ocultado, sino porque nunca existieron ahí.
+
+   Regla de Alim, igual que en levelop-mvp.html: "Conectar solo
+   lo que el backend ya soporta hoy. Todo lo demás queda visible
+   pero marcado como no conectado — nunca oculto sin explicación
+   ni simulado en silencio como si fuera real." Detalle superficie
+   por superficie en CTO/LVL-013 - Plan de Conexión Frontend.md §2.
+   ========================================================= */
+
+const S = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const IC = {
+  enchufe: S('<path d="M8.6 3.6v5M15.4 3.6v5"/><path d="M5.6 8.6h12.8v3.2a6.4 6.4 0 0 1-6.4 6.4 6.4 6.4 0 0 1-6.4-6.4V8.6Z"/><path d="M12 18.2v2.2"/>'),
+  x: S('<path d="M6.4 6.4 17.6 17.6M17.6 6.4 6.4 17.6"/>'),
+  tema: S('<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor" stroke="none"/>'),
+  salir: S('<path d="M14.6 16.4V19a1.6 1.6 0 0 1-1.6 1.6H5.6A1.6 1.6 0 0 1 4 19V5a1.6 1.6 0 0 1 1.6-1.6H13A1.6 1.6 0 0 1 14.6 5v2.6"/><path d="M8.8 12h11.2m0 0-3.2-3.2M20 12l-3.2 3.2"/>'),
+  check: S('<path d="M5 12.6 9.6 17 19 6.8"/>'),
+  alerta: S('<path d="M12 4.4 21 19.8H3L12 4.4Z"/><path d="M12 10v4.2M12 17.4h.01"/>'),
+  candado: S('<rect x="4.8" y="10.6" width="14.4" height="9.4" rx="1.6"/><path d="M8.4 10.6V7.8a3.6 3.6 0 0 1 7.2 0v2.8"/>')
+};
+const FAMILIAS = {tiempo:"Tiempo", impulsos:"Impulsos", consumo:"Consumo", aliados:"Aliados"};
+
+/* ---------------- ESTADO REAL — todo viene del servidor ---------------- */
+const D = { membresia:null, gate:null, canjes:[], areas:[], catalogo:[], cargado:false,
+  /* 16/09 — administración de personas (sin desempeño) */
+  personas:[], areasAdmin:[], invitaciones:[] };
+const ROL_TXT = {empleado:"Empleado", lider_area:"Líder de área", gerencia:"Gerencia", admin_tenant:"Administrador"};
+const fechaCorta = d => { const x = new Date(d); return isNaN(x) ? "—" : x.toLocaleDateString("es-VE",{day:"2-digit",month:"short"}); };
+let itemEnModal = null;
+
+/* ---------------- TOOLTIP ---------------- */
+const tip = $("#tip");
+function mostrarTip(html, e){
+  tip.innerHTML = html; tip.style.opacity = "1";
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if(x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if(y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+}
+const ocultarTip = () => { tip.style.opacity = "0"; };
+document.addEventListener("scroll", ocultarTip, true);
+
+function barrasHorizontales(cont, datos, opts={}){
+  if(!datos.length){ cont.innerHTML = `<p class="sub">Sin datos todavía.</p>`; return; }
+  const max = Math.max(1, ...datos.map(d=>d.v));
+  cont.innerHTML = `<div class="bars">` + datos.map((d,i)=>`
+    <div class="bar-row" data-i="${i}">
+      <span class="bl" title="${esc(d.n)}">${esc(d.n)}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${(d.v/max*100).toFixed(1)}%; background:${opts.color||"var(--s1)"}"></span></span>
+      <span class="bv">${opts.fmtv?opts.fmtv(d):fmt(d.v)}${opts.extra?`<span class="bx"> ${opts.extra(d)}</span>`:""}</span>
+    </div>`).join("") + `</div>`;
+  cont.querySelectorAll(".bar-row").forEach(row=>{
+    const d = datos[+row.dataset.i];
+    row.addEventListener("mousemove", e=>mostrarTip(opts.tip?opts.tip(d):`<div class="tk">${esc(d.n)}</div><div class="tr"><span>Valor</span><b>${fmt(d.v)}</b></div>`, e));
+    row.addEventListener("mouseleave", ocultarTip);
+  });
+}
+
+/* ---------------- AVISOS Y ERRORES ---------------- */
+function toast(tipo, ico, t, d, ms=5200){
+  const el=document.createElement("div");
+  el.className="toast "+tipo;
+  el.innerHTML=`<span class="ti">${IC[ico]||IC.check}</span><div><div class="tt">${esc(t)}</div><div class="td">${esc(d)}</div></div>`;
+  document.getElementById("toasts").appendChild(el);
+  setTimeout(()=>{ el.style.opacity="0"; el.style.transition="opacity .3s"; setTimeout(()=>el.remove(),320); }, ms);
+}
+function avisarError(e, donde){
+  if(e && e.status === 401) return toast("risk","candado","Se cerró tu sesión","Vuelve a entrar.", 6000);
+  if(e && e.status === 403) return toast("risk","candado","No tienes permiso","Tu rol en esta empresa no tiene acceso a esta acción (este panel exige gerencia o admin_tenant).", 7000);
+  console.error(donde, e);
+  toast("risk","alerta","No se pudo conectar", (e&&e.message)?String(e.message):"Revisa que el backend esté corriendo.", 7000);
+}
+
+/* =========================================================
+   MARCADO DE «NO CONECTADO» — misma regla que levelop-mvp.html
+   ========================================================= */
+function widgetNC(titulo, razon){
+  return `<div class="card nc" style="margin-top:12px">
+    <div class="row g8" style="margin-bottom:10px"><h3>${esc(titulo)}</h3></div>
+    <div class="nc-body"><span class="chip nc-chip">${IC.enchufe} Sin conectar</span><p>${esc(razon)}</p></div>
+  </div>`;
+}
+function pintarSeccionesNC(){
+  $("#ncSecciones").innerHTML = `
+    <div class="sec-h"><h2>Reparto de la carga por persona</h2><span class="sub">No es un hueco — es la regla</span></div>
+    ${widgetNC("Reparto de la carga",
+      "R-07 prohíbe que gerencia vea trabajo agrupado por persona, incluso en tramos anónimos: el rol de Postgres de este panel no tiene SELECT sobre lo necesario para calcularlo sin identidad. No es que falte conectar un endpoint — no debería existir un endpoint así para este panel.")}
+
+    <div class="sec-h" style="margin-top:22px"><h2>Salud de los canjes</h2><span class="sub">Confirmados / en proceso / indeterminados / devueltos</span></div>
+    ${widgetNC("Salud de los canjes",
+      "v_canjes_agregados solo cuenta canjes en estado CONFIRMADO — no expone el desglose por los otros cinco estados todavía. Hace falta un endpoint nuevo (o ampliar la vista). Anotado en LVL-013.")}
+
+    <div class="sec-h" style="margin-top:22px"><h2>Ausencias del período</h2><span class="sub">«Quién no va a estar», agregado</span></div>
+    ${widgetNC("Ausencias del período",
+      "El rol de Postgres de gerencia sí tiene SELECT sobre v_ausencias_programadas (mismo GRANT que líder de área), pero el controlador de gerencia no expone todavía un endpoint que la sirva. Es el más barato de conectar de esta lista — la vista y el permiso ya existen, falta la ruta REST.")}
+
+    <div class="sec-h" style="margin-top:22px"><h2>Reto de la empresa</h2><span class="sub">LVL-045</span></div>
+    ${widgetNC("Reto de la empresa",
+      "Cotizado (LVL-045, 4,5 semanas-fundador) pero nunca construido. Necesita estado compartido entre áreas, votación y marcador en tiempo real — no hay backend ni endpoint todavía.")}
+
+    <div class="sec-h" style="margin-top:22px"><h2>Anuncios</h2><span class="sub"></span></div>
+    ${widgetNC("Anuncios",
+      "No hay tabla de anuncios ni endpoint. Nunca se discutió en el Documento Maestro.")}
+  `;
+}
+
+/* =========================================================
+   LOGIN — mismo patrón que levelop-mvp.html (14/09/26).
+   El hueco de tenantId se cierra con GET /auth/mis-membresias.
+   ========================================================= */
+const A = $("#auth");
+function pintarLogin(error){
+  const tenantEnURL = new URLSearchParams(location.search).get("tenant");
+  A.innerHTML = `
+    <div class="auth-card">
+      <div class="brand"><span class="brand-mark">L</span>Levelop<em>!</em></div>
+      <h1>BackOffice</h1>
+      <p class="sub">Con una cuenta que tenga rol de gerencia.</p>
+      ${error?`<div class="auth-err" style="margin-top:16px">${esc(error)}</div>`:""}
+      <form class="auth-f" id="loginform">
+        <div class="field"><label>Correo</label>
+          <input id="lemail" type="email" autocomplete="username" required placeholder="tu@empresa.com"></div>
+        <div class="field"><label>Contraseña</label>
+          <input id="lpass" type="password" autocomplete="current-password" required minlength="8"></div>
+        ${tenantEnURL?`<div class="note">Se va a usar el tenant de la dirección: <b class="num">${esc(tenantEnURL.slice(0,8))}…</b></div>`:""}
+        <button class="btn gold wide" id="lbtn" type="submit">Entrar</button>
+      </form>
+    </div>`;
+  $("#loginform").addEventListener("submit", async ev=>{
+    ev.preventDefault();
+    const btn = $("#lbtn");
+    btn.disabled = true; btn.textContent = "Entrando…";
+    try{
+      const r = await LevelopAPI.login($("#lemail").value.trim(), $("#lpass").value);
+      await resolverTenant(r.membresias, tenantEnURL);
+    }catch(err){
+      btn.disabled = false; btn.textContent = "Entrar";
+      pintarLogin(
+        err && err.status === 401 ? "Correo o contraseña incorrectos."
+        : err && err.message ? `No se pudo entrar: ${err.message}`
+        : "No se pudo conectar con el servidor. ¿Está corriendo el backend?"
+      );
+    }
+  });
+}
+async function resolverTenant(membresias, tenantEnURL){
+  if(Array.isArray(membresias)){
+    if(membresias.length === 0){ LevelopAPI.logout(); return pintarLogin("Tu cuenta existe pero no está activa en ninguna empresa."); }
+    if(membresias.length === 1) return entrar(membresias[0]);
+    return pintarPicker(membresias);
+  }
+  const id = tenantEnURL || LevelopAPI.sesion.getTenantId();
+  if(id){ LevelopAPI.fijarTenant(id); return entrar({tenantId:id, tenantNombre:"(sin confirmar)", rol:"?"}, true); }
+  A.innerHTML = `<div class="auth-card"><div class="brand"><span class="brand-mark">L</span>Levelop<em>!</em></div>
+    <h1>Falta un dato</h1><div class="auth-err" style="margin-top:14px">Entraste bien, pero este backend todavía no tiene <b>GET /auth/mis-membresias</b>. Reinícialo y vuelve a entrar.</div></div>`;
+}
+function pintarPicker(membresias){
+  A.innerHTML = `<div class="auth-card"><div class="brand"><span class="brand-mark">L</span>Levelop<em>!</em></div>
+    <h1>¿Cuál empresa?</h1><p class="sub">Tu cuenta está activa en más de una.</p>
+    <div class="auth-pick" style="margin-top:18px">
+      ${membresias.map((m,i)=>`<button data-pick="${i}">
+        <span style="flex:1; min-width:0"><span style="display:block; font-size:14px; font-weight:600">${esc(m.tenantNombre)}</span>
+        <span class="mini-x" style="font-size:12px; color:var(--ink-3)">${esc(m.rol)}</span></span></button>`).join("")}
+    </div></div>`;
+  A.querySelectorAll("[data-pick]").forEach(b=>{
+    b.addEventListener("click", ()=>{ const m = membresias[+b.dataset.pick]; LevelopAPI.fijarTenant(m.tenantId); entrar(m); });
+  });
+}
+function entrar(membresia, sinConfirmar){
+  D.membresia = membresia;
+  A.classList.add("hide");
+  $("#app").classList.remove("hide");
+  $("#tagRol").textContent = `BackOffice · ${({empleado:"colaborador",lider_area:"líder de área",gerencia:"gerencia",admin_tenant:"administrador"})[membresia.rol]||"gerencia"}`;
+  $("#empresaNombre").textContent = membresia.tenantNombre || "Panel de equipos";
+  if(sinConfirmar) toast("risk","alerta","Entraste sin confirmar la empresa","Reinicia el backend para que esto deje de pasar.", 8000);
+  cargarTodo();
+}
+
+/* =========================================================
+   CARGA Y RENDER
+   ========================================================= */
+async function cargarTodo(){
+  $("#tiles").innerHTML = `<div class="cargando">Cargando…</div>`;
+  try{
+    const [dash, catalogo] = await Promise.all([
+      LevelopAPI.gerencia.dashboard(),
+      LevelopAPI.gerencia.catalogo(),
+    ]);
+    D.gate = dash.gate; D.canjes = Array.isArray(dash.canjes)?dash.canjes:[]; D.areas = Array.isArray(dash.areas)?dash.areas:[];
+    D.catalogo = Array.isArray(catalogo) ? catalogo : [];
+    D.cargado = true;
+    render();
+  }catch(e){ avisarError(e,"cargarTodo"); $("#tiles").innerHTML=""; }
+  await cargarPersonas();
+}
+
+/* 16/09 — se carga aparte: si el backend todavía no tiene estas rutas (no
+   corrió la migración), el resto del panel sigue funcionando y esta sección
+   dice qué le falta en vez de tumbar todo. */
+async function cargarPersonas(){
+  const r = await Promise.allSettled([
+    LevelopAPI.gerencia.personas(),
+    LevelopAPI.gerencia.areas(),
+    LevelopAPI.gerencia.invitaciones()
+  ]);
+  const fallo = r.find(x=>x.status==="rejected");
+  if(fallo){
+    const msg = (fallo.reason && fallo.reason.status===404)
+      ? "El backend no tiene todavía las rutas de personas/invitaciones — falta correr la migración <b>InvitacionesYOnboarding</b> y reiniciar."
+      : esc((fallo.reason && fallo.reason.message) || "No se pudo cargar.");
+    $("#tblPersonas").innerHTML = `<tbody><tr><td class="sub" style="padding:16px">${msg}</td></tr></tbody>`;
+    $("#tblAreas").innerHTML = ""; $("#tblInvitaciones").innerHTML = "";
+    return;
+  }
+  D.personas = r[0].value || []; D.areasAdmin = r[1].value || []; D.invitaciones = r[2].value || [];
+  pintarPersonas(); pintarAreasAdmin(); pintarInvitaciones();
+}
+
+function render(){
+  pintarTiles();
+  pintarPorArea();
+  pintarCatalogo();
+  pintarCanjesFamilia();
+  pintarSeccionesNC();
+}
+
+/* =========================================================
+   PERSONAS, ÁREAS E INVITACIONES (16/09)
+   ========================================================= */
+function pintarPersonas(){
+  const t = $("#tblPersonas");
+  if(!D.personas.length){ t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">Todavía no hay nadie. Invita a la primera persona.</td></tr></tbody>`; return; }
+  t.innerHTML = `
+    <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Área</th><th>Zona</th><th>Estado</th><th></th></tr></thead>
+    <tbody>${D.personas.map(p=>`
+      <tr style="${p.activo?"":"opacity:.55"}">
+        <td>${esc(p.nombre)}${p.membershipId===(D.membresia&&D.membresia.membershipId)?` <span class="chip">tú</span>`:""}</td>
+        <td class="sub">${esc(p.email)}</td>
+        <td>${esc(ROL_TXT[p.rol]||p.rol)}</td>
+        <td>${esc(p.areaNombre||"—")}</td>
+        <td>${esc(p.zona||"—")}</td>
+        <td><span class="chip ${p.activo?"ok":""}">${p.activo?"Activa":"De baja"}</span></td>
+        <td><button class="btn ghost" data-editar-persona="${esc(p.membershipId)}">Editar</button></td>
+      </tr>`).join("")}</tbody>`;
+}
+function pintarAreasAdmin(){
+  const t = $("#tblAreas");
+  if(!D.areasAdmin.length){ t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">Sin áreas todavía. Sin áreas no hay líder de área ni desempeño agregado.</td></tr></tbody>`; return; }
+  const nombreDe = id => { const p = D.personas.find(x=>x.membershipId===id); return p ? p.nombre : (id ? String(id).slice(0,8) : "—"); };
+  t.innerHTML = `
+    <thead><tr><th>Área</th><th>Líder</th><th class="n">Personas</th><th></th></tr></thead>
+    <tbody>${D.areasAdmin.map(a=>`
+      <tr>
+        <td>${esc(a.nombre)}</td>
+        <td>${a.liderMembershipId?esc(nombreDe(a.liderMembershipId)):`<span class="sub">Sin líder</span>`}</td>
+        <td class="n">${D.personas.filter(p=>p.activo && p.areaId===a.id).length}</td>
+        <td><button class="btn ghost" data-editar-area="${esc(a.id)}">Editar / líder</button></td>
+      </tr>`).join("")}</tbody>`;
+}
+function pintarInvitaciones(){
+  const t = $("#tblInvitaciones");
+  if(!D.invitaciones.length){ t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">Ninguna invitación todavía.</td></tr></tbody>`; return; }
+  t.innerHTML = `
+    <thead><tr><th>Correo</th><th>Rol</th><th>Área</th><th>Estado</th><th></th></tr></thead>
+    <tbody>${D.invitaciones.map(i=>{
+      const estado = i.aceptadaAt ? `<span class="chip ok">Aceptada ${esc(fechaCorta(i.aceptadaAt))}</span>`
+        : i.vigente ? `<span class="chip gold">Vigente hasta ${esc(fechaCorta(i.expiraAt))}</span>`
+        : `<span class="chip">Vencida / anulada</span>`;
+      return `<tr style="${i.vigente||i.aceptadaAt?"":"opacity:.55"}">
+        <td>${esc(i.email)}</td>
+        <td>${esc(ROL_TXT[i.rol]||i.rol)}</td>
+        <td>${esc(i.areaNombre||"—")}</td>
+        <td>${estado}</td>
+        <td class="row g8">${i.vigente?`<button class="btn ghost" data-copiar-link="${esc(i.token)}">Copiar link</button><button class="btn ghost" data-anular-inv="${esc(i.id)}">Anular</button>`:""}</td>
+      </tr>`;}).join("")}</tbody>`;
+}
+
+function opcionesArea(sel){
+  return `<option value="">— Sin área —</option>` + D.areasAdmin.map(a=>`<option value="${esc(a.id)}" ${sel===a.id?"selected":""}>${esc(a.nombre)}</option>`).join("");
+}
+function opcionesRol(sel){
+  return Object.entries(ROL_TXT).map(([v,n])=>`<option value="${v}" ${sel===v?"selected":""}>${n}</option>`).join("");
+}
+function modalInvitar(){
+  return `<div class="veil" data-cerrar><div class="sheet" role="dialog" aria-modal="true" data-stop>
+    <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Invitar</span><h2 style="margin-top:4px">Sumar a alguien a la empresa</h2></div><button class="closebtn" data-cerrar aria-label="Cerrar">×</button></div>
+    <div class="sheet-b">
+      <div class="field"><label>Correo</label><input id="ivEmail" type="email" required placeholder="persona@empresa.com"></div>
+      <div class="field"><label>Rol</label><select id="ivRol">${opcionesRol("empleado")}</select></div>
+      <div class="field"><label>Área (opcional)</label><select id="ivArea">${opcionesArea("")}</select></div>
+      <div class="field"><label>Zona (opcional — si se deja vacío, la de la empresa)</label><input id="ivZona" placeholder="Caracas"></div>
+      <div class="note">Se genera un link. La persona lo abre, escribe su nombre y elige su contraseña. Ni tú ni Levelop la ven. Si el correo ya tiene cuenta en otra empresa, usa su contraseña de siempre y se suma con la misma cuenta.</div>
+      <div class="auth-err hide" id="ivError"></div>
+    </div>
+    <div class="sheet-f"><button class="btn" data-cerrar>Cancelar</button><button class="btn gold" style="flex:1" id="ivGuardar">Generar link</button></div>
+  </div></div>`;
+}
+function modalLinkGenerado(inv){
+  const link = LevelopAPI.linkInvitacion(inv.token);
+  return `<div class="veil" data-cerrar><div class="sheet" role="dialog" aria-modal="true" data-stop>
+    <div class="sheet-h"><div style="flex:1"><span class="eyebrow">${inv.reutilizada?"Ya había una invitación vigente":"Invitación lista"}</span><h2 style="margin-top:4px">${esc(inv.email)}</h2></div><button class="closebtn" data-cerrar aria-label="Cerrar">×</button></div>
+    <div class="sheet-b">
+      <div class="field"><label>Link para compartir</label><input id="ivLink" value="${esc(link)}" readonly onclick="this.select()"></div>
+      <div class="note">Vence ${esc(fechaCorta(inv.expiraAt))}. Sirve una sola vez. Mándalo por WhatsApp, correo o como prefieras — el sistema todavía no envía correos solo.</div>
+    </div>
+    <div class="sheet-f"><button class="btn" data-cerrar>Cerrar</button><button class="btn gold" style="flex:1" data-copiar-link="${esc(inv.token)}">Copiar link</button></div>
+  </div></div>`;
+}
+function modalNuevaArea(){
+  return `<div class="veil" data-cerrar><div class="sheet" role="dialog" aria-modal="true" data-stop>
+    <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Áreas</span><h2 style="margin-top:4px">Nueva área</h2></div><button class="closebtn" data-cerrar aria-label="Cerrar">×</button></div>
+    <div class="sheet-b">
+      <div class="field"><label>Nombre</label><input id="naNombre" required minlength="2" placeholder="Ventas, Operaciones, Administración…"></div>
+      <div class="auth-err hide" id="naError"></div>
+    </div>
+    <div class="sheet-f"><button class="btn" data-cerrar>Cancelar</button><button class="btn gold" style="flex:1" id="naGuardar">Crear</button></div>
+  </div></div>`;
+}
+function modalEditarArea(a){
+  const candidatos = D.personas.filter(p=>p.activo);
+  return `<div class="veil" data-cerrar><div class="sheet" role="dialog" aria-modal="true" data-stop>
+    <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Área</span><h2 style="margin-top:4px">${esc(a.nombre)}</h2></div><button class="closebtn" data-cerrar aria-label="Cerrar">×</button></div>
+    <div class="sheet-b">
+      <div class="field"><label>Nombre</label><input id="eaNombre" value="${esc(a.nombre)}" required minlength="2"></div>
+      <div class="field"><label>Líder del área</label><select id="eaLider">
+        <option value="">— Sin líder —</option>
+        ${candidatos.map(p=>`<option value="${esc(p.membershipId)}" ${a.liderMembershipId===p.membershipId?"selected":""}>${esc(p.nombre)} · ${esc(ROL_TXT[p.rol]||p.rol)}</option>`).join("")}
+      </select></div>
+      <div class="note">Asignar líder hace dos cosas: fija el líder del área y, si esa persona era empleado, la pasa a <b>líder de área</b> y la deja en esta área. Es lo que abre el BackOffice de líder para ella.</div>
+      <div class="auth-err hide" id="eaError"></div>
+    </div>
+    <div class="sheet-f"><button class="btn" data-cerrar>Cancelar</button><button class="btn gold" style="flex:1" id="eaGuardar" data-area-id="${esc(a.id)}">Guardar</button></div>
+  </div></div>`;
+}
+function modalEditarPersona(p){
+  const soyYo = p.membershipId===(D.membresia&&D.membresia.membershipId);
+  return `<div class="veil" data-cerrar><div class="sheet" role="dialog" aria-modal="true" data-stop>
+    <div class="sheet-h"><div style="flex:1"><span class="eyebrow">${esc(p.email)}</span><h2 style="margin-top:4px">${esc(p.nombre)}</h2></div><button class="closebtn" data-cerrar aria-label="Cerrar">×</button></div>
+    <div class="sheet-b">
+      <div class="field"><label>Rol</label><select id="epRol" ${soyYo?"disabled":""}>${opcionesRol(p.rol)}</select></div>
+      <div class="field"><label>Área</label><select id="epArea">${opcionesArea(p.areaId)}</select></div>
+      <div class="field"><label>Zona</label><input id="epZona" value="${esc(p.zona||"")}" placeholder="Caracas"></div>
+      ${soyYo?`<div class="note">No puedes cambiarte el rol ni darte de baja a ti mismo — así la empresa nunca se queda sin nadie que la administre.</div>`
+             :`<label class="check"><input type="checkbox" id="epActivo" ${p.activo?"checked":""}> Membresía activa (desmarcar = dar de baja; no se borra nada, conserva su historial)</label>`}
+      <div class="auth-err hide" id="epError"></div>
+    </div>
+    <div class="sheet-f"><button class="btn" data-cerrar>Cancelar</button><button class="btn gold" style="flex:1" id="epGuardar" data-membership-id="${esc(p.membershipId)}">Guardar</button></div>
+  </div></div>`;
+}
+async function copiarLink(token){
+  const link = LevelopAPI.linkInvitacion(token);
+  try{ await navigator.clipboard.writeText(link); toast("ok","check","Link copiado","Pégalo donde quieras compartirlo."); }
+  catch(e){ toast("risk","alerta","No se pudo copiar solo","Selecciona el link del campo y cópialo a mano.", 7000); }
+}
+
+function pintarTiles(){
+  const areasConDesempeno = D.areas.filter(a=>a.mostrarDesempeno).length;
+  const activos = D.catalogo.filter(c=>c.activo).length;
+  const mesActual = new Date().toISOString().slice(0,7);
+  const canjesMes = D.canjes.filter(c=> String(c.mes).slice(0,7) === mesActual);
+  const totalCanjesMes = canjesMes.reduce((a,c)=>a+Number(c.total||0),0);
+  const oroMes = canjesMes.reduce((a,c)=>a+Number(c.oro_total||0),0);
+  const tiles = [
+    {l:"¿Lanzó el workspace?", v: D.gate ? (D.gate.lanzado?"Sí":"No") : "—", d:"3 intrarrecompensas activas + 1 canje confirmado"},
+    {l:"Áreas con desempeño visible", v:`${areasConDesempeno}/${D.areas.length}`, d:"piso de 4 miembros activos (R-07)"},
+    {l:"Ítems activos en catálogo", v:fmt(activos), d:`${fmt(D.catalogo.length)} en total`},
+    {l:"Canjes confirmados este mes", v:fmt(totalCanjesMes), d:`${fmt(oroMes)} de Oro`}
+  ];
+  $("#tiles").innerHTML = tiles.map(t=>`<div class="tile"><div class="l">${esc(t.l)}</div><div class="v">${esc(t.v)}</div><div class="d">${esc(t.d)}</div></div>`).join("");
+}
+
+function pintarPorArea(){
+  if(!D.areas.length){ $("#porArea").innerHTML = `<p class="sub">Sin áreas todavía.</p>`; return; }
+  barrasHorizontales($("#porArea"), D.areas.map(a=>({n:a.nombreArea, v:Number(a.tareasCumplidasAnioPromedio||0), a})), {
+    color:"var(--s1)",
+    fmtv: x => Number(x.v).toFixed(1),
+    extra: x => x.a.mostrarDesempeno ? `· ${x.a.miembrosActivos} activos` : `· bajo el piso de 4`,
+    tip: x => `<div class="tk">${esc(x.n)}</div>
+      <div class="tr"><span>Tareas cerradas/persona/año</span><b>${Number(x.v).toFixed(1)}</b></div>
+      <div class="tr"><span>Miembros activos</span><b>${x.a.miembrosActivos}</b></div>
+      <div class="tr"><span>Oro ganado (área, año)</span><b>${fmt(x.a.oroGanadoAnioTotal)}</b></div>`
+  });
+}
+
+function pintarCanjesFamilia(){
+  const mesActual = new Date().toISOString().slice(0,7);
+  const porFamilia = {};
+  D.canjes.filter(c=>String(c.mes).slice(0,7)===mesActual).forEach(c=>{
+    porFamilia[c.familia] = (porFamilia[c.familia]||0) + Number(c.total||0);
+  });
+  const datos = Object.entries(porFamilia).map(([n,v])=>({n:FAMILIAS[n]||n, v}));
+  if(!datos.length){ $("#canjesFamilia").innerHTML = `<p class="sub">Sin canjes confirmados este mes todavía.</p>`; return; }
+  barrasHorizontales($("#canjesFamilia"), datos, {color:"var(--s2)"});
+}
+
+function pintarCatalogo(){
+  const t = $("#tblCatalogo");
+  if(!D.catalogo.length){ t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">Catálogo vacío todavía.</td></tr></tbody>`; return; }
+  t.innerHTML = `
+    <thead><tr><th>Ítem</th><th>Familia</th><th class="n">Precio (Oro)</th><th>Aprobación</th><th>Estado</th><th></th></tr></thead>
+    <tbody>${D.catalogo.map(c=>`
+      <tr>
+        <td>${esc(c.nombre)}</td>
+        <td>${esc(FAMILIAS[c.familia]||c.familia)}</td>
+        <td class="n">${fmt(c.precioOro)}</td>
+        <td><button class="chip ${c.requiereAprobacion?"gold":"ok"}" data-toggle-aprobacion="${c.id}">${c.requiereAprobacion?"Requiere aprobación":"Auto-confirma"}</button></td>
+        <td><span class="chip ${c.activo?"ok":""}">${c.activo?"Activo":"Inactivo"}</span></td>
+        <td><button class="btn ghost" data-cambiar-precio="${c.id}">Cambiar precio</button></td>
+      </tr>`).join("")}</tbody>`;
+}
+
+/* ---------------- MODALES DE CATÁLOGO ---------------- */
+function modalNuevoItem(){
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Catálogo</span><h2 style="margin-top:4px; font-size:19px">Nuevo ítem</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="field"><label>Familia</label>
+          <select id="niFamilia">${Object.entries(FAMILIAS).map(([v,n])=>`<option value="${v}">${n}</option>`).join("")}</select></div>
+        <div class="field"><label>Nombre</label><input id="niNombre" required minlength="2"></div>
+        <div class="field"><label>Descripción (opcional)</label><textarea id="niDesc" rows="2"></textarea></div>
+        <div class="field"><label>Precio en Oro</label><input id="niPrecio" type="number" min="1" required></div>
+        <label class="check"><input type="checkbox" id="niAprobacion" checked> Requiere aprobación de gerencia antes de confirmarse</label>
+        <div class="auth-err hide" id="niError"></div>
+      </div>
+      <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Cancelar</button>
+        <button class="btn gold" style="flex:1" id="niGuardar">Crear</button></div>
+    </div></div>`;
+}
+function modalCambiarPrecio(item){
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">${esc(item.nombre)}</span><h2 style="margin-top:4px; font-size:19px">Cambiar precio</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="note">Precio actual: <b class="num">${fmt(item.precioOro)}</b> de Oro. El canje que ya está en curso sigue pagando el precio que regía cuando la persona ganó su Oro (A-17) — este cambio no lo toca.</div>
+        <div class="field"><label>Precio nuevo (Oro)</label><input id="cpPrecio" type="number" min="1" value="${item.precioOro}" required></div>
+        <div class="auth-err hide" id="cpError"></div>
+      </div>
+      <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Cancelar</button>
+        <button class="btn gold" style="flex:1" id="cpGuardar">Guardar</button></div>
+    </div></div>`;
+}
+function abrirModal(html){ $("#modal").innerHTML = html; }
+function cerrarModal(){ $("#modal").innerHTML = ""; itemEnModal = null; }
+
+document.addEventListener("click", async e=>{
+  /* 16/09 — BUG REAL corregido al agregar esta sección: los botones de guardar
+     de los modales (`#niGuardar`, `#cpGuardar`) viven dentro de `.sheet[data-stop]`,
+     y el `closest()` de abajo encontraba `data-stop` primero y hacía `return`
+     antes de llegar a los `if(e.target.id === ...)`. Resultado: «Crear ítem» y
+     «Cambiar precio» nunca guardaban desde el navegador — el endpoint sí
+     funcionaba (verificado por API el 14/09), la pantalla no lo llamaba. Se
+     resuelven primero los botones con id y recién después el cierre del modal. */
+  const boton = e.target.closest("button");
+  if(boton && boton.id && await manejarBotonModal(boton)) return;
+
+  const t = e.target.closest("[data-cerrar],[data-stop],[data-cambiar-precio],[data-toggle-aprobacion],[data-editar-persona],[data-editar-area],[data-copiar-link],[data-anular-inv]");
+  if(t){
+    if(t.dataset.copiarLink){ copiarLink(t.dataset.copiarLink); return; }
+    if(t.dataset.anularInv){
+      try{
+        await LevelopAPI.gerencia.anularInvitacion(t.dataset.anularInv);
+        D.invitaciones = await LevelopAPI.gerencia.invitaciones(); pintarInvitaciones();
+        toast("ok","check","Invitación anulada","Ese link ya no sirve.");
+      }catch(err){ avisarError(err,"anularInvitacion"); }
+      return;
+    }
+    if(t.dataset.editarPersona){ const p = D.personas.find(x=>x.membershipId===t.dataset.editarPersona); if(p) abrirModal(modalEditarPersona(p)); return; }
+    if(t.dataset.editarArea){ const a = D.areasAdmin.find(x=>x.id===t.dataset.editarArea); if(a) abrirModal(modalEditarArea(a)); return; }
+    if(t.hasAttribute("data-stop")) return;
+    if(t.hasAttribute("data-cerrar")){ cerrarModal(); return; }
+    if(t.dataset.cambiarPrecio){
+      itemEnModal = D.catalogo.find(c=>c.id===t.dataset.cambiarPrecio) || null;
+      if(itemEnModal) abrirModal(modalCambiarPrecio(itemEnModal));
+      return;
+    }
+    if(t.dataset.toggleAprobacion){
+      const item = D.catalogo.find(c=>c.id===t.dataset.toggleAprobacion);
+      if(!item) return;
+      const nuevo = !item.requiereAprobacion;
+      try{
+        await LevelopAPI.gerencia.cambiarAprobacion(item.id, nuevo);
+        item.requiereAprobacion = nuevo;
+        pintarCatalogo();
+        toast("ok","check","Guardado", `${item.nombre} ahora ${nuevo?"requiere":"no requiere"} aprobación.`);
+      }catch(err){ avisarError(err, "cambiarAprobacion"); }
+      return;
+    }
+  }
+});
+
+/* Botones de guardar de los modales. Devuelve true si el botón era uno de
+   estos (para que el listener de arriba no siga con el cierre del modal). */
+function mostrarErr(sel, msg){ const el = $(sel); if(el){ el.classList.remove("hide"); el.textContent = msg; } }
+async function manejarBotonModal(b){
+  if(b.id === "niGuardar"){
+    const dto = {
+      familia: $("#niFamilia").value,
+      nombre: $("#niNombre").value.trim(),
+      descripcion: $("#niDesc").value.trim() || undefined,
+      precioOro: Number($("#niPrecio").value),
+      requiereAprobacion: $("#niAprobacion").checked
+    };
+    if(dto.nombre.length<2 || !(dto.precioOro>0)){ mostrarErr("#niError","Falta el nombre (mínimo 2 caracteres) o el precio."); return true; }
+    b.disabled = true; b.textContent = "Creando…";
+    try{
+      const item = await LevelopAPI.gerencia.crearItem(dto);
+      D.catalogo.push(item);
+      pintarCatalogo(); cerrarModal();
+      toast("ok","check","Ítem creado", `${item.nombre} ya está en el catálogo.`);
+    }catch(err){ b.disabled = false; b.textContent = "Crear"; mostrarErr("#niError",(err&&err.message)||"No se pudo crear."); }
+    return true;
+  }
+  if(b.id === "cpGuardar"){
+    const precio = Number($("#cpPrecio").value);
+    if(!(precio>0) || !itemEnModal){ mostrarErr("#cpError","Precio inválido."); return true; }
+    b.disabled = true; b.textContent = "Guardando…";
+    try{
+      const actualizado = await LevelopAPI.gerencia.cambiarPrecio(itemEnModal.id, precio);
+      const idx = D.catalogo.findIndex(c=>c.id===itemEnModal.id);
+      if(idx>=0) D.catalogo[idx] = actualizado;
+      pintarCatalogo(); cerrarModal();
+      toast("ok","check","Precio actualizado", `${actualizado.nombre} ahora cuesta ${fmt(actualizado.precioOro)} de Oro.`);
+    }catch(err){ b.disabled = false; b.textContent = "Guardar"; mostrarErr("#cpError",(err&&err.message)||"No se pudo guardar."); }
+    return true;
+  }
+  if(b.id === "ivGuardar"){
+    const dto = { email: $("#ivEmail").value.trim(), rol: $("#ivRol").value };
+    if($("#ivArea").value) dto.areaId = $("#ivArea").value;
+    if($("#ivZona").value.trim()) dto.zona = $("#ivZona").value.trim();
+    if(!/^\S+@\S+\.\S+$/.test(dto.email)){ mostrarErr("#ivError","Escribe un correo válido."); return true; }
+    b.disabled = true; b.textContent = "Generando…";
+    try{
+      const inv = await LevelopAPI.gerencia.invitar(dto);
+      D.invitaciones = await LevelopAPI.gerencia.invitaciones(); pintarInvitaciones();
+      abrirModal(modalLinkGenerado(inv));
+    }catch(err){
+      b.disabled = false; b.textContent = "Generar link";
+      mostrarErr("#ivError", err && err.motivoRechazo==="YA_ES_MIEMBRO" ? "Esa persona ya es miembro activo de la empresa — no necesita invitación." : (err&&err.message)||"No se pudo generar.");
+    }
+    return true;
+  }
+  if(b.id === "naGuardar"){
+    const nombre = $("#naNombre").value.trim();
+    if(nombre.length<2){ mostrarErr("#naError","El nombre necesita al menos 2 caracteres."); return true; }
+    b.disabled = true; b.textContent = "Creando…";
+    try{
+      await LevelopAPI.gerencia.crearArea(nombre);
+      D.areasAdmin = await LevelopAPI.gerencia.areas(); pintarAreasAdmin(); cerrarModal();
+      toast("ok","check","Área creada", `${nombre} ya existe. Asígnale un líder cuando quieras.`);
+    }catch(err){ b.disabled = false; b.textContent = "Crear"; mostrarErr("#naError",(err&&err.message)||"No se pudo crear."); }
+    return true;
+  }
+  if(b.id === "eaGuardar"){
+    const id = b.dataset.areaId, a = D.areasAdmin.find(x=>x.id===id);
+    if(!a) return true;
+    const dto = {};
+    const nombre = $("#eaNombre").value.trim(); if(nombre && nombre!==a.nombre) dto.nombre = nombre;
+    const lider = $("#eaLider").value || null; if(lider !== (a.liderMembershipId||null)) dto.liderMembershipId = lider;
+    if(!Object.keys(dto).length){ cerrarModal(); return true; }
+    b.disabled = true; b.textContent = "Guardando…";
+    try{
+      await LevelopAPI.gerencia.actualizarArea(id, dto);
+      await cargarPersonas(); cerrarModal();
+      toast("ok","check","Área actualizada", dto.liderMembershipId ? "El líder quedó asignado y su rol actualizado." : "Listo.");
+    }catch(err){ b.disabled = false; b.textContent = "Guardar"; mostrarErr("#eaError",(err&&err.message)||"No se pudo guardar."); }
+    return true;
+  }
+  if(b.id === "epGuardar"){
+    const id = b.dataset.membershipId, p = D.personas.find(x=>x.membershipId===id);
+    if(!p) return true;
+    const dto = {};
+    const rolEl = $("#epRol"); if(rolEl && !rolEl.disabled && rolEl.value!==p.rol) dto.rol = rolEl.value;
+    const area = $("#epArea").value || null; if(area !== (p.areaId||null)) dto.areaId = area;
+    const zona = $("#epZona").value.trim(); if(zona && zona!==p.zona) dto.zona = zona;
+    const actEl = $("#epActivo"); if(actEl && actEl.checked!==p.activo) dto.activo = actEl.checked;
+    if(!Object.keys(dto).length){ cerrarModal(); return true; }
+    b.disabled = true; b.textContent = "Guardando…";
+    try{
+      await LevelopAPI.gerencia.actualizarPersona(id, dto);
+      await cargarPersonas(); cerrarModal();
+      toast("ok","check","Guardado", `${p.nombre}: ${dto.activo===false?"dada de baja.":"cambios aplicados. Le rigen en su próxima acción — el rol se lee de la base en cada request, no del token."}`);
+    }catch(err){ b.disabled = false; b.textContent = "Guardar"; mostrarErr("#epError",(err&&err.message)||"No se pudo guardar."); }
+    return true;
+  }
+  return false;
+}
+
+$("#btnNuevoItem").addEventListener("click", ()=>abrirModal(modalNuevoItem()));
+$("#btnInvitar").addEventListener("click", ()=>abrirModal(modalInvitar()));
+$("#btnNuevaArea").addEventListener("click", ()=>abrirModal(modalNuevaArea()));
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") cerrarModal(); });
+
+/* ---------------- TEMA / SALIR ---------------- */
+$("#themebtn").innerHTML = IC.tema;
+$("#themebtn").addEventListener("click", ()=>{
+  const cur = document.documentElement.getAttribute("data-theme")||"dark";
+  const nuevo = cur==="dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", nuevo);
+  try{ localStorage.setItem("lvl-tema", nuevo); }catch(err){}
+});
+$("#logoutbtn").innerHTML = IC.salir;
+$("#logoutbtn").addEventListener("click", ()=>{ LevelopAPI.salir(); });
+
+/* =========================================================
+   ARRANQUE — si ya había sesión en esta pestaña, se reusa.
+   ========================================================= */
+(async function arrancar(){
+  if(LevelopAPI.sesion.haySesion()){
+    try{
+      const ms = await LevelopAPI.misMembresias();
+      const fijado = LevelopAPI.sesion.getTenantId();
+      const m = (Array.isArray(ms) && (ms.find(x=>x.tenantId===fijado) || (ms.length===1?ms[0]:null))) || null;
+      if(m){ LevelopAPI.fijarTenant(m.tenantId); return entrar(m); }
+      if(Array.isArray(ms) && ms.length>1) return pintarPicker(ms);
+    }catch(e){ /* sesión vencida o backend caído: se pide login otra vez */ }
+    LevelopAPI.logout();
+  }
+  pintarLogin();
+})();
+
+})();
+</script>

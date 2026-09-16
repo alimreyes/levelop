@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LVL UP - Pitch Deck</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            padding: 80px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Navegación */
+        .nav-controls {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 30px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 2px solid #0066FF;
+            color: #0066FF;
+            padding: 10px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #0066FF;
+            color: #fff;
+        }
+
+        .slide-number {
+            color: #666;
+            font-size: 14px;
+            margin: 0 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Slide 1 - Portada */
+        .slide-1 {
+            background: linear-gradient(135deg, #000 0%, #001a4d 100%);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .logo-icon {
+            font-size: 120px;
+            margin-bottom: 40px;
+            filter: drop-shadow(0 0 40px rgba(0, 102, 255, 0.5));
+        }
+
+        .main-title {
+            font-size: 120px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #0066FF 0%, #00D4FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            letter-spacing: -3px;
+        }
+
+        .subtitle {
+            font-size: 32px;
+            color: #fff;
+            font-weight: 300;
+            margin-bottom: 80px;
+            opacity: 0.9;
+        }
+
+        .contact-info {
+            font-size: 18px;
+            color: #888;
+            line-height: 1.8;
+        }
+
+        .contact-info strong {
+            color: #0066FF;
+        }
+
+        /* Slide 2 - El Problema */
+        .slide-2 {
+            background: #fff;
+            color: #000;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .section-title {
+            font-size: 64px;
+            font-weight: 900;
+            margin-bottom: 80px;
+            line-height: 1.2;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+
+        .stat-card {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 96px;
+            font-weight: 900;
+            color: #0066FF;
+            margin-bottom: 20px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 18px;
+            color: #666;
+            line-height: 1.6;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+
+        .source-note {
+            font-size: 14px;
+            color: #999;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .bullet-points {
+            display: grid;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .bullet-point {
+            font-size: 20px;
+            padding-left: 30px;
+            position: relative;
+            color: #333;
+        }
+
+        .bullet-point::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #0066FF;
+            font-weight: bold;
+        }
+
+        /* Slide 3 - La Solución */
+        .slide-3 {
+            background: linear-gradient(135deg, #000 0%, #0066FF 100%);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .hero-statement {
+            font-size: 72px;
+            font-weight: 900;
+            margin-bottom: 50px;
+            line-height: 1.2;
+        }
+
+        .hero-description {
+            font-size: 28px;
+            max-width: 1000px;
+            line-height: 1.6;
+            opacity: 0.9;
+            margin-bottom: 80px;
+        }
+
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 60px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .icon-item {
+            text-align: center;
+        }
+
+        .icon-item-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .icon-item-label {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        /* Slide 4 - Cómo Funciona */
+        .slide-4 {
+            background: #fff;
+            color: #000;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 60px;
+            border-radius: 20px;
+            border: 2px solid #0066FF;
+        }
+
+        .feature-number {
+            font-size: 24px;
+            color: #0066FF;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+
+        .feature-title {
+            font-size: 36px;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+
+        .feature-description {
+            font-size: 20px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Slide 5 - El Producto */
+        .slide-5 {
+            background: #000;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .product-showcase {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .product-mockup {
+            background: linear-gradient(135deg, #0066FF 0%, #00D4FF 100%);
+            height: 500px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            box-shadow: 0 20px 60px rgba(0, 102, 255, 0.3);
+        }
+
+        .product-features {
+            display: grid;
+            gap: 25px;
+        }
+
+        .feature-item {
+            font-size: 24px;
+            padding-left: 40px;
+            position: relative;
+        }
+
+        .feature-item::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #00D4FF;
+            font-weight: bold;
+            font-size: 28px;
+        }
+
+        .tech-stack {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid #333;
+            display: grid;
+            gap: 15px;
+        }
+
+        .tech-item {
+            font-size: 18px;
+            color: #888;
+        }
+
+        /* Slide 6 - Tracción */
+        .slide-6 {
+            background: linear-gradient(135deg, #0066FF 0%, #00D4FF 100%);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .traction-title {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 80px;
+            text-align: center;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 80px;
+            margin-bottom: 80px;
+        }
+
+        .metric-card {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 50px 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .metric-number {
+            font-size: 96px;
+            font-weight: 900;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .metric-label {
+            font-size: 20px;
+            opacity: 0.9;
+        }
+
+        .achievements-list {
+            display: grid;
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .achievement {
+            font-size: 22px;
+            padding-left: 40px;
+            position: relative;
+        }
+
+        .achievement::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            font-size: 28px;
+        }
+
+        /* Slide 7 - Mercado */
+        .slide-7 {
+            background: #fff;
+            color: #000;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .market-size {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .market-growth {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 60px;
+            margin: 60px 0;
+        }
+
+        .market-value {
+            text-align: center;
+        }
+
+        .market-value-number {
+            font-size: 96px;
+            font-weight: 900;
+            color: #0066FF;
+        }
+
+        .market-value-year {
+            font-size: 24px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .arrow {
+            font-size: 72px;
+            color: #0066FF;
+        }
+
+        .cagr {
+            font-size: 28px;
+            color: #0066FF;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .tam-sam-som {
+            display: grid;
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .tam-item {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            border-left: 5px solid #0066FF;
+        }
+
+        .tam-item strong {
+            color: #0066FF;
+            font-size: 24px;
+        }
+
+        .tam-item p {
+            font-size: 18px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .target-segments {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .segment {
+            background: #000;
+            color: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        /* Slide 8 - Modelo de Negocio */
+        .slide-8 {
+            background: #fff;
+            color: #000;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .pricing-tiers {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .pricing-card {
+            background: #fff;
+            border: 3px solid #e9ecef;
+            border-radius: 20px;
+            padding: 50px 30px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .pricing-card.featured {
+            border-color: #0066FF;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e6f0ff 100%);
+            transform: scale(1.05);
+        }
+
+        .tier-name {
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+
+        .tier-price {
+            font-size: 48px;
+            font-weight: 900;
+            color: #0066FF;
+            margin-bottom: 30px;
+        }
+
+        .tier-features {
+            display: grid;
+            gap: 15px;
+            text-align: left;
+        }
+
+        .tier-feature {
+            font-size: 16px;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .tier-feature::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #0066FF;
+            font-size: 24px;
+        }
+
+        .revenue-projection {
+            background: #000;
+            color: #fff;
+            padding: 40px;
+            border-radius: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            text-align: center;
+        }
+
+        .projection-item strong {
+            display: block;
+            font-size: 32px;
+            color: #00D4FF;
+            margin-bottom: 10px;
+        }
+
+        /* Slide 9 - Ventaja Competitiva */
+        .slide-9 {
+            background: #000;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .comparison-table {
+            background: #fff;
+            color: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 60px;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+            background: #0066FF;
+            color: #fff;
+            padding: 30px;
+            font-weight: 900;
+            font-size: 20px;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+            padding: 25px 30px;
+            border-bottom: 1px solid #e9ecef;
+            align-items: center;
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+        }
+
+        .check-mark {
+            text-align: center;
+            font-size: 32px;
+        }
+
+        .check-mark.yes {
+            color: #00D4FF;
+        }
+
+        .check-mark.no {
+            color: #ccc;
+        }
+
+        .differentiators {
+            display: grid;
+            gap: 25px;
+        }
+
+        .differentiator {
+            font-size: 24px;
+            padding-left: 50px;
+            position: relative;
+        }
+
+        .differentiator::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #0066FF;
+            font-size: 32px;
+        }
+
+        .differentiator strong {
+            color: #00D4FF;
+        }
+
+        /* Slide 10 - Go to Market */
+        .slide-10 {
+            background: #fff;
+            color: #000;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .timeline {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .phase-card {
+            background: linear-gradient(135deg, #000 0%, #0066FF 100%);
+            color: #fff;
+            padding: 40px;
+            border-radius: 20px;
+        }
+
+        .phase-number {
+            font-size: 18px;
+            color: #00D4FF;
+            margin-bottom: 10px;
+        }
+
+        .phase-title {
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+
+        .phase-activities {
+            display: grid;
+            gap: 12px;
+        }
+
+        .phase-activity {
+            font-size: 16px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .phase-activity::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #00D4FF;
+        }
+
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+
+        .strategy-card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            border-left: 5px solid #0066FF;
+        }
+
+        .strategy-card strong {
+            color: #0066FF;
+            font-size: 20px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        /* Slide 11 - Roadmap */
+        .slide-11 {
+            background: linear-gradient(135deg, #000 0%, #001a4d 100%);
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .roadmap-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+        }
+
+        .roadmap-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid rgba(0, 102, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .roadmap-period {
+            font-size: 18px;
+            color: #00D4FF;
+            margin-bottom: 15px;
+        }
+
+        .roadmap-title {
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 30px;
+        }
+
+        .roadmap-items {
+            display: grid;
+            gap: 15px;
+        }
+
+        .roadmap-item {
+            font-size: 18px;
+            padding-left: 30px;
+            position: relative;
+            opacity: 0.9;
+        }
+
+        .roadmap-item::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #0066FF;
+        }
+
+        .roadmap-item.done::before {
+            content: "✓";
+            color: #00D4FF;
+        }
+
+        /* Slide 12 - Métricas */
+        .slide-12 {
+            background: #fff;
+            color: #000;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .metrics-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .kpi-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 3px solid #0066FF;
+        }
+
+        .kpi-label {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .kpi-value {
+            font-size: 56px;
+            font-weight: 900;
+            color: #0066FF;
+            margin-bottom: 10px;
+        }
+
+        .kpi-target {
+            font-size: 16px;
+            color: #999;
+        }
+
+        /* Slide 13 - Equipo */
+        .slide-13 {
+            background: #000;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .team-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+        }
+
+        .founder-card {
+            background: linear-gradient(135deg, #0066FF 0%, #00D4FF 100%);
+            padding: 60px;
+            border-radius: 20px;
+        }
+
+        .founder-avatar {
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 56px;
+            margin-bottom: 30px;
+        }
+
+        .founder-name {
+            font-size: 36px;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .founder-title {
+            font-size: 20px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .founder-bio {
+            display: grid;
+            gap: 12px;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .hiring-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 60px;
+            border-radius: 20px;
+            border: 2px dashed #0066FF;
+        }
+
+        .hiring-title {
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 30px;
+            color: #00D4FF;
+        }
+
+        .hiring-list {
+            display: grid;
+            gap: 20px;
+        }
+
+        .hiring-item {
+            font-size: 22px;
+            padding-left: 40px;
+            position: relative;
+        }
+
+        .hiring-item::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #0066FF;
+            font-size: 28px;
+        }
+
+        /* Slide 14 - Financials */
+        .slide-14 {
+            background: linear-gradient(135deg, #0066FF 0%, #00D4FF 100%);
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .financials-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .year-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .year-label {
+            font-size: 20px;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .year-revenue {
+            font-size: 72px;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .year-metric {
+            font-size: 18px;
+            opacity: 0.8;
+            margin-top: 20px;
+        }
+
+        .use-of-funds {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            border-radius: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        .fund-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+        }
+
+        .fund-item strong {
+            color: #00D4FF;
+        }
+
+        /* Slide 15 - The Ask */
+        .slide-15 {
+            background: linear-gradient(135deg, #000 0%, #0066FF 100%);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .ask-label {
+            font-size: 32px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .ask-amount {
+            font-size: 140px;
+            font-weight: 900;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff 0%, #00D4FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .ask-type {
+            font-size: 36px;
+            margin-bottom: 60px;
+            color: #00D4FF;
+        }
+
+        .ask-goals {
+            display: grid;
+            gap: 25px;
+            text-align: left;
+            max-width: 800px;
+        }
+
+        .ask-goal {
+            font-size: 26px;
+            padding-left: 50px;
+            position: relative;
+        }
+
+        .ask-goal::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #00D4FF;
+            font-size: 32px;
+        }
+
+        /* Slide 16 - Visión */
+        .slide-16 {
+            background: #fff;
+            color: #000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .vision-statement {
+            font-size: 56px;
+            font-weight: 900;
+            max-width: 1100px;
+            line-height: 1.3;
+            margin-bottom: 80px;
+        }
+
+        .vision-emoji {
+            font-size: 120px;
+            margin-bottom: 40px;
+        }
+
+        .vision-tagline {
+            font-size: 36px;
+            color: #666;
+            max-width: 900px;
+            line-height: 1.5;
+        }
+
+        /* Slide 17 - Contacto */
+        .slide-17 {
+            background: linear-gradient(135deg, #000 0%, #001a4d 100%);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .final-logo {
+            font-size: 96px;
+            margin-bottom: 60px;
+        }
+
+        .final-cta {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 80px;
+            line-height: 1.4;
+        }
+
+        .contact-details {
+            display: grid;
+            gap: 20px;
+            font-size: 24px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .contact-icon {
+            font-size: 28px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .slide {
+                padding: 40px;
+            }
+            
+            .main-title {
+                font-size: 80px;
+            }
+            
+            .section-title {
+                font-size: 48px;
+            }
+            
+            .stats-grid,
+            .metrics-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation">
+        <!-- SLIDE 1: PORTADA -->
+        <div class="slide slide-1 active">
+            <div class="logo-icon">⚔️</div>
+            <h1 class="main-title">LVL UP</h1>
+            <p class="subtitle">Gamifica el Trabajo. Maximiza la Productividad.</p>
+            <div class="contact-info">
+                <strong>Alim [Apellido]</strong><br>
+                Founder & CEO<br>
+                alim@lvlup.app
+            </div>
+        </div>
+
+        <!-- SLIDE 2: EL PROBLEMA -->
+        <div class="slide slide-2">
+            <h2 class="section-title">La Productividad Empresarial<br>Enfrenta una Crisis</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">68%</div>
+                    <div class="stat-label">de empleados NO están comprometidos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">$550B</div>
+                    <div class="stat-label">pérdidas anuales por baja productividad</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">47%</div>
+                    <div class="stat-label">de rotación por falta de motivación</div>
+                </div>
+            </div>
+            <div class="source-note">Fuente: Gallup State of Workplace 2024</div>
+            <div class="bullet-points">
+                <div class="bullet-point">Las herramientas tradicionales de gestión de tareas son aburridas</div>
+                <div class="bullet-point">Los empleados pierden motivación en tareas repetitivas</div>
+                <div class="bullet-point">No hay incentivos emocionales para completar trabajo diario</div>
+                <div class="bullet-point">La colaboración en equipo carece de elementos motivadores</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: LA SOLUCIÓN -->
+        <div class="slide slide-3">
+            <h2 class="hero-statement">Convertimos cada tarea<br>en una MISIÓN épica</h2>
+            <p class="hero-description">LVL UP transforma la gestión de tareas empresariales en una experiencia de juego RPG que aumenta el compromiso, la colaboración y los resultados.</p>
+            <div class="icon-grid">
+                <div class="icon-item">
+                    <span class="icon-item-icon">⚔️</span>
+                    <span class="icon-item-label">Misiones</span>
+                </div>
+                <div class="icon-item">
+                    <span class="icon-item-icon">🪙</span>
+                    <span class="icon-item-label">Recompensas</span>
+                </div>
+                <div class="icon-item">
+                    <span class="icon-item-icon">🏆</span>
+                    <span class="icon-item-label">Logros</span>
+                </div>
+                <div class="icon-item">
+                    <span class="icon-item-icon">📊</span>
+                    <span class="icon-item-label">Métricas</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: CÓMO FUNCIONA -->
+        <div class="slide slide-4">
+            <h2 class="section-title">¿Cómo Funciona?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-number">01. MISIONES</div>
+                    <div class="feature-title">Misiones</div>
+                    <div class="feature-description">Cada tarea se convierte en una misión con recompensas XP</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-number">02. NIVELES</div>
+                    <div class="feature-title">Niveles</div>
+                    <div class="feature-description">Los empleados suben de nivel al completar misiones</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-number">03. TIENDA</div>
+                    <div class="feature-title">Tienda</div>
+                    <div class="feature-description">Canjea oro por power-ups y beneficios reales</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-number">04. RANKINGS</div>
+                    <div class="feature-title">Rankings</div>
+                    <div class="feature-description">Compite con tu equipo en leaderboards en tiempo real</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: EL PRODUCTO -->
+        <div class="slide slide-5">
+            <h2 class="section-title">El Producto</h2>
+            <div class="product-showcase">
+                <div class="product-mockup">📱 App Screenshot</div>
+                <div>
+                    <div class="product-features">
+                        <div class="feature-item">Drag & Drop de tareas</div>
+                        <div class="feature-item">Sistema de recompensas dinámico</div>
+                        <div class="feature-item">Notificaciones en tiempo real</div>
+                        <div class="feature-item">Colaboración multiusuario</div>
+                        <div class="feature-item">Analytics y métricas completas</div>
+                        <div class="feature-item">Tienda virtual integrada</div>
+                    </div>
+                    <div class="tech-stack">
+                        <div class="tech-item">→ 5 módulos principales completamente desarrollados</div>
+                        <div class="tech-item">→ 32 endpoints API funcionales</div>
+                        <div class="tech-item">→ Sistema de roles y permisos</div>
+                        <div class="tech-item">→ Gamificación completa (XP, niveles, oro, logros)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: TRACCIÓN -->
+        <div class="slide slide-6">
+            <h2 class="traction-title">PROGRESO ACTUAL</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-number">100%</div>
+                    <div class="metric-label">MVP Funcional</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number">32</div>
+                    <div class="metric-label">API Endpoints</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-number">5</div>
+                    <div class="metric-label">Módulos Principales</div>
+                </div>
+            </div>
+            <div class="achievements-list">
+                <div class="achievement">Frontend React completamente operativo</div>
+                <div class="achievement">Backend NestJS + PostgreSQL en producción</div>
+                <div class="achievement">Sistema de autenticación JWT</div>
+                <div class="achievement">Base de datos estructurada</div>
+                <div class="achievement">UI/UX optimizada mobile-first</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: MERCADO -->
+        <div class="slide slide-7">
+            <div class="market-size">
+                <h2 class="section-title">Mercado Global de<br>Gestión de Tareas Empresariales</h2>
+                <div class="market-growth">
+                    <div class="market-value">
+                        <div class="market-value-number">$23.8B</div>
+                        <div class="market-value-year">Mercado 2024</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="market-value">
+                        <div class="market-value-number">$47.2B</div>
+                        <div class="market-value-year">Mercado 2030</div>
+                    </div>
+                </div>
+                <div class="cagr">CAGR: 12.8% anual</div>
+            </div>
+            <div class="tam-sam-som">
+                <div class="tam-item">
+                    <strong>TAM: $47.2B</strong>
+                    <p>Mercado global de task management</p>
+                </div>
+                <div class="tam-item">
+                    <strong>SAM: $8.5B</strong>
+                    <p>Empresas medianas (50-500 empleados)</p>
+                </div>
+                <div class="tam-item">
+                    <strong>SOM: $425M</strong>
+                    <p>5% del SAM en 3 años</p>
+                </div>
+            </div>
+            <div class="target-segments">
+                <div class="segment">🖥️ Empresas de tecnología</div>
+                <div class="segment">🌐 Equipos remotos/híbridos</div>
+                <div class="segment">🚀 Startups en crecimiento</div>
+                <div class="segment">🎨 Agencias creativas</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: MODELO DE NEGOCIO -->
+        <div class="slide slide-8">
+            <h2 class="section-title">FREEMIUM + SaaS</h2>
+            <div class="pricing-tiers">
+                <div class="pricing-card">
+                    <div class="tier-name">FREE</div>
+                    <div class="tier-price">$0</div>
+                    <div class="tier-features">
+                        <div class="tier-feature">Hasta 10 usuarios</div>
+                        <div class="tier-feature">Features básicos</div>
+                        <div class="tier-feature">Misiones simples</div>
+                    </div>
+                </div>
+                <div class="pricing-card featured">
+                    <div class="tier-name">PRO</div>
+                    <div class="tier-price">$12<span style="font-size: 20px;">/usuario/mes</span></div>
+                    <div class="tier-features">
+                        <div class="tier-feature">Usuarios ilimitados</div>
+                        <div class="tier-feature">Features avanzados</div>
+                        <div class="tier-feature">Analytics completos</div>
+                        <div class="tier-feature">Integraciones</div>
+                        <div class="tier-feature">API access</div>
+                    </div>
+                </div>
+                <div class="pricing-card">
+                    <div class="tier-name">ENTERPRISE</div>
+                    <div class="tier-price">Custom</div>
+                    <div class="tier-features">
+                        <div class="tier-feature">Onboarding dedicado</div>
+                        <div class="tier-feature">Personalización</div>
+                        <div class="tier-feature">Soporte prioritario</div>
+                        <div class="tier-feature">SLA garantizado</div>
+                    </div>
+                </div>
+            </div>
+            <div class="revenue-projection">
+                <div class="projection-item">
+                    <strong>Año 1</strong>
+                    500 usuarios → $36K MRR
+                </div>
+                <div class="projection-item">
+                    <strong>Año 2</strong>
+                    5,000 usuarios → $360K MRR
+                </div>
+                <div class="projection-item">
+                    <strong>Año 3</strong>
+                    25,000 usuarios → $1.8M MRR
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: VENTAJA COMPETITIVA -->
+        <div class="slide slide-9">
+            <h2 class="section-title">Ventaja Competitiva</h2>
+            <div class="comparison-table">
+                <div class="table-header">
+                    <div>Feature</div>
+                    <div>LVL UP</div>
+                    <div>Asana</div>
+                    <div>Monday</div>
+                    <div>Trello</div>
+                </div>
+                <div class="table-row">
+                    <div>Gamificación</div>
+                    <div class="check-mark yes">✓</div>
+                    <div class="check-mark no">✗</div>
+                    <div class="check-mark no">✗</div>
+                    <div class="check-mark no">✗</div>
+                </div>
+                <div class="table-row">
+                    <div>RPG Completo</div>
+                    <div class="check-mark yes">✓</div>
+                    <div class="check-mark no">✗</div>
+                    <div class="check-mark no">✗</div>
+                    <div class="check-mark no">✗</div>
+                </div>
+                <div class="table-row">
+                    <div>Tienda Virtual</div>
+                    <div class="check-mark yes">✓</div>
+                    <div class="check-mark no">✗</div>
+                    <div class="check-mark no">✗</div>
+                    <div class="check-mark no">✗</div>
+                </div>
+                <div class="table-row">
+                    <div>Power-Ups</div>
+                    <div class="check-mark yes">✓</div>
+                    <div class="check-mark no">✗</div>
+                    <div class="check-mark no">✗</div>
+                    <div class="check-mark no">✗</div>
+                </div>
+                <div class="table-row">
+                    <div>Rankings Live</div>
+                    <div class="check-mark yes">✓</div>
+                    <div class="check-mark no">✗</div>
+                    <div class="check-mark no">✗</div>
+                    <div class="check-mark no">✗</div>
+                </div>
+            </div>
+            <div class="differentiators">
+                <div class="differentiator"><strong>Única</strong> plataforma con gamificación RPG completa</div>
+                <div class="differentiator"><strong>Economía virtual</strong> integrada (oro, tienda, power-ups)</div>
+                <div class="differentiator"><strong>Engagement</strong> 3x superior vs. herramientas tradicionales</div>
+                <div class="differentiator"><strong>Diseño</strong> mobile-first y UX excepcional</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: GO-TO-MARKET -->
+        <div class="slide slide-10">
+            <h2 class="section-title">Go-to-Market Strategy</h2>
+            <div class="timeline">
+                <div class="phase-card">
+                    <div class="phase-number">FASE 1 - Q1 2026</div>
+                    <div class="phase-title">Beta Cerrado</div>
+                    <div class="phase-activities">
+                        <div class="phase-activity">10 empresas early adopters</div>
+                        <div class="phase-activity">Validación de producto</div>
+                        <div class="phase-activity">Feedback y ajustes</div>
+                        <div class="phase-activity">Iteración rápida</div>
+                    </div>
+                </div>
+                <div class="phase-card">
+                    <div class="phase-number">FASE 2 - Q2-Q3 2026</div>
+                    <div class="phase-title">Lanzamiento Público</div>
+                    <div class="phase-activities">
+                        <div class="phase-activity">Product Hunt launch</div>
+                        <div class="phase-activity">LinkedIn Ads</div>
+                        <div class="phase-activity">Content marketing</div>
+                        <div class="phase-activity">Webinars y demos</div>
+                    </div>
+                </div>
+                <div class="phase-card">
+                    <div class="phase-number">FASE 3 - Q4 2026</div>
+                    <div class="phase-title">Expansión</div>
+                    <div class="phase-activities">
+                        <div class="phase-activity">Enterprise sales</div>
+                        <div class="phase-activity">Integraciones clave</div>
+                        <div class="phase-activity">Partnerships estratégicos</div>
+                        <div class="phase-activity">Expansión internacional</div>
+                    </div>
+                </div>
+            </div>
+            <div class="strategy-grid">
+                <div class="strategy-card">
+                    <strong>Inbound</strong>
+                    Content marketing, SEO, Product Hunt
+                </div>
+                <div class="strategy-card">
+                    <strong>Outbound</strong>
+                    LinkedIn outreach, eventos tech
+                </div>
+                <div class="strategy-card">
+                    <strong>Viral</strong>
+                    Referral program con incentivos en oro
+                </div>
+                <div class="strategy-card">
+                    <strong>Partnerships</strong>
+                    Integraciones con Slack, Teams, Notion
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: ROADMAP -->
+        <div class="slide slide-11">
+            <h2 class="section-title">Product Roadmap</h2>
+            <div class="roadmap-grid">
+                <div class="roadmap-card">
+                    <div class="roadmap-period">2026 Q1-Q2</div>
+                    <div class="roadmap-title">MVP Launch</div>
+                    <div class="roadmap-items">
+                        <div class="roadmap-item done">Core features</div>
+                        <div class="roadmap-item done">Web app</div>
+                        <div class="roadmap-item done">Gamificación completa</div>
+                    </div>
+                </div>
+                <div class="roadmap-card">
+                    <div class="roadmap-period">2026 Q3-Q4</div>
+                    <div class="roadmap-title">Growth Features</div>
+                    <div class="roadmap-items">
+                        <div class="roadmap-item">Mobile apps (iOS/Android)</div>
+                        <div class="roadmap-item">Slack integration</div>
+                        <div class="roadmap-item">Teams integration</div>
+                        <div class="roadmap-item">API pública</div>
+                        <div class="roadmap-item">Webhooks</div>
+                        <div class="roadmap-item">Custom themes</div>
+                    </div>
+                </div>
+                <div class="roadmap-card">
+                    <div class="roadmap-period">2027+</div>
+                    <div class="roadmap-title">Expansión</div>
+                    <div class="roadmap-items">
+                        <div class="roadmap-item">IA asistente</div>
+                        <div class="roadmap-item">Predictive tasks</div>
+                        <div class="roadmap-item">Advanced analytics</div>
+                        <div class="roadmap-item">White label</div>
+                        <div class="roadmap-item">Marketplace</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 12: MÉTRICAS -->
+        <div class="slide slide-12">
+            <h2 class="section-title">North Star Metrics</h2>
+            <div class="metrics-section">
+                <div class="kpi-card">
+                    <div class="kpi-label">MRR Growth</div>
+                    <div class="kpi-value">+25%</div>
+                    <div class="kpi-target">por mes (target)</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">User Engagement</div>
+                    <div class="kpi-value">85%</div>
+                    <div class="kpi-target">DAU/MAU (target)</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">NPS Score</div>
+                    <div class="kpi-value">72</div>
+                    <div class="kpi-target">target</div>
+                </div>
+            </div>
+            <div class="metrics-section">
+                <div class="kpi-card">
+                    <div class="kpi-label">Churn Rate</div>
+                    <div class="kpi-value">&lt;5%</div>
+                    <div class="kpi-target">mensual (target)</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">CAC:LTV Ratio</div>
+                    <div class="kpi-value">1:5</div>
+                    <div class="kpi-target">target</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Time to Value</div>
+                    <div class="kpi-value">&lt;24h</div>
+                    <div class="kpi-target">target</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 13: EQUIPO -->
+        <div class="slide slide-13">
+            <h2 class="section-title">El Equipo</h2>
+            <div class="team-section">
+                <div class="founder-card">
+                    <div class="founder-avatar">👨‍💻</div>
+                    <div class="founder-name">Alim [Apellido]</div>
+                    <div class="founder-title">Founder & CEO</div>
+                    <div class="founder-bio">
+                        <div>• [Tu experiencia profesional]</div>
+                        <div>• [Área de expertise]</div>
+                        <div>• [Logros destacados]</div>
+                        <div>• [Skills técnicos clave]</div>
+                    </div>
+                </div>
+                <div class="hiring-card">
+                    <div class="hiring-title">BUSCANDO:</div>
+                    <div class="hiring-list">
+                        <div class="hiring-item">CTO / Tech Co-founder</div>
+                        <div class="hiring-item">Head of Growth</div>
+                        <div class="hiring-item">Lead Designer</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 14: FINANCIALS -->
+        <div class="slide slide-14">
+            <h2 class="section-title">3-Year Projection</h2>
+            <div class="financials-grid">
+                <div class="year-card">
+                    <div class="year-label">Year 1</div>
+                    <div class="year-revenue">$432K</div>
+                    <div class="year-metric">ARR</div>
+                    <div class="year-metric">3K usuarios</div>
+                    <div class="year-metric">ARPU: $144</div>
+                </div>
+                <div class="year-card">
+                    <div class="year-label">Year 2</div>
+                    <div class="year-revenue">$4.3M</div>
+                    <div class="year-metric">ARR</div>
+                    <div class="year-metric">30K usuarios</div>
+                    <div class="year-metric">ARPU: $144</div>
+                </div>
+                <div class="year-card">
+                    <div class="year-label">Year 3</div>
+                    <div class="year-revenue">$21.6M</div>
+                    <div class="year-metric">ARR</div>
+                    <div class="year-metric">150K usuarios</div>
+                    <div class="year-metric">ARPU: $144</div>
+                </div>
+            </div>
+            <h3 style="text-align: center; font-size: 32px; margin-bottom: 30px;">Use of Funds ($500K Seed)</h3>
+            <div class="use-of-funds">
+                <div class="fund-item">
+                    <span>Desarrollo de producto</span>
+                    <strong>40%</strong>
+                </div>
+                <div class="fund-item">
+                    <span>Marketing y ventas</span>
+                    <strong>30%</strong>
+                </div>
+                <div class="fund-item">
+                    <span>Contrataciones clave</span>
+                    <strong>20%</strong>
+                </div>
+                <div class="fund-item">
+                    <span>Operaciones y legal</span>
+                    <strong>10%</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 15: THE ASK -->
+        <div class="slide slide-15">
+            <div class="ask-label">Buscamos</div>
+            <div class="ask-amount">$500K</div>
+            <div class="ask-type">Seed Round</div>
+            <div class="ask-goals">
+                <div class="ask-goal">Escalar el producto a 10K usuarios</div>
+                <div class="ask-goal">Construir el equipo core (5 posiciones)</div>
+                <div class="ask-goal">Lanzar campañas de marketing</div>
+                <div class="ask-goal">Desarrollar mobile apps (iOS/Android)</div>
+                <div class="ask-goal">Alcanzar $1M ARR en 18 meses</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 16: VISIÓN -->
+        <div class="slide slide-16">
+            <div class="vision-emoji">🎮 → 💼</div>
+            <div class="vision-statement">
+                Nuestra visión es convertir a LVL UP en la plataforma líder de gamificación empresarial
+            </div>
+            <div class="vision-tagline">
+                Donde cada profesional disfrute su trabajo tanto como su juego favorito
+            </div>
+        </div>
+
+        <!-- SLIDE 17: CONTACTO -->
+        <div class="slide slide-17">
+            <div class="final-logo">⚔️</div>
+            <div class="final-cta">¿Listo para transformar<br>la productividad?</div>
+            <div class="contact-details">
+                <div class="contact-item">
+                    <span class="contact-icon">📧</span>
+                    <span>alim@lvlup.app</span>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-icon">🔗</span>
+                    <span>linkedin.com/in/alim</span>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-icon">🌐</span>
+                    <span>www.lvlup.app</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navegación -->
+        <div class="nav-controls">
+            <button class="nav-btn" onclick="previousSlide()">◀ Anterior</button>
+            <span class="slide-number"><span id="current-slide">1</span> / 17</span>
+            <button class="nav-btn" onclick="nextSlide()">Siguiente ▶</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 17;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach(slide => slide.classList.remove('active'));
+            
+            if (n > totalSlides) currentSlide = 1;
+            if (n < 1) currentSlide = totalSlides;
+            else currentSlide = n;
+            
+            slides[currentSlide - 1].classList.add('active');
+            document.getElementById('current-slide').textContent = currentSlide;
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function previousSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        // Navegación con teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') previousSlide();
+        });
+
+        // Inicializar
+        showSlide(1);
+    </script>
+</body>
+</html>
