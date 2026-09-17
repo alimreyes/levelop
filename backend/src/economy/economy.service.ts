@@ -178,10 +178,20 @@ export class EconomyService {
         mision.aceptadaPorMembershipId !== mision.creadorMembershipId;
 
       if (puedeGanar && laAceptoOtro) {
-        // (3) Cap diario de 150 Oro.
-        const ganadoHoy = await this.oroGanadoHoy(m, membership.id);
-        const espacio = Math.max(0, cfg.capOroDiario - ganadoHoy);
-        oroOtorgado = Math.min(oro, espacio);
+        // (3) Tope diario de Oro — APAGADO por defecto desde el 17/09/26.
+        //     Alim, tras probarlo en producción: "no podemos tener un tope de
+        //     oro por día porque quita el incentivo al usuario de trabajar
+        //     más". Se respeta. La palanca queda: `capOroDiario > 0` en la
+        //     configuración del tenant vuelve a activarla (es el anti-cheat
+        //     económico del Maestro §3.3, y el CFO puede querer usarla si CH-5
+        //     muestra inflación). 0 = sin tope.
+        if (cfg.capOroDiario > 0) {
+          const ganadoHoy = await this.oroGanadoHoy(m, membership.id);
+          const espacio = Math.max(0, cfg.capOroDiario - ganadoHoy);
+          oroOtorgado = Math.min(oro, espacio);
+        } else {
+          oroOtorgado = oro;
+        }
 
         if (oroOtorgado > 0) {
           await this.emitir(m, {
@@ -454,6 +464,20 @@ export class EconomyService {
       this.log.log(`Decay ${tenantId}: ${filas.length} afectados, ${oroCaducado} Oro caducado`);
       return { afectados: filas.length, oroCaducado };
     });
+  }
+
+  // ===========================================================================
+  // ESTIMACIÓN — cuánto daría una misión (17/09/26, pedido de Alim:
+  // "mostrar cuánto Oro y Experiencia da cada una de las misiones")
+  // ===========================================================================
+
+  /**
+   * La configuración vigente del tenant, para que un controlador pueda
+   * estimar en lote (una consulta, N misiones) con la MISMA fórmula que
+   * paga el cierre. Si la configuración cambia, la estimación cambia sola.
+   */
+  async configDe(tenantId: string): Promise<EconomyConfig> {
+    return this.configVigente(this.ds.manager, tenantId);
   }
 
   // ===========================================================================

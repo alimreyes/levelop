@@ -59,6 +59,29 @@ roles de base de datos** que hacen cumplir R-07.
 npm run start:dev     # queda escuchando en http://localhost:3000/api/v1
 ```
 
+Producción (Railway) usa `npm run build` + `npm run start:prod` (`node dist/src/main`). El build
+deja el servidor en `dist/src/` porque `tsconfig` también compila `scripts/`. Antes de publicar,
+probar esos dos comandos en local: el 16/09 fallaron los dos y en desarrollo nadie lo notó.
+Despliegue completo: [`../DEPLOY.md`](../DEPLOY.md). API en vivo:
+`https://levelop-production.up.railway.app/api/v1`.
+
+### 6 · Datos de ejemplo
+
+```bash
+npm run demo:empresa                                                   # contra local
+npm run demo:empresa -- --api=https://levelop-production.up.railway.app/api/v1   # contra Railway
+```
+
+Arma **Café Andino C.A. (demo)**, con 18 personas (`@cafeandino.test`, contraseña `Demo2026!`),
+y la hace trabajar **por la API real**: invitaciones, misiones, canjes, aprobaciones, opt-out y
+ranking. Al final corre 34 verificaciones. Por base de datos solo inserta lo que todavía no tiene
+endpoint: la empresa y su admin, los cupos, los colaboradores de misión y las señales de ayuda.
+Cada corrida nueva suma "un día más" de actividad.
+
+Otros scripts: `npm run seed:interno -- "correo" "contraseña" "Nombre"` crea una cuenta del
+equipo Levelop. `npm run db:grants` rota las contraseñas de los 4 roles de R-07; después hay que
+actualizar el `.env` **y** las variables de Railway.
+
 ---
 
 ## Las tres cosas que hay que entender antes de tocar este código
@@ -119,7 +142,13 @@ cupo → debitar Oro → confirmar transacción → *después* entregar.
 | Test de concurrencia del cupo (`solicitar()`) | ✅ **PASA contra Postgres real (13/09)** |
 | `confirmar()`/`revertir()` de canjes — transición de estado y columna de stock correcta | ✅ **Arreglado y PASA (7/7) contra Postgres real 14/09** — incluye dos casos en carrera (`npm run test:transiciones`) |
 | `v_resumen_area` / `v_resumen_usuario_interno` (acuerdo del 03/09 sobre R-07) | ✅ **Ambas verificadas 14/09** contra Postgres real — agregado sin nombres para gerencia/líder, fila completa con nombre solo para `levelop_interno` |
-| Conectar el frontend que ya existe | ⏳ Siguiente |
+| Conectar el frontend que ya existe | ✅ **Los 4 HTML verificados 16/09**, más la web pública con login por rol (`../web/`) |
+| Invitaciones y onboarding (`/auth/invitacion/:token`, alta de empresa desde interno, personas/áreas en gerencia) | ✅ Escrito 16/09 · ✅ **Verificado 16/09 noche** por `demo:empresa` (17 altas por link) |
+| Opt-out accionable (`PATCH economy/juego`) y `mi-progreso` | ✅ **Verificado 16/09 noche** (`demo:empresa`: sin Oro al cerrar, `OPT_OUT_ACTIVO` al canjear) |
+| Despliegue en Railway | ✅ **En vivo 16/09 noche**. `demo:empresa` da 34/34 contra producción |
+| Endpoints de cupos, colaboradores de misión y detector de «quién necesita una mano» | ⏳ No existen. Hoy los cubre `demo:empresa` por base de datos |
+| Recuperación de contraseña | ⏳ No existe |
+| Backup de Railway restaurado de prueba | ⏳ Pendiente (regla de `LVL-029`) |
 
 **Deuda declarada en `v_resumen_usuario_interno`:** faltan `beneficios adquiridos/activos/por
 vencer` del boceto original de Alim — su definición de negocio ("¿cuándo vence un beneficio?")

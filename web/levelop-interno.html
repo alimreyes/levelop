@@ -534,6 +534,21 @@ tbody tr:hover{background:var(--surface-2)}
     </div>
     <div class="tbl-wrap" style="margin-bottom:18px"><table id="tblTenants"></table></div>
 
+    <!-- 17/09/26 — Aliados: lo que Levelop negocia con terceros. Gerencia solo
+         elige cuáles activar; nombre y descripción vienen de aquí. -->
+    <div class="sec-h"><h2 style="font-size:16px">Aliados</h2><span class="sub">Ofertas negociadas por Levelop. Las empresas las activan desde su BackOffice; el nombre y la descripción no los editan ellas</span></div>
+    <div class="card" style="margin-bottom:12px">
+      <form class="auth-f" id="aliadoForm" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; align-items:end">
+        <div class="field"><label>Nombre de la oferta</label><input id="alNombre" required minlength="2" placeholder="2x1 en cine (Cines Unidos)"></div>
+        <div class="field"><label>Descripción</label><input id="alDesc" placeholder="Entrada doble, fines de semana"></div>
+        <div class="field"><label>Precio sugerido (Oro)</label><input id="alPrecio" type="number" min="1" value="50"></div>
+        <div class="field"><label>Zonas (coma; vacío = todas)</label><input id="alZonas" placeholder="Caracas, Valencia"></div>
+        <button class="btn gold" id="alCrear" type="submit">Agregar oferta</button>
+      </form>
+      <div class="auth-err hide" id="alError" style="margin-top:10px"></div>
+    </div>
+    <div class="tbl-wrap" style="margin-bottom:18px"><table id="tblAliados"></table></div>
+
     <div class="sec-h"><h2 style="font-size:16px">Usuarios</h2><span class="sub">v_resumen_usuario_interno — el único lugar del sistema con nombre + desempeño en la misma fila</span></div>
     <div class="tbl-wrap"><table id="tblUsuarios"></table></div>
     <div class="sec-h"><h2 style="font-size:16px">Canjes agregados</h2><span class="sub">Solo estado CONFIRMADO, agrupado por familia y mes</span></div>
@@ -759,7 +774,46 @@ async function cargarInterno(){
     await cargarFiltrado();
   }catch(e){ avisarError(e, "gateLanzamiento"); $("#internoTiles").innerHTML=""; }
   await cargarTenants();
+  await cargarAliados();
 }
+
+/* ---- Aliados (17/09) ---- */
+DI.aliados = [];
+async function cargarAliados(){
+  const t = $("#tblAliados");
+  try{ DI.aliados = await LevelopAPI.interno.aliados() || []; }
+  catch(e){ t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">${e && e.status===404 ? "El backend no tiene todavía la ruta de aliados — falta correr la migración <b>CambiosDeAlim17Sep</b> y reiniciar." : esc((e&&e.message)||"No se pudo cargar.")}</td></tr></tbody>`; return; }
+  if(!DI.aliados.length){ t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">Sin ofertas todavía. La primera que agregues aparece en el BackOffice de todas las empresas, en «Nuevo ítem → Aliados».</td></tr></tbody>`; return; }
+  t.innerHTML = `<thead><tr><th>Oferta</th><th>Descripción</th><th class="n">Oro sugerido</th><th>Zonas</th><th class="n">Empresas que la activaron</th><th>Estado</th><th></th></tr></thead>
+    <tbody>${DI.aliados.map(o=>`<tr style="${o.activo?"":"opacity:.55"}">
+      <td>${esc(o.nombre)}</td><td class="sub">${esc(o.descripcion||"—")}</td><td class="n">${fmt(o.precioOroSugerido)}</td>
+      <td>${esc((o.zonas||[]).join(", ")||"Todas")}</td><td class="n">${fmt(o.empresasQueLoActivaron)}</td>
+      <td><span class="chip ${o.activo?"ok":""}">${o.activo?"Disponible":"Retirada"}</span></td>
+      <td><button class="btn" data-aliado-toggle="${esc(o.id)}" data-activo="${o.activo?"1":"0"}">${o.activo?"Retirar":"Reactivar"}</button></td>
+    </tr>`).join("")}</tbody>`;
+}
+$("#aliadoForm").addEventListener("submit", async ev=>{
+  ev.preventDefault();
+  const b = $("#alCrear"), err = $("#alError"); err.classList.add("hide");
+  const dto = { nombre: $("#alNombre").value.trim(), precioOroSugerido: Number($("#alPrecio").value)||50 };
+  if($("#alDesc").value.trim()) dto.descripcion = $("#alDesc").value.trim();
+  const zonas = $("#alZonas").value.split(",").map(z=>z.trim()).filter(Boolean); if(zonas.length) dto.zonas = zonas;
+  b.disabled = true; b.textContent = "Agregando…";
+  try{
+    await LevelopAPI.interno.crearAliado(dto);
+    $("#aliadoForm").reset(); $("#alPrecio").value = 50;
+    toast("ok","Oferta agregada", `${dto.nombre} ya puede activarse desde cualquier empresa.`);
+    await cargarAliados();
+  }catch(e){ err.classList.remove("hide"); err.textContent = (e&&e.message)||"No se pudo agregar."; }
+  finally{ b.disabled = false; b.textContent = "Agregar oferta"; }
+});
+document.addEventListener("click", async e=>{
+  const b = e.target.closest("[data-aliado-toggle]"); if(!b) return;
+  try{
+    await LevelopAPI.interno.actualizarAliado(b.dataset.aliadoToggle, { activo: b.dataset.activo!=="1" });
+    await cargarAliados();
+  }catch(err){ avisarError(err, "aliado"); }
+});
 
 /* ---- Empresas (16/09) ---- */
 DI.tenants = [];

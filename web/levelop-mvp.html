@@ -861,6 +861,8 @@ const MESES   = ["ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NO
 const MESES_L = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 const fecha      = d => `${String(d.getDate()).padStart(2,"0")} ${MESES[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`;
 const fechaLarga = d => `${d.getDate()} de ${MESES_L[d.getMonth()]}`;
+/* 17/09 (Alim): las fechas de entrega se ven "21-09", no "21 de septiembre". */
+const fechaCorta = d => `${String(d.getDate()).padStart(2,"0")}-${String(d.getMonth()+1).padStart(2,"0")}`;
 
 /* Hoy y mañana en palabras; de ahí en adelante, la fecha real (pedido de Alim) */
 function restante(ms){
@@ -874,7 +876,7 @@ function restante(ms){
   if(h < 12) return {txt:`Quedan ${Math.round(h)} h`, tipo:"risk"};
   if(h < 24) return {txt:"Se vence hoy", tipo:"gold"};
   if(h < 48) return {txt:"Se vence mañana", tipo:"gold"};
-  return {txt:`Entrega ${fechaLarga(new Date(Date.now()+ms))}`, tipo:""};
+  return {txt:`Entrega ${fechaCorta(new Date(Date.now()+ms))}`, tipo:""};
 }
 
 function toast(tipo, ico, t, d, ms=4400){
@@ -1000,6 +1002,7 @@ async function cargarSecundario(){
   if(r[1].status==="fulfilled" && r[1].value) D.progreso = r[1].value;
   if(r[2].status==="fulfilled" && r[2].value) D.ranking  = r[2].value;
   if(r[3].status==="fulfilled" && Array.isArray(r[3].value)) D.avisos = r[3].value;
+  anunciarBeneficiosNuevos();
   r.forEach((x,i)=>{ if(x.status==="rejected") console.warn("secundario", ["miembros","progreso","ranking","avisos"][i], x.reason); });
   pintarBellDot();
 }
@@ -1007,11 +1010,32 @@ async function refrescarSaldo(){
   try{ const s = await LevelopAPI.economia.saldo(); D.saldo = s.oro; }catch(e){ /* el saldo viejo sigue siendo mejor que un cero falso */ }
   try{ D.progreso = await LevelopAPI.economia.miProgreso(); }catch(e){ /* idem: el progreso viejo antes que un guion */ }
 }
+/* 17/09 (Alim): "cuando se suba un nuevo beneficio debe salir una notificación
+   en Avisos, así como un pop up anunciándolo". El pop-up sale UNA vez por
+   aviso sin leer de ese tipo; al cerrarlo se marca leído. */
+function anunciarBeneficiosNuevos(){
+  const nuevos = D.avisos.filter(a=>a.tipo==="BENEFICIO_NUEVO" && !a.leida);
+  if(!nuevos.length || document.getElementById("modal").innerHTML) return;
+  const lista = nuevos.slice(0,5).map(a=>`<li style="margin:6px 0">${esc(a.mensaje)}</li>`).join("");
+  abrirModal(`<div class="veil" data-cerrar>
+    <div class="sheet" style="max-width:460px" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Tienda</span><h2 style="margin-top:4px">${nuevos.length===1?"Hay un beneficio nuevo":`Hay ${nuevos.length} beneficios nuevos`}</h2></div>
+        <button class="closebtn" data-cerrar data-leer-varios="${esc(nuevos.map(a=>a.id).join(","))}" aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b"><ul style="margin:0; padding-left:18px; font-size:14px; color:var(--ink-2)">${lista}</ul></div>
+      <div class="sheet-f"><button class="btn" data-cerrar data-leer-varios="${esc(nuevos.map(a=>a.id).join(","))}">Después</button>
+        <button class="btn gold" style="flex:1" data-tab="tienda" data-leer-varios="${esc(nuevos.map(a=>a.id).join(","))}">Ir a la Tienda</button></div>
+    </div></div>`);
+}
+async function marcarLeidos(ids){
+  for(const id of ids){ const a = D.avisos.find(x=>x.id===id); if(a && !a.leida){ a.leida = true; try{ await LevelopAPI.avisos.marcarLeida(id); }catch(e){} } }
+  pintarBellDot();
+}
 async function refrescarAvisos(){
   try{
     const l = await LevelopAPI.avisos.listar();
     if(Array.isArray(l)) D.avisos = l;
     pintarBellDot();
+    anunciarBeneficiosNuevos();
     if(!document.getElementById("avisosdrop").hidden) pintarAvisos();
   }catch(e){ /* polling: si falla una vez, la próxima vuelve a intentar */ }
 }
@@ -1061,6 +1085,7 @@ function pintarBellDot(){
   if(d) d.classList.toggle("hide", noLeidos()===0);
 }
 const TIPO_AVISO = {
+  BENEFICIO_NUEVO:  {ico:"ticket", n:"Nuevo en la Tienda"},
   MISION_CREADA:    {ico:"capas",  n:"Nueva misión en tu área"},
   MISION_SUGERIDA:  {ico:"panas",  n:"Te sugirieron"},
   MISION_ACEPTADA:  {ico:"check",  n:"Aceptaron tu misión"},
@@ -1197,13 +1222,17 @@ function widget(ico, titulo, contador, cuerpo, cls=""){
 const FILTROS = [
   {id:"todas",  n:"Abiertas"},
   {id:"mias",   n:"Mías"},
+  {id:"area",   n:"Mi área"},
   {id:"riesgo", n:"Vencidas"},
   {id:"cerrada",n:"Cerradas"}
 ];
+/* 17/09 (Alim): «Mi área» — lo abierto de mi área, para apoyar si tengo tiempo libre. */
+const deMiArea = m => !!(D.membresia && D.membresia.areaId) && m.areaId === D.membresia.areaId;
 function misionesFiltradas(){
   let lista;
   if(state.filtro==="todas")       lista = D.misiones.filter(viva);
   else if(state.filtro==="mias")   lista = D.misiones.filter(esMia);
+  else if(state.filtro==="area")   lista = D.misiones.filter(m=>viva(m) && deMiArea(m));
   else if(state.filtro==="riesgo") lista = D.misiones.filter(enRiesgo);
   else                             lista = D.misiones.filter(m=>m.estado===state.filtro);
   return lista.sort((a,b)=>{
@@ -1227,7 +1256,7 @@ function tarjetaMision(m){
     </div>
     <div class="mission-foot">
       <span class="area-tag">${m.creadorMembershipId!==mid()?`De ${esc(nombreDe(m.creadorMembershipId))} · `:""}Urgencia ${esc(NIVEL_TXT[m.urgencia]||m.urgencia)} · Esfuerzo ${esc(NIVEL_TXT[m.esfuerzo]||m.esfuerzo)}</span>
-      ${optIn() && viva(m) ? `<span class="chip ${daraOro(m)?"gold":""}">${daraOro(m)?"Da Oro al cerrar":"Sin Oro hasta que otro la acepte"}</span>` : ""}
+      ${optIn() && viva(m) ? `<span class="chip ${daraOro(m)?"gold":""}" title="${daraOro(m)?"Ya la aceptó otra persona: al cerrar paga Oro":"Sin Oro hasta que otra persona la acepte"}">${typeof m.xpEstimada==="number"?`+${fmt(m.xpEstimada)} XP · +${fmt(m.oroEstimado)} Oro`:(daraOro(m)?"Da Oro al cerrar":"Sin Oro hasta que otro la acepte")}</span>` : ""}
     </div>
   </button>`;
 }
@@ -1308,7 +1337,8 @@ function detalleMision(m){
           <div class="kv"><span>Urgencia</span><span>${esc(NIVEL_TXT[m.urgencia]||m.urgencia)}</span></div>
           <div class="kv"><span>Importancia</span><span>${esc(NIVEL_TXT[m.importancia]||m.importancia)}</span></div>
           <div class="kv"><span>Esfuerzo</span><span>${esc(NIVEL_TXT[m.esfuerzo]||m.esfuerzo)}</span></div>
-          <div class="kv"><span>Entrega</span><span>${m.fechaLimite?esc(fecha(new Date(m.fechaLimite))):"Sin fecha"}</span></div>
+          <div class="kv"><span>Entrega</span><span>${m.fechaLimite?esc(fechaCorta(new Date(m.fechaLimite))):"Sin fecha"}</span></div>
+          ${typeof m.xpEstimada==="number"?`<div class="kv"><span>Da al cerrar</span><span class="num">+${fmt(m.xpEstimada)} XP · +${fmt(m.oroEstimado)} Oro</span></div>`:""}
           <div class="kv"><span>La montó</span><span>${esc(nombreDe(m.creadorMembershipId))}</span></div>
           ${m.asignadoMembershipId?`<div class="kv"><span>Sugerida para</span><span>${esc(nombreDe(m.asignadoMembershipId))}</span></div>`:""}
           <div class="kv"><span>La aceptó</span><span>${m.aceptadaPorMembershipId?esc(nombreDe(m.aceptadaPorMembershipId)):"Nadie todavía"}</span></div>
@@ -1356,13 +1386,14 @@ function modalNueva(){
         </div>
         <div class="field"><label>Esfuerzo</label>
           <div class="seg" id="nesf">${["bajo","medio","alto"].map((v,i)=>`<button data-v="${v}" aria-pressed="${i===1}">${v}</button>`).join("")}</div></div>
-        <div class="field"><label>Días para entregar</label><input id="nd" type="number" min="1" max="180" value="5"></div>
+        <div class="field"><label>Fecha de entrega</label><input id="nd" type="date" min="${new Date().toISOString().slice(0,10)}" value="${new Date(Date.now()+5*24*H).toISOString().slice(0,10)}"></div>
         <div class="field"><label>Sugerir a alguien (opcional)</label>
           <select id="nsug">
             <option value="">— Nadie en particular —</option>
+            <option value="${esc(mid())}">Yo (${esc(miNombre())})</option>
             ${D.miembros.filter(p=>p.membershipId!==mid()).map(p=>`<option value="${esc(p.membershipId)}">${esc(p.nombre)}${p.areaNombre?` · ${esc(p.areaNombre)}`:""}</option>`).join("")}
           </select>
-          <div class="sub" style="margin-top:6px">Es una sugerencia, no una asignación: la persona igual tiene que aceptarla para que dé Oro. Le llega un aviso.</div>
+          <div class="sub" style="margin-top:6px">Es una sugerencia, no una asignación: la persona igual tiene que aceptarla para que dé Oro. Si te la sugieres a ti, recuerda que una misión propia paga Oro solo si otra persona la acepta.</div>
         </div>
         <div class="field"><label>Links (opcional, uno por línea)</label><textarea id="nlinks" rows="2" placeholder="https://…"></textarea></div>
         <div class="note">Las misiones que te montas tú mismo dan XP pero <b>no dan Oro hasta que otra persona las acepte</b>. Esa regla la aplica el servidor, no esta pantalla.</div>
@@ -1381,9 +1412,16 @@ const FAMILIAS = {
   consumo:  {n:"Consumo",  d:"Cupos que puso la casa.",                        ico:"ticket"},
   aliados:  {n:"Aliados",  d:"Convenios con marcas de afuera.",                ico:"red"}
 };
+/* 17/09 (Alim): «Comprar» si se auto-confirma, «Solicitar» si requiere
+   aprobación; cupos del mes reales ("quedan 4 de 8", o sin límite). */
+const agotado = i => i.cuposDisponibles !== null && i.cuposDisponibles !== undefined && Number(i.cuposDisponibles) <= 0;
+const verboItem = i => i.requiereAprobacion ? "Solicitar" : "Comprar";
 function tarjetaItem(i){
   const caro = D.saldo < i.precioOro;
   const fam = FAMILIAS[i.familia] || {n:i.familia, ico:"ticket"};
+  const cupos = (i.cuposDisponibles===null || i.cuposDisponibles===undefined)
+    ? `<span class="chip">Sin límite</span>`
+    : `<span class="chip ${agotado(i)?"risk":Number(i.cuposDisponibles)<=2?"gold":""}">${agotado(i)?"Agotado este mes":`Quedan ${fmt(i.cuposDisponibles)} de ${fmt(i.cuposTotales)}`}</span>`;
   return `<div class="item">
     <div class="item-h"><span class="item-ico">${IC[fam.ico]||IC.ticket}</span>
       <div style="flex:1"><h3>${esc(i.nombre)}</h3></div>
@@ -1393,12 +1431,13 @@ function tarjetaItem(i){
       <span class="chip">${esc(fam.n)}</span>
       ${(i.zonas && i.zonas.length)?`<span class="chip">${IC.pin} ${esc(i.zonas.join(", "))}</span>`
                                    :`<span class="chip">${IC.pin} Todas las zonas</span>`}
-      <span class="chip nc-chip">Cupos sin conectar</span>
+      ${cupos}
+      <span class="chip ${i.requiereAprobacion?"":"ok"}" title="${i.requiereAprobacion?"Queda en proceso hasta que lo confirmen":"Queda confirmado al instante"}">${i.requiereAprobacion?"Con aprobación":"Al instante"}</span>
     </div>
     <div class="item-f">
       <span class="price"><b>${fmt(i.precioOro)}</b><small>oro</small></span>
-      <button class="btn sm ${caro?"":"gold"}" data-pedir="${esc(i.id)}" ${caro?"disabled":""}>
-        ${caro?`Faltan ${fmt(i.precioOro - D.saldo)}`:"Pedirlo"}
+      <button class="btn sm ${caro||agotado(i)?"":"gold"}" data-pedir="${esc(i.id)}" ${caro||agotado(i)?"disabled":""}>
+        ${agotado(i)?"Agotado":caro?`Faltan ${fmt(i.precioOro - D.saldo)}`:verboItem(i)}
       </button>
     </div>
   </div>`;
@@ -1433,18 +1472,19 @@ function vistaTienda(){
   ${fams.map(k=>{
     const c = FAMILIAS[k], items = D.catalogo.filter(i=>i.familia===k);
     if(!items.length) return "";
-    return `<div class="sec-h"><h2>${esc(c.n)}</h2><span class="sub">${esc(c.d)}</span></div>
-    <div class="shop-grid">${items.map(tarjetaItem).join("")}</div>`;
+    const abierto = !state.plegado["cat:"+k];
+    return `<button class="sec-h pleg-h" data-plegar="cat:${k}" aria-expanded="${abierto}" style="width:100%; text-align:left; cursor:pointer">
+      <h2>${esc(c.n)} <span class="pleg-i ${abierto?"open":""}" style="display:inline-block; vertical-align:middle">${IC.abajo}</span></h2><span class="sub">${esc(c.d)} · ${items.length}</span></button>
+    ${abierto?`<div class="shop-grid">${items.map(tarjetaItem).join("")}</div>`:""}`;
   }).join("")}
 
   ${huerfanos.length && state.shopFamilia==="todas" ? `
-    <div class="sec-h"><h2>Otros</h2><span class="sub">Familias que esta pantalla todavía no conoce</span></div>
+    <div class="sec-h"><h2>Otros</h2><span class="sub">Categorías que esta pantalla todavía no conoce</span></div>
     <div class="shop-grid">${huerfanos.map(tarjetaItem).join("")}</div>` : ""}
   `}
 
   <div class="sec-h"><h2>Todavía sin conectar</h2><span class="sub">En la Tienda</span></div>
   ${listaNC([
-    ["capas","Cupos restantes («quedan 4 de 8»)","La tabla `benefit_stock` existe y el canje sí descuenta cupo de verdad — pero `GET /catalog` no devuelve el stock, así que esta pantalla no puede mostrarlo sin inventarlo."],
     ["candado","Beneficios bloqueados por nivel","El catálogo del backend no tiene campo de nivel mínimo, y sin endpoint de XP tampoco habría con qué compararlo."],
     ["bandera","Ponerlo de objetivo y el plan para llegar","No hay dónde guardar un objetivo. Era una función del prototipo, no del backend."],
     ["regalo","Regalar un beneficio a otra persona","Necesita un tipo de evento de economía que no existe (`ORO_TRANSFERIDO`) y una decisión sobre límites — regalar Oro entre cómplices es la forma obvia de saltarse el tope diario."],
@@ -1469,7 +1509,7 @@ function modalPedir(item){
         <div class="note">Si dos personas piden el último cupo al mismo tiempo, <b>solo una se lo lleva</b> y a la otra no se le descuenta nada. Está probado con un test de concurrencia contra la base real.</div>
       </div>
       <div class="sheet-f"><button class="btn" data-cerrar>Ahorita no</button>
-        <button class="btn gold" style="flex:1" data-confirmar="${esc(item.id)}">Pedirlo</button></div>
+        <button class="btn gold" style="flex:1" data-confirmar="${esc(item.id)}">${verboItem(item)}</button></div>
     </div></div>`;
 }
 function modalReglas(){
@@ -1510,7 +1550,10 @@ function modalReglas(){
 function vistaRanking(){
   const R = D.ranking;
   const prefs = { verTabla: !!(R && R.prefs && R.prefs.verTablaCompleta) };
-  const cab = `<div class="page-h"><div><span class="eyebrow">Entre todos</span><h1>Ranking</h1></div></div>`;
+  const ambito = state.rankingAmbito || "global";
+  const cab = `<div class="page-h"><div><span class="eyebrow">Entre todos</span><h1>Ranking</h1></div>
+    ${(D.membresia && D.membresia.areaId) ? `<div class="seg"><button data-ranking-ambito="global" aria-pressed="${ambito==="global"}">Toda la empresa</button><button data-ranking-ambito="area" aria-pressed="${ambito==="area"}">Mi área</button></div>` : ""}
+  </div>`;
 
   if(!R) return cab + `<div class="card empty">El ranking no cargó. Reintenta en un momento.</div>`;
 
@@ -1544,7 +1587,7 @@ function vistaRanking(){
     <div class="stat"><div class="l">Se ordena por</div><div class="v" style="font-size:14px">XP</div></div>
   </div>
   <section class="w">
-    <div class="w-h"><span class="wi">${IC.ranking}</span><h3>${prefs.verTabla?"Tabla completa":"Tú y los de al lado"}</h3></div>
+    <div class="w-h"><span class="wi">${IC.ranking}</span><h3>${prefs.verTabla?"Tabla completa":"Tú y los de al lado"}${ambito==="area"?" · "+esc(miArea()||"tu área"):""}</h3></div>
     <div class="w-body"><div class="stack g8">${filas || `<div class="empty">Nadie con XP todavía.</div>`}</div></div>
   </section>
   <div class="card" style="margin-top:14px">
@@ -1765,7 +1808,9 @@ async function crearMision(){
   const titulo = document.getElementById("nt").value.trim();
   if(!titulo){ toast("risk","alerta","Falta el título","Escribe qué hay que hacer para poder montarla."); return; }
   const g = id => document.querySelector(`#${id} [aria-pressed="true"]`).dataset.v;
-  const dias = Math.max(1, Math.min(180, +document.getElementById("nd").value || 5));
+  const fechaEl = document.getElementById("nd").value;
+  const limite = fechaEl ? new Date(fechaEl + "T23:59:00") : new Date(Date.now() + 5*24*H);
+  if(isNaN(limite.getTime()) || limite.getTime() < Date.now()){ toast("risk","alerta","Fecha inválida","Elige una fecha de entrega de hoy en adelante."); return; }
   const desc = document.getElementById("ndesc").value.trim();
 
   const dto = {
@@ -1773,7 +1818,7 @@ async function crearMision(){
     urgencia: g("nurg"),
     importancia: g("nimp"),
     esfuerzo: g("nesf"),
-    fechaLimite: new Date(Date.now() + dias*24*H).toISOString()
+    fechaLimite: limite.toISOString()
   };
   if(desc) dto.descripcion = desc;
   /* Solo se manda `areaId` si la membresía tiene una: el DTO lo valida como
@@ -1781,7 +1826,8 @@ async function crearMision(){
      para `asignadoMembershipId`. */
   if(D.membresia && D.membresia.areaId) dto.areaId = D.membresia.areaId;
   const sug = (document.getElementById("nsug")||{}).value;
-  if(sug) dto.asignadoMembershipId = sug;
+  if(sug && sug!==mid()) dto.asignadoMembershipId = sug;
+  const paraMi = sug && sug===mid();
   const links = String((document.getElementById("nlinks")||{}).value||"").split(/\n+/).map(s=>s.trim()).filter(Boolean);
   if(links.length) dto.enlaces = links;
 
@@ -1789,7 +1835,7 @@ async function crearMision(){
     const m = await LevelopAPI.misiones.crear(dto);
     D.misiones.unshift(m);
     cerrarModal(); state.tab="misiones"; state.filtro="mias"; render();
-    toast("ok","check","Misión montada", sug ? `Le llegó un aviso a ${nombreDe(sug)}. Para que dé Oro, tiene que aceptarla.` : "Para que dé Oro, otra persona tiene que aceptarla.", 5400);
+    toast("ok","check","Misión montada", paraMi ? "Quedó tuya. Da XP al cerrarla; para que dé Oro, otra persona tiene que aceptarla." : sug ? `Le llegó un aviso a ${nombreDe(sug)}. Para que dé Oro, tiene que aceptarla.` : "Para que dé Oro, otra persona tiene que aceptarla.", 5400);
   }catch(e){ avisarError(e, "crear"); }
 }
 
@@ -1810,20 +1856,46 @@ async function cambiarPrefRanking(campo, valor){
   try{
     const dto = {}; dto[campo] = !!valor;
     await LevelopAPI.economia.actualizarPrefsRanking(dto);
-    D.ranking = await LevelopAPI.economia.ranking();
+    D.ranking = await LevelopAPI.economia.ranking(state.rankingAmbito);
     render();
   }catch(e){ avisarError(e, "ranking"); }
 }
+async function cambiarAmbitoRanking(ambito){
+  state.rankingAmbito = ambito;
+  try{ D.ranking = await LevelopAPI.economia.ranking(ambito); }catch(e){ avisarError(e, "ranking"); }
+  render();
+}
 
+/* 17/09 — BUG REAL (reportado por Alim: "hice una compra y no se realizó el
+   débito" + "auto-confirma pero salió 'queda en proceso'"): la app no mandaba
+   clave de idempotencia, el servidor usaba una por (persona, ítem, día), y el
+   segundo pedido del mismo ítem en el día devolvía el PRIMERO sin debitar —
+   y esta función lo anunciaba como nuevo. Ahora: una clave nueva por clic
+   (se reutiliza solo si ese mismo clic se reintenta), y el mensaje sale del
+   estado real que devuelve el servidor. */
+let claveEnCurso = null;
 async function pedirBeneficio(itemId){
   const item = D.catalogo.find(i=>i.id===itemId);
+  if(!claveEnCurso || claveEnCurso.itemId!==itemId){
+    const k = (crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    claveEnCurso = {itemId, k};
+  }
   try{
-    const r = await LevelopAPI.tienda.solicitar(itemId);
+    const r = await LevelopAPI.tienda.solicitar(itemId, claveEnCurso.k);
+    claveEnCurso = null;
     D.saldo = (r && typeof r.saldoRestante === "number") ? r.saldoRestante : D.saldo;
-    const canjes = await LevelopAPI.tienda.misCanjes();
+    const [canjes, catalogo] = await Promise.all([LevelopAPI.tienda.misCanjes(), LevelopAPI.tienda.catalogo()]);
     D.canjes = Array.isArray(canjes) ? canjes : D.canjes;
+    D.catalogo = Array.isArray(catalogo) ? catalogo : D.catalogo;
     cerrarModal(); render();
-    toast("ok","ticket","Pedido registrado", `${item?item.nombre:"El beneficio"} queda en proceso hasta que lo confirmen. Te quedan ${fmt(D.saldo)} de Oro.`, 5600);
+    const nombre = item?item.nombre:"El beneficio";
+    if(r && r.duplicado){
+      toast("ok","ticket","Ya lo tenías pedido", `${nombre} ya estaba ${r.estado==="CONFIRMADO"?"confirmado":"en proceso"} — no se volvió a cobrar. Tu Oro: ${fmt(D.saldo)}.`, 6000);
+    } else if(r && r.estado==="CONFIRMADO"){
+      toast("ok","check","¡Es tuyo!", `${nombre} quedó confirmado al instante. Te quedan ${fmt(D.saldo)} de Oro.`, 5600);
+    } else {
+      toast("ok","ticket","Solicitud registrada", `${nombre} queda en proceso hasta que lo confirmen. Se descontó el Oro: te quedan ${fmt(D.saldo)}.`, 5600);
+    }
   }catch(e){
     /* El backend devuelve el motivo tipificado. Si es CUPO_AGOTADO o
        SALDO_INSUFICIENTE, el Oro NO se tocó — y eso hay que decirlo,
@@ -1840,13 +1912,15 @@ document.addEventListener("click", e=>{
   const dentroAvisos = e.target.closest("#avisosdrop, #bell");
   if(!dentroAvisos) toggleAvisos(false);
 
-  const t = e.target.closest("[data-tab],[data-periodo],[data-filtro],[data-filtro-ir],[data-mision],[data-cerrar],[data-aceptar],[data-cerrarmision],[data-shopfam],[data-pedir],[data-confirmar],[data-reglas],[data-plegar],[data-nueva],[data-crear],[data-info],[data-recargar],[data-salir],[data-leer],[data-optin],[data-ranking-pref],#bell,#themebtn,[data-stop]");
+  const t = e.target.closest("[data-tab],[data-periodo],[data-filtro],[data-filtro-ir],[data-mision],[data-cerrar],[data-aceptar],[data-cerrarmision],[data-shopfam],[data-pedir],[data-confirmar],[data-reglas],[data-plegar],[data-nueva],[data-crear],[data-info],[data-recargar],[data-salir],[data-leer],[data-optin],[data-ranking-pref],[data-ranking-ambito],#bell,#themebtn,[data-stop]");
   if(!t) return;
 
+  const lv = e.target.closest("[data-leer-varios]"); if(lv){ marcarLeidos(lv.dataset.leerVarios.split(",")); }
   /* 16/09 — avisos, interruptor del juego, prefs del ranking */
   if(t.hasAttribute("data-leer")){ leerAviso(t.dataset.leer, t.dataset.avisoMision||null); return; }
   if(t.hasAttribute("data-optin")){ cambiarJuego(t.dataset.optin==="true"); return; }
   if(t.hasAttribute("data-ranking-pref")){ cambiarPrefRanking(t.dataset.rankingPref, t.dataset.valor==="true"); return; }
+  if(t.hasAttribute("data-ranking-ambito")){ cambiarAmbitoRanking(t.dataset.rankingAmbito); return; }
 
   if(t.id==="themebtn"){
     const cur = document.documentElement.getAttribute("data-theme")||"dark";

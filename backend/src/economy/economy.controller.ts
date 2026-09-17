@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Query, UseGuards } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { IsBoolean, IsOptional } from 'class-validator';
 import { DataSource } from 'typeorm';
@@ -88,7 +88,11 @@ export class EconomyController {
    *    ±3 posiciones alrededor de la suya, no la tabla entera.
    */
   @Get('ranking')
-  async ranking(@CurrentMembership() m: Membership) {
+  async ranking(@CurrentMembership() m: Membership, @Query('ambito') ambito?: string) {
+    // 17/09: `?ambito=area` limita la tabla a la propia área (pedido de Alim:
+    // "ver el Ranking tanto global como por área"). Mismas reglas de
+    // participación; solo cambia el conjunto. Sin área asignada = global.
+    const porArea = ambito === 'area' && !!m.areaId;
     const prefs = await this.ds
       .getRepository(MembershipPrefs)
       .findOne({ where: { membershipId: m.id } });
@@ -99,6 +103,8 @@ export class EconomyController {
     const prefsOut = {
       verTablaCompleta: prefs?.verTablaCompleta ?? false,
       participaEnRanking: prefs?.participaEnRanking ?? true,
+      ambito: porArea ? 'area' : 'global',
+      tieneArea: !!m.areaId,
     };
 
     if (!m.optInJuego || (prefs && prefs.participaEnRanking === false)) {
@@ -123,10 +129,11 @@ export class EconomyController {
            LEFT JOIN membership_prefs mp ON mp."membershipId" = mem.id
           WHERE mem."tenantId" = $1 AND mem.activo AND mem."optInJuego"
             AND COALESCE(mp."participaEnRanking", true)
+            AND ($2::uuid IS NULL OR mem."areaId" = $2::uuid)
        )
        SELECT *, RANK() OVER (ORDER BY xp DESC)::int AS posicion FROM base
        ORDER BY posicion`,
-      [m.tenantId],
+      [m.tenantId, porArea ? m.areaId : null],
     );
 
     const miFila = filas.find((f) => f.membershipId === m.id);

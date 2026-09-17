@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 import { v5 as uuidv5 } from 'uuid';
 import {
   EstadoCanje,
@@ -21,6 +21,10 @@ export interface ResultadoCanje {
   redemptionId?: string;
   motivo?: MotivoRechazo;
   saldoRestante?: number;
+  /** 17/09: la app necesita saber si quedó CONFIRMADO (auto) o RESERVADO (espera aprobación). */
+  estado?: EstadoCanje;
+  /** 17/09: true si esta llamada NO creó un canje nuevo porque ya existía uno con la misma clave. */
+  duplicado?: boolean;
 }
 
 export class CanjeNoEncontradoError extends Error {
@@ -89,9 +93,19 @@ export class RedemptionsService {
   }): Promise<ResultadoCanje> {
     const { membership, itemId } = p;
 
-    // La clave es determinista sobre (tenant, persona, item, dia). Si el cliente
-    // reintenta —o si el usuario da doble clic, que es lo que pasa de verdad— se
-    // resuelve al mismo canje en vez de crear dos.
+    // Clave de idempotencia. Si el cliente manda la suya (la app lo hace desde
+    // el 17/09: una clave nueva por clic, reutilizada solo en el reintento de
+    // ESE clic), se usa esa. Si no manda ninguna, la de respaldo es
+    // determinista sobre (tenant, persona, item, día).
+    //
+    // ⚠️ BUG REAL encontrado por Alim el 17/09 ("hice una compra y no se
+    // realizó el débito del Oro" + "auto-confirma pero me salió 'queda en
+    // proceso'"): la app NO mandaba clave, así que la de respaldo aplicaba, y
+    // pedir el MISMO ítem dos veces el mismo día devolvía el PRIMER canje sin
+    // debitar ni crear nada — y la app lo pintaba como si fuera nuevo. Dos
+    // cafés en un día es un uso legítimo, no un doble clic. Ahora: la app manda
+    // clave por clic, y cuando sí es un duplicado, la respuesta lo dice
+    // (`duplicado: true`) en vez de disfrazarse de canje nuevo.
     const dia = new Date().toISOString().slice(0, 10);
     const idem =
       p.idempotencyKeyCliente ??
@@ -108,7 +122,14 @@ export class RedemptionsService {
         where: { tenantId: membership.tenantId, idempotencyKey: idem },
       });
       if (yaExiste) {
-        return { ok: yaExiste.estado !== EstadoCanje.RECHAZADO, redemptionId: yaExiste.id };
+        const saldoRestante = await this.economy.saldoOro(m, membership.id);
+        return {
+          ok: yaExiste.estado !== EstadoCanje.RECHAZADO,
+          redemptionId: yaExiste.id,
+          estado: yaExiste.estado,
+          saldoRestante,
+          duplicado: true,
+        };
       }
 
       if (!membership.optInJuego) {
@@ -164,20 +185,29 @@ export class RedemptionsService {
       // El arreglo: envolver el UPDATE en un CTE para que el comando de nivel
       // superior sea un SELECT. Asi TypeORM devuelve las filas de verdad y
       // `.length` significa lo que aparenta significar.
-      const reserva = await m.query(
-        `WITH reserva AS (
-           UPDATE benefit_stock
-              SET "cuposReservados" = "cuposReservados" + 1, "updatedAt" = now()
-            WHERE "itemId" = $1 AND "tenantId" = $2
-              AND now() BETWEEN "periodoInicio" AND "periodoFin"
-              AND "cuposReservados" + "cuposConsumidos" < "cuposTotales"
-            RETURNING id
-         )
-         SELECT id FROM reserva`,
-        [itemId, membership.tenantId],
-      );
-      if (!Array.isArray(reserva) || reserva.length === 0) {
-        return this.rechazo(MotivoRechazo.CUPO_AGOTADO);
+      // 17/09: cupos mensuales cargados por gerencia. Si el ítem tiene
+      // `cuposMensuales` y todavía no existe la fila de este mes, se crea
+      // aquí (UNIQUE (itemId, periodoInicio) + ON CONFLICT hace que dos
+      // canjes simultáneos del primer día del mes no creen dos filas). Si el
+      // ítem NO tiene límite y no hay ninguna fila vigente, no hay cupo que
+      // reservar: pasa directo (un café de cortesía no se agota).
+      const hayStock = await this.asegurarStockDelMes(m, item);
+      if (hayStock) {
+        const reserva = await m.query(
+          `WITH reserva AS (
+             UPDATE benefit_stock
+                SET "cuposReservados" = "cuposReservados" + 1, "updatedAt" = now()
+              WHERE "itemId" = $1 AND "tenantId" = $2
+                AND now() BETWEEN "periodoInicio" AND "periodoFin"
+                AND "cuposReservados" + "cuposConsumidos" < "cuposTotales"
+              RETURNING id
+           )
+           SELECT id FROM reserva`,
+          [itemId, membership.tenantId],
+        );
+        if (!Array.isArray(reserva) || reserva.length === 0) {
+          return this.rechazo(MotivoRechazo.CUPO_AGOTADO);
+        }
       }
 
       // --- 3 y 4 · Debitar y registrar ---------------------------------------
@@ -213,13 +243,15 @@ export class RedemptionsService {
       if (!item.requiereAprobacion) {
         canje.estado = EstadoCanje.CONFIRMADO;
         await m.save(canje);
-        await m.query(
-          `UPDATE benefit_stock
-              SET "cuposReservados" = GREATEST(0, "cuposReservados" - 1),
-                  "cuposConsumidos" = "cuposConsumidos" + 1, "updatedAt" = now()
-            WHERE "itemId" = $1`,
-          [itemId],
-        );
+        if (hayStock) {
+          await m.query(
+            `UPDATE benefit_stock
+                SET "cuposReservados" = GREATEST(0, "cuposReservados" - 1),
+                    "cuposConsumidos" = "cuposConsumidos" + 1, "updatedAt" = now()
+              WHERE "itemId" = $1 AND now() BETWEEN "periodoInicio" AND "periodoFin"`,
+            [itemId],
+          );
+        }
       }
 
       // Outbox: hoy queda vacio porque MANUAL no llama a nadie. El patron nace
@@ -228,8 +260,32 @@ export class RedemptionsService {
       // (Ninguna llamada externa aqui dentro. Ninguna. Nunca.)
 
       const saldoRestante = await this.economy.saldoOro(m, membership.id);
-      return { ok: true, redemptionId: canje.id, saldoRestante };
+      return { ok: true, redemptionId: canje.id, saldoRestante, estado: canje.estado };
     });
+  }
+
+  /**
+   * Garantiza la fila de `benefit_stock` del mes calendario en curso para un
+   * ítem con `cuposMensuales`, y dice si hay stock que reservar.
+   *  - Fila vigente existe (la haya creado esto, gerencia o el script demo) → true.
+   *  - No hay fila y el ítem tiene `cuposMensuales` → se crea la del mes → true.
+   *  - No hay fila y el ítem no tiene límite → false (sin cupo que controlar).
+   */
+  private async asegurarStockDelMes(m: EntityManager, item: BenefitCatalogItem): Promise<boolean> {
+    const vigente = await m.query(
+      `SELECT 1 FROM benefit_stock
+        WHERE "itemId" = $1 AND now() BETWEEN "periodoInicio" AND "periodoFin" LIMIT 1`,
+      [item.id],
+    );
+    if (Array.isArray(vigente) && vigente.length) return true;
+    if (item.cuposMensuales == null) return false;
+    await m.query(
+      `INSERT INTO benefit_stock ("tenantId", "itemId", "cuposTotales", "cuposReservados", "cuposConsumidos", "periodoInicio", "periodoFin")
+       VALUES ($1, $2, $3, 0, 0, date_trunc('month', now()), date_trunc('month', now()) + interval '1 month' - interval '1 second')
+       ON CONFLICT ("itemId", "periodoInicio") DO NOTHING`,
+      [item.tenantId, item.id, item.cuposMensuales],
+    );
+    return true;
   }
 
   /**
@@ -304,12 +360,16 @@ export class RedemptionsService {
         );
       }
 
+      // Solo la fila del período en que se reservó (desde el 17/09 hay una
+      // por mes): sin este filtro, con dos meses cargados se tocaban ambas.
       await m.query(
-        `UPDATE benefit_stock
-            SET "cuposReservados" = GREATEST(0, "cuposReservados" - 1),
-                "cuposConsumidos" = "cuposConsumidos" + 1, "updatedAt" = now()
-          WHERE "itemId" = $1`,
-        [filas[0].itemId],
+        `UPDATE benefit_stock s
+            SET "cuposReservados" = GREATEST(0, s."cuposReservados" - 1),
+                "cuposConsumidos" = s."cuposConsumidos" + 1, "updatedAt" = now()
+           FROM redemptions r
+          WHERE r.id = $2 AND s."itemId" = $1
+            AND r."createdAt" BETWEEN s."periodoInicio" AND s."periodoFin"`,
+        [filas[0].itemId, filas[0].id],
       );
 
       // Aviso 14/09 (pedido de Alim, #2): quien solicitó el canje se entera de
@@ -411,10 +471,12 @@ export class RedemptionsService {
       const columna =
         fila.estadoAnterior === EstadoCanje.CONFIRMADO ? 'cuposConsumidos' : 'cuposReservados';
       await m.query(
-        `UPDATE benefit_stock
-            SET "${columna}" = GREATEST(0, "${columna}" - 1), "updatedAt" = now()
-          WHERE "itemId" = $1`,
-        [fila.itemId],
+        `UPDATE benefit_stock s
+            SET "${columna}" = GREATEST(0, s."${columna}" - 1), "updatedAt" = now()
+           FROM redemptions r
+          WHERE r.id = $2 AND s."itemId" = $1
+            AND r."createdAt" BETWEEN s."periodoInicio" AND s."periodoFin"`,
+        [fila.itemId, fila.id],
       );
 
       this.log.warn(`Canje ${fila.id} revertido (estaba ${fila.estadoAnterior}): ${p.motivo}`);

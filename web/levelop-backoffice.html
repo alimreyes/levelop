@@ -338,6 +338,28 @@ td.n, #tip .tr b, #tip .tr span, .pat-sig .sv, .plist .pr b, .fstep .fn,
 .field textarea{line-height:1.5; resize:vertical}
 .field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--gold-solid); background:var(--surface)}
 .field select{appearance:none}
+/* 17/09 — en tema oscuro el texto del select y de sus opciones se quedaba negro */
+.field input, .field select, .field textarea{color:var(--ink)}
+.field select option{background:var(--surface); color:var(--ink)}
+:root:not([data-theme="light"]){color-scheme:dark}
+:root[data-theme="light"]{color-scheme:light}
+/* 17/09 — tablas con su propio scroll: la página no crece con cada fila nueva */
+.tbl-scroll{max-height:400px; overflow:auto}
+.tbl-scroll thead th{position:sticky; top:0; background:var(--surface); z-index:1}
+th[data-sort]{cursor:pointer; user-select:none; white-space:nowrap}
+th[data-sort]:hover{color:var(--ink)}
+th[data-sort] .dir{font-family:var(--mono); font-size:9px; margin-left:4px; color:var(--gold-solid)}
+.seg{display:inline-flex; border:1px solid var(--line); background:var(--surface-2)}
+.seg button{padding:7px 11px; font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--gold-solid); color:#0B0B0C}
+.torta{display:grid; grid-template-columns:220px 1fr; gap:18px; align-items:center}
+@media (max-width:640px){.torta{grid-template-columns:1fr}}
+.torta svg{width:220px; height:220px; display:block}
+.torta path{transition:opacity .12s} .torta path.dim{opacity:.35}
+.leyenda{display:grid; gap:8px} .leyenda-row{display:grid; grid-template-columns:12px 1fr auto auto; gap:10px; align-items:center; font-size:13px; padding:6px 8px; border:1px solid transparent}
+.leyenda-row:hover, .leyenda-row.on{border-color:var(--line-strong); background:var(--surface-2)}
+.leyenda-row i{width:12px; height:12px; display:block}
+.leyenda-row .n{font-family:var(--mono); font-size:12px}
 .check{display:flex; align-items:center; gap:9px; font-size:13.5px; color:var(--ink-2); cursor:pointer}
 .check input{width:16px; height:16px; accent-color:var(--gold-solid)}
 </style>
@@ -359,40 +381,49 @@ td.n, #tip .tr b, #tip .tr span, .pat-sig .sv, .plist .pr b, .fstep .fn,
   <div style="margin-bottom:20px">
     <span class="eyebrow" id="empresaNombre">Panel de equipos</span>
     <h1 style="margin-top:6px">BackOffice</h1>
-    <p class="sub" style="margin-top:8px; max-width:64ch">Lo que gerencia necesita para decidir: si el workspace ya lanzó, cómo va cada área y qué se canjea. Datos reales del backend — lo que todavía no da queda marcado abajo, nunca inventado.</p>
+    <p class="sub" style="margin-top:8px; max-width:64ch">Lo que gerencia necesita para decidir: cómo va cada área, qué se canjea y quién está en la empresa. Datos reales del backend — lo que todavía no da queda marcado abajo, nunca inventado.</p>
   </div>
 
   <div class="tiles" id="tiles"><div class="cargando">Cargando…</div></div>
 
-  <div class="sec-h"><h2>Desempeño por área</h2><span class="sub">Tareas cerradas y Oro ganado por persona, promedio anual. Agregado — nunca por individuo (R-07)</span></div>
-  <div class="card" id="porArea"></div>
+  <div class="sec-h"><h2>Desempeño por área</h2><span class="sub">Últimos 30 días, agregado por área — nunca por individuo (R-07). Un área muestra desempeño a partir de 4 miembros activos</span></div>
+  <div class="tbl-wrap tbl-scroll" id="porArea"><table id="tblAreasMetricas"></table></div>
 
-  <div class="sec-h"><h2>Catálogo de beneficios</h2><span class="sub">Lo que gerencia puede cambiar: precio y si necesita aprobación</span></div>
+  <div class="sec-h" style="margin-top:26px"><h2>Catálogo de beneficios</h2><span class="sub">Precio, aprobación, cupos por mes y si está en la Tienda</span></div>
   <div class="row g8 wrapf" style="margin-bottom:12px">
     <button class="btn gold" id="btnNuevoItem">+ Nuevo ítem</button>
   </div>
-  <div class="tbl-wrap"><table id="tblCatalogo"></table></div>
+  <div class="tbl-wrap tbl-scroll"><table id="tblCatalogo"></table></div>
+  <p class="sub" style="font-size:12px; margin-top:8px"><b>Auto-confirmación</b>: la persona canjea y queda confirmado al instante (un café). <b>Requiere aprobación</b>: queda «en proceso» hasta que gerencia o el líder lo confirme (una tarde libre). <b>Cupos/mes</b>: cuántos se pueden canjear por mes calendario; sin límite si no se define. Un ítem <b>inactivo</b> desaparece de la Tienda sin borrarse.</p>
 
-  <div class="sec-h"><h2>Canjes por familia</h2><span class="sub">Solo canjes confirmados de este mes. Agregado por familia — nunca por ítem ni por persona</span></div>
-  <div class="card"><div id="canjesFamilia"></div></div>
+  <div class="sec-h" style="margin-top:26px"><h2>Canjes por categoría</h2><span class="sub">Solo canjes confirmados. Agregado por categoría — nunca por ítem ni por persona</span></div>
+  <div class="card">
+    <div class="row g8 wrapf" style="justify-content:space-between; margin-bottom:12px">
+      <span class="eyebrow">Rango</span>
+      <div class="seg" id="rangoCanjes">
+        <button data-rango="dia" aria-pressed="false">Día</button><button data-rango="semana" aria-pressed="false">Semana</button><button data-rango="mes" aria-pressed="true">Mes</button><button data-rango="anio" aria-pressed="false">Año</button>
+      </div>
+    </div>
+    <div id="canjesFamilia"></div>
+  </div>
 
   <!-- 16/09/26 — Personas, áreas e invitaciones. Administración, no evaluación:
        nombres y roles SIN ningún número de desempeño. Ver nota al pie. -->
-  <div class="sec-h" style="margin-top:26px"><h2>Personas y áreas</h2><span class="sub">Quién está en la empresa, en qué área y con qué rol. Invitar es el único camino de alta</span></div>
+  <div class="sec-h" style="margin-top:26px"><h2>Usuarios</h2><span class="sub">Quién está en la empresa, en qué área y con qué rol. Invitar es el único camino de alta</span></div>
   <div class="row g8 wrapf" style="margin-bottom:12px">
     <button class="btn gold" id="btnInvitar">+ Invitar a alguien</button>
     <button class="btn ghost" id="btnNuevaArea">+ Nueva área</button>
   </div>
-  <div class="tbl-wrap" style="margin-bottom:14px"><table id="tblPersonas"></table></div>
+  <div class="tbl-wrap tbl-scroll" style="margin-bottom:14px"><table id="tblPersonas"></table></div>
   <div class="sec-h" style="margin-top:18px"><h2 style="font-size:15px">Áreas</h2><span class="sub">Asignar líder también le cambia el rol a esa persona</span></div>
-  <div class="tbl-wrap" style="margin-bottom:14px"><table id="tblAreas"></table></div>
+  <div class="tbl-wrap tbl-scroll" style="margin-bottom:14px"><table id="tblAreas"></table></div>
   <div class="sec-h" style="margin-top:18px"><h2 style="font-size:15px">Invitaciones</h2><span class="sub">Cada link dura 14 días y sirve una sola vez. Se comparte por donde quieras — todavía no se manda por correo</span></div>
-  <div class="tbl-wrap"><table id="tblInvitaciones"></table></div>
+  <div class="tbl-wrap tbl-scroll"><table id="tblInvitaciones"></table></div>
 
   <div id="ncSecciones"></div>
 
   <div class="note gold" style="margin-top:20px">
-    <b>Lo que este panel NO muestra, a propósito:</b> ninguna tabla de personas <b>con desempeño</b>, ni ordenable ni fija. La lista de «Personas y áreas» de arriba es administración (quién trabaja aquí, en qué área, con qué rol — lo que RRHH ya sabe por nómina) y no tiene un solo número al lado del nombre. Tampoco se muestra el contenido de los hilos de misión, quién apagó la capa de juego, ni qué beneficio pidió cada quien. Si un dato solo sirve para señalar a alguien, no entra aquí — y no es que falte conectarlo: el rol de base de datos de este panel no tiene permiso para leerlo (R-07 lo hace cumplir Postgres, no el código).
+    <b>Lo que este panel NO muestra, a propósito:</b> ninguna tabla de personas <b>con desempeño</b>, ni ordenable ni fija. La lista de «Usuarios» de arriba es administración (quién trabaja aquí, en qué área, con qué rol — lo que RRHH ya sabe por nómina) y no tiene un solo número al lado del nombre. Tampoco se muestra el contenido de los hilos de misión, quién apagó la capa de juego, ni qué beneficio pidió cada quien. Si un dato solo sirve para señalar a alguien, no entra aquí — y no es que falte conectarlo: el rol de base de datos de este panel no tiene permiso para leerlo (R-07 lo hace cumplir Postgres, no el código).
   </div>
 </main>
 </div>
@@ -440,10 +471,36 @@ const IC = {
   alerta: S('<path d="M12 4.4 21 19.8H3L12 4.4Z"/><path d="M12 10v4.2M12 17.4h.01"/>'),
   candado: S('<rect x="4.8" y="10.6" width="14.4" height="9.4" rx="1.6"/><path d="M8.4 10.6V7.8a3.6 3.6 0 0 1 7.2 0v2.8"/>')
 };
+/* 17/09 — Alim prefiere «Categoría» a «Familia» en pantalla. El enum del backend sigue siendo `familia`. */
 const FAMILIAS = {tiempo:"Tiempo", impulsos:"Impulsos", consumo:"Consumo", aliados:"Aliados"};
+const ORDEN_CAT = ["tiempo","impulsos","consumo","aliados"];
+/* Colores categóricos en orden fijo (nunca rotan): una categoría siempre tiene el mismo color. */
+const COLOR_CAT = () => document.documentElement.getAttribute("data-theme")==="light"
+  ? {tiempo:"#2a78d6", impulsos:"#eb6834", consumo:"#1baf7a", aliados:"#eda100"}
+  : {tiempo:"#3987e5", impulsos:"#d95926", consumo:"#199e70", aliados:"#c98500"};
+
+/* 17/09 — ordenar tablas por columna. `SORT[tabla] = {key, dir}`; el th lleva data-sort=key. */
+const SORT = {};
+function ordenar(lista, tabla){
+  const st = SORT[tabla]; if(!st) return lista;
+  const num = lista.every(x => x[st.key]==null || typeof x[st.key]==="number" || (typeof x[st.key]==="string" && x[st.key]!=="" && !isNaN(x[st.key])));
+  return [...lista].sort((a,b)=>{
+    let va=a[st.key], vb=b[st.key];
+    if(va==null) return 1; if(vb==null) return -1;
+    if(typeof va==="boolean"){ va=+va; vb=+vb; }
+    const r = num ? Number(va)-Number(vb) : String(va).localeCompare(String(vb),"es",{sensitivity:"base"});
+    return st.dir==="desc" ? -r : r;
+  });
+}
+function th(tabla, key, label, cls=""){
+  const st = SORT[tabla];
+  const dir = st && st.key===key ? `<span class="dir">${st.dir==="asc"?"▲":"▼"}</span>` : "";
+  return `<th class="${cls}" data-sort="${key}" data-tabla="${tabla}">${label}${dir}</th>`;
+}
 
 /* ---------------- ESTADO REAL — todo viene del servidor ---------------- */
 const D = { membresia:null, gate:null, canjes:[], areas:[], catalogo:[], cargado:false,
+  /* 17/09 */ metricas:[], aliados:[], canjesRango:null, rango:"mes",
   /* 16/09 — administración de personas (sin desempeño) */
   personas:[], areasAdmin:[], invitaciones:[] };
 const ROL_TXT = {empleado:"Empleado", lider_area:"Líder de área", gerencia:"Gerencia", admin_tenant:"Administrador"};
@@ -505,9 +562,9 @@ function widgetNC(titulo, razon){
 }
 function pintarSeccionesNC(){
   $("#ncSecciones").innerHTML = `
-    <div class="sec-h"><h2>Reparto de la carga por persona</h2><span class="sub">No es un hueco — es la regla</span></div>
-    ${widgetNC("Reparto de la carga",
-      "R-07 prohíbe que gerencia vea trabajo agrupado por persona, incluso en tramos anónimos: el rol de Postgres de este panel no tiene SELECT sobre lo necesario para calcularlo sin identidad. No es que falte conectar un endpoint — no debería existir un endpoint así para este panel.")}
+    <div class="sec-h"><h2>Reparto de colaboración</h2><span class="sub">Pedido de Alim (17/09) — esperando una decisión, no código</span></div>
+    ${widgetNC("Reparto de colaboración",
+      "Alim pidió reemplazar «carga por persona» por «reparto de colaboración»: quiénes participan en más misiones y cómo se cruzan con otras áreas. La versión POR PERSONA en este panel choca de frente con R-07 (desempeño junto a identidad en una superficie de gestión) y con el acuerdo del 03/09. La versión ENTRE ÁREAS (cuántas misiones comparten Ventas y Operaciones, por ejemplo) sí cumple y se puede construir ya. Está planteada la decisión; hasta entonces, esto no se dibuja.")}
 
     <div class="sec-h" style="margin-top:22px"><h2>Salud de los canjes</h2><span class="sub">Confirmados / en proceso / indeterminados / devueltos</span></div>
     ${widgetNC("Salud de los canjes",
@@ -614,7 +671,21 @@ async function cargarTodo(){
     D.cargado = true;
     render();
   }catch(e){ avisarError(e,"cargarTodo"); $("#tiles").innerHTML=""; }
-  await cargarPersonas();
+  await Promise.all([cargarPersonas(), cargarMetricas(), cargarCanjesRango(), cargarAliados()]);
+}
+/* 17/09 — cada bloque nuevo se carga aparte y falla solo, sin tumbar el panel. */
+async function cargarMetricas(){
+  try{ D.metricas = await LevelopAPI.gerencia.metricasAreas() || []; }
+  catch(e){ D.metricas = null; console.warn("metricas", e); }
+  pintarPorArea();
+}
+async function cargarCanjesRango(){
+  try{ D.canjesRango = await LevelopAPI.gerencia.canjes(D.rango); }
+  catch(e){ D.canjesRango = null; console.warn("canjes", e); }
+  pintarCanjesFamilia();
+}
+async function cargarAliados(){
+  try{ D.aliados = await LevelopAPI.gerencia.aliados() || []; }catch(e){ D.aliados = []; }
 }
 
 /* 16/09 — se carga aparte: si el backend todavía no tiene estas rutas (no
@@ -654,8 +725,8 @@ function pintarPersonas(){
   const t = $("#tblPersonas");
   if(!D.personas.length){ t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">Todavía no hay nadie. Invita a la primera persona.</td></tr></tbody>`; return; }
   t.innerHTML = `
-    <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Área</th><th>Zona</th><th>Estado</th><th></th></tr></thead>
-    <tbody>${D.personas.map(p=>`
+    <thead><tr>${th("personas","nombre","Nombre")}${th("personas","email","Correo")}${th("personas","rolTxt","Rol")}${th("personas","areaNombre","Área")}${th("personas","zona","Zona")}${th("personas","activo","Estado")}<th></th></tr></thead>
+    <tbody>${ordenar(D.personas.map(p=>({...p, rolTxt:ROL_TXT[p.rol]||p.rol})), "personas").map(p=>`
       <tr style="${p.activo?"":"opacity:.55"}">
         <td>${esc(p.nombre)}${p.membershipId===(D.membresia&&D.membresia.membershipId)?` <span class="chip">tú</span>`:""}</td>
         <td class="sub">${esc(p.email)}</td>
@@ -671,8 +742,8 @@ function pintarAreasAdmin(){
   if(!D.areasAdmin.length){ t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">Sin áreas todavía. Sin áreas no hay líder de área ni desempeño agregado.</td></tr></tbody>`; return; }
   const nombreDe = id => { const p = D.personas.find(x=>x.membershipId===id); return p ? p.nombre : (id ? String(id).slice(0,8) : "—"); };
   t.innerHTML = `
-    <thead><tr><th>Área</th><th>Líder</th><th class="n">Personas</th><th></th></tr></thead>
-    <tbody>${D.areasAdmin.map(a=>`
+    <thead><tr>${th("areasAdmin","nombre","Área")}${th("areasAdmin","liderNombre","Líder")}${th("areasAdmin","personas","Personas","n")}<th></th></tr></thead>
+    <tbody>${ordenar(D.areasAdmin.map(a=>({...a, liderNombre: a.liderMembershipId?nombreDe(a.liderMembershipId):"", personas: D.personas.filter(p=>p.activo && p.areaId===a.id).length})), "areasAdmin").map(a=>`
       <tr>
         <td>${esc(a.nombre)}</td>
         <td>${a.liderMembershipId?esc(nombreDe(a.liderMembershipId)):`<span class="sub">Sin líder</span>`}</td>
@@ -684,8 +755,8 @@ function pintarInvitaciones(){
   const t = $("#tblInvitaciones");
   if(!D.invitaciones.length){ t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">Ninguna invitación todavía.</td></tr></tbody>`; return; }
   t.innerHTML = `
-    <thead><tr><th>Correo</th><th>Rol</th><th>Área</th><th>Estado</th><th></th></tr></thead>
-    <tbody>${D.invitaciones.map(i=>{
+    <thead><tr>${th("invitaciones","email","Correo")}${th("invitaciones","rolTxt","Rol")}${th("invitaciones","areaNombre","Área")}${th("invitaciones","vigente","Estado")}<th></th></tr></thead>
+    <tbody>${ordenar(D.invitaciones.map(i=>({...i, rolTxt:ROL_TXT[i.rol]||i.rol})), "invitaciones").map(i=>{
       const estado = i.aceptadaAt ? `<span class="chip ok">Aceptada ${esc(fechaCorta(i.aceptadaAt))}</span>`
         : i.vigente ? `<span class="chip gold">Vigente hasta ${esc(fechaCorta(i.expiraAt))}</span>`
         : `<span class="chip">Vencida / anulada</span>`;
@@ -783,53 +854,130 @@ function pintarTiles(){
   const canjesMes = D.canjes.filter(c=> String(c.mes).slice(0,7) === mesActual);
   const totalCanjesMes = canjesMes.reduce((a,c)=>a+Number(c.total||0),0);
   const oroMes = canjesMes.reduce((a,c)=>a+Number(c.oro_total||0),0);
+  /* 17/09 — el tile «¿Lanzó el workspace?» salió de gerencia (Alim: "no sé qué
+     significa… lo sacaría"). El gate sigue existiendo para Levelop, en la Vista interna. */
   const tiles = [
-    {l:"¿Lanzó el workspace?", v: D.gate ? (D.gate.lanzado?"Sí":"No") : "—", d:"3 intrarrecompensas activas + 1 canje confirmado"},
-    {l:"Áreas con desempeño visible", v:`${areasConDesempeno}/${D.areas.length}`, d:"piso de 4 miembros activos (R-07)"},
-    {l:"Ítems activos en catálogo", v:fmt(activos), d:`${fmt(D.catalogo.length)} en total`},
-    {l:"Canjes confirmados este mes", v:fmt(totalCanjesMes), d:`${fmt(oroMes)} de Oro`}
+    {l:"Ítems activos en la Tienda", v:fmt(activos), d:`${fmt(D.catalogo.length)} en el catálogo`},
+    {l:"Canjes confirmados este mes", v:fmt(totalCanjesMes), d:`${fmt(oroMes)} de Oro`},
+    {l:"Áreas con desempeño visible", v:`${areasConDesempeno}/${D.areas.length}`, d:"a partir de 4 miembros activos"},
+    {l:"Personas activas", v:fmt(D.personas.filter(p=>p.activo).length || D.areas.reduce((a,x)=>a+Number(x.miembrosActivos||0),0)), d:`${fmt(D.invitaciones.filter(i=>i.vigente).length)} invitaciones vigentes`}
   ];
   $("#tiles").innerHTML = tiles.map(t=>`<div class="tile"><div class="l">${esc(t.l)}</div><div class="v">${esc(t.v)}</div><div class="d">${esc(t.d)}</div></div>`).join("");
 }
 
+/* 17/09 — métricas que sí le dicen algo a gerencia (pedido de Alim): tareas
+   cerradas en 30 días, tareas por día, días promedio por tarea, % de atrasos,
+   abiertas y vencidas. Agregado por área. Bajo el piso de 4 miembros activos
+   (acuerdo del 03/09) la fila existe pero sin números: no es un hueco, es la regla. */
 function pintarPorArea(){
-  if(!D.areas.length){ $("#porArea").innerHTML = `<p class="sub">Sin áreas todavía.</p>`; return; }
-  barrasHorizontales($("#porArea"), D.areas.map(a=>({n:a.nombreArea, v:Number(a.tareasCumplidasAnioPromedio||0), a})), {
-    color:"var(--s1)",
-    fmtv: x => Number(x.v).toFixed(1),
-    extra: x => x.a.mostrarDesempeno ? `· ${x.a.miembrosActivos} activos` : `· bajo el piso de 4`,
-    tip: x => `<div class="tk">${esc(x.n)}</div>
-      <div class="tr"><span>Tareas cerradas/persona/año</span><b>${Number(x.v).toFixed(1)}</b></div>
-      <div class="tr"><span>Miembros activos</span><b>${x.a.miembrosActivos}</b></div>
-      <div class="tr"><span>Oro ganado (área, año)</span><b>${fmt(x.a.oroGanadoAnioTotal)}</b></div>`
-  });
+  const t = $("#tblAreasMetricas");
+  if(D.metricas===null){ t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">No se pudieron cargar las métricas — falta correr la migración <b>CambiosDeAlim17Sep</b> y reiniciar.</td></tr></tbody>`; return; }
+  if(!D.metricas.length){ t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">Sin áreas todavía. Creá la primera en «Usuarios → Nueva área».</td></tr></tbody>`; return; }
+  const T="areas";
+  const filas = ordenar(D.metricas.map(a=>({...a, cerradas30d:+a.cerradas30d, tareasPorDia:+a.tareasPorDia, diasPromedioPorTarea: a.diasPromedioPorTarea==null?null:+a.diasPromedioPorTarea, pctAtrasadas: a.pctAtrasadas==null?null:+a.pctAtrasadas, abiertas:+a.abiertas, vencidasAbiertas:+a.vencidasAbiertas, miembrosActivos:+a.miembrosActivos})), T);
+  const n = v => v==null ? "—" : fmt(v);
+  t.innerHTML = `
+    <thead><tr>${th(T,"nombreArea","Área")}${th(T,"miembrosActivos","Personas","n")}${th(T,"cerradas30d","Cerradas (30 d)","n")}${th(T,"tareasPorDia","Tareas / día","n")}${th(T,"diasPromedioPorTarea","Días por tarea","n")}${th(T,"pctAtrasadas","% atrasadas","n")}${th(T,"abiertas","Abiertas","n")}${th(T,"vencidasAbiertas","Vencidas","n")}</tr></thead>
+    <tbody>${filas.map(a=>a.mostrarDesempeno ? `
+      <tr>
+        <td>${esc(a.nombreArea)}</td>
+        <td class="n">${a.miembrosActivos}</td>
+        <td class="n">${n(a.cerradas30d)}</td>
+        <td class="n">${a.tareasPorDia.toFixed(2)}</td>
+        <td class="n">${a.diasPromedioPorTarea==null?"—":a.diasPromedioPorTarea.toFixed(1)}</td>
+        <td class="n" style="${a.pctAtrasadas>=30?"color:var(--risk)":""}">${a.pctAtrasadas==null?"—":a.pctAtrasadas+"%"}</td>
+        <td class="n">${n(a.abiertas)}</td>
+        <td class="n" style="${a.vencidasAbiertas>0?"color:var(--risk)":""}">${n(a.vencidasAbiertas)}</td>
+      </tr>` : `
+      <tr style="opacity:.6">
+        <td>${esc(a.nombreArea)}</td>
+        <td class="n">${a.miembrosActivos}</td>
+        <td colspan="6" class="sub">Bajo el piso de 4 personas activas: con tan poca gente el promedio identifica a alguien casi tan bien como el nombre (R-07).</td>
+      </tr>`).join("")}</tbody>`;
 }
 
+/* 17/09 — torta (pedido de Alim) con hover, leyenda y filtro de rango. Las
+   categorías van siempre en el mismo orden y con el mismo color; al lado, los
+   números en texto, porque una torta sola compara mal valores parecidos. */
 function pintarCanjesFamilia(){
-  const mesActual = new Date().toISOString().slice(0,7);
-  const porFamilia = {};
-  D.canjes.filter(c=>String(c.mes).slice(0,7)===mesActual).forEach(c=>{
-    porFamilia[c.familia] = (porFamilia[c.familia]||0) + Number(c.total||0);
+  const cont = $("#canjesFamilia");
+  const R = D.canjesRango;
+  if(R===null){ cont.innerHTML = `<p class="sub">No se pudieron cargar los canjes por rango — falta correr la migración <b>CambiosDeAlim17Sep</b>.</p>`; return; }
+  if(!R){ cont.innerHTML = `<div class="cargando">Cargando…</div>`; return; }
+  const RANGO_TXT = {dia:"las últimas 24 h", semana:"los últimos 7 días", mes:"los últimos 30 días", anio:"los últimos 12 meses"};
+  const datos = ORDEN_CAT.map(k=>{ const f = (R.categorias||[]).find(x=>x.familia===k); return {k, n:FAMILIAS[k], v:f?Number(f.total):0, oro:f?Number(f.oroTotal):0}; }).filter(d=>d.v>0);
+  const total = datos.reduce((a,d)=>a+d.v,0);
+  if(!total){ cont.innerHTML = `<p class="sub">Sin canjes confirmados en ${RANGO_TXT[R.rango]||"este rango"}.</p>`; return; }
+  const col = COLOR_CAT();
+  const cx=110, cy=110, r=92, ri=52;
+  let ang = -Math.PI/2;
+  const paths = datos.map(d=>{
+    const a0 = ang, a1 = ang + (d.v/total)*Math.PI*2; ang = a1;
+    const large = (a1-a0) > Math.PI ? 1 : 0;
+    const p = (rad, a) => [cx+rad*Math.cos(a), cy+rad*Math.sin(a)];
+    const [x0,y0]=p(r,a0),[x1,y1]=p(r,a1),[xi0,yi0]=p(ri,a0),[xi1,yi1]=p(ri,a1);
+    const dpath = datos.length===1
+      ? `M ${cx} ${cy-r} A ${r} ${r} 0 1 1 ${cx-0.01} ${cy-r} L ${cx-0.01} ${cy-ri} A ${ri} ${ri} 0 1 0 ${cx} ${cy-ri} Z`
+      : `M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1} L ${xi1} ${yi1} A ${ri} ${ri} 0 ${large} 0 ${xi0} ${yi0} Z`;
+    const mid = (a0+a1)/2, [lx,ly] = p((r+ri)/2, mid);
+    const pct = Math.round(d.v/total*100);
+    return {d, dpath, lx, ly, pct};
   });
-  const datos = Object.entries(porFamilia).map(([n,v])=>({n:FAMILIAS[n]||n, v}));
-  if(!datos.length){ $("#canjesFamilia").innerHTML = `<p class="sub">Sin canjes confirmados este mes todavía.</p>`; return; }
-  barrasHorizontales($("#canjesFamilia"), datos, {color:"var(--s2)"});
+  cont.innerHTML = `
+    <div class="torta">
+      <svg viewBox="0 0 220 220" role="img" aria-label="Canjes por categoría">
+        ${paths.map(p=>`<path d="${p.dpath}" fill="${col[p.d.k]}" stroke="var(--surface)" stroke-width="2" data-cat="${p.d.k}"><title>${esc(p.d.n)}: ${fmt(p.d.v)} canjes (${p.pct}%) · ${fmt(p.d.oro)} de Oro</title></path>`).join("")}
+        ${paths.filter(p=>p.pct>=8).map(p=>`<text x="${p.lx}" y="${p.ly}" text-anchor="middle" dominant-baseline="middle" font-family="var(--mono)" font-size="11" fill="#fff" style="pointer-events:none">${p.pct}%</text>`).join("")}
+        <text x="${cx}" y="${cy-4}" text-anchor="middle" font-family="var(--mono)" font-size="18" fill="var(--ink)">${fmt(total)}</text>
+        <text x="${cx}" y="${cy+12}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="var(--ink-3)">CANJES</text>
+      </svg>
+      <div class="leyenda">
+        ${paths.map(p=>`<div class="leyenda-row" data-cat="${p.d.k}"><i style="background:${col[p.d.k]}"></i><span>${esc(p.d.n)}</span><span class="n">${fmt(p.d.v)} · ${p.pct}%</span><span class="n sub">${fmt(p.d.oro)} Oro</span></div>`).join("")}
+        <div class="sub" style="font-size:12px; margin-top:4px">${esc(RANGO_TXT[R.rango]||"")} · solo confirmados</div>
+      </div>
+    </div>`;
+  const marcar = k => { cont.querySelectorAll("path[data-cat]").forEach(x=>x.classList.toggle("dim", !!k && x.dataset.cat!==k)); cont.querySelectorAll(".leyenda-row").forEach(x=>x.classList.toggle("on", !!k && x.dataset.cat===k)); };
+  cont.querySelectorAll("[data-cat]").forEach(el=>{ el.addEventListener("mouseenter", ()=>marcar(el.dataset.cat)); el.addEventListener("mouseleave", ()=>marcar(null)); });
+  cont.querySelectorAll("path[data-cat]").forEach(el=>{
+    const p = paths.find(x=>x.d.k===el.dataset.cat);
+    el.addEventListener("mousemove", e=>mostrarTip(`<div class="tk">${esc(p.d.n)}</div><div class="tr"><span>Canjes</span><b>${fmt(p.d.v)} (${p.pct}%)</b></div><div class="tr"><span>Oro</span><b>${fmt(p.d.oro)}</b></div>`, e));
+    el.addEventListener("mouseleave", ocultarTip);
+  });
 }
 
 function pintarCatalogo(){
   const t = $("#tblCatalogo");
   if(!D.catalogo.length){ t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">Catálogo vacío todavía.</td></tr></tbody>`; return; }
+  const T="catalogo";
+  const filas = ordenar(D.catalogo.map(c=>({...c, categoria:FAMILIAS[c.familia]||c.familia, precioOro:+c.precioOro, cupos: c.cuposTotales==null ? null : +c.cuposTotales})), T);
+  const cuposTxt = c => c.cuposTotales==null ? `<span class="sub">Sin límite</span>` : `<b class="num">${fmt(c.cuposDisponibles)}</b> <span class="sub">de ${fmt(c.cuposTotales)}</span>`;
   t.innerHTML = `
-    <thead><tr><th>Ítem</th><th>Familia</th><th class="n">Precio (Oro)</th><th>Aprobación</th><th>Estado</th><th></th></tr></thead>
-    <tbody>${D.catalogo.map(c=>`
-      <tr>
-        <td>${esc(c.nombre)}</td>
-        <td>${esc(FAMILIAS[c.familia]||c.familia)}</td>
+    <thead><tr>${th(T,"nombre","Ítem")}${th(T,"categoria","Categoría")}${th(T,"precioOro","Precio (Oro)","n")}${th(T,"requiereAprobacion","Aprobación")}${th(T,"cupos","Cupos / mes","n")}${th(T,"activo","Estado")}<th></th></tr></thead>
+    <tbody>${filas.map(c=>`
+      <tr style="${c.activo?"":"opacity:.55"}">
+        <td>${esc(c.nombre)}${c.partnerOfferId?` <span class="chip" title="Oferta negociada por Levelop: nombre y descripción no se editan">aliado</span>`:""}</td>
+        <td>${esc(c.categoria)}</td>
         <td class="n">${fmt(c.precioOro)}</td>
-        <td><button class="chip ${c.requiereAprobacion?"gold":"ok"}" data-toggle-aprobacion="${c.id}">${c.requiereAprobacion?"Requiere aprobación":"Auto-confirma"}</button></td>
-        <td><span class="chip ${c.activo?"ok":""}">${c.activo?"Activo":"Inactivo"}</span></td>
+        <td><button class="chip ${c.requiereAprobacion?"gold":"ok"}" data-toggle-aprobacion="${c.id}" title="Clic para cambiar">${c.requiereAprobacion?"Requiere aprobación":"Auto-confirmación"}</button></td>
+        <td class="n"><button class="chip" data-cambiar-cupos="${c.id}" title="Clic para cambiar">${cuposTxt(c)}</button></td>
+        <td><button class="chip ${c.activo?"ok":""}" data-toggle-activo="${c.id}" title="Clic para ${c.activo?"sacarlo de":"ponerlo en"} la Tienda">${c.activo?"En la Tienda":"Inactivo"}</button></td>
         <td><button class="btn ghost" data-cambiar-precio="${c.id}">Cambiar precio</button></td>
       </tr>`).join("")}</tbody>`;
+}
+function modalCupos(item){
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">${esc(item.nombre)}</span><h2 style="margin-top:4px; font-size:19px">Cupos por mes</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <label class="check"><input type="checkbox" id="cuIlimitado" ${item.cuposTotales==null?"checked":""}> Sin límite</label>
+        <div class="field"><label>Máximo de canjes por mes calendario</label><input id="cuTotal" type="number" min="1" value="${item.cuposTotales==null?"":esc(item.cuposTotales)}" ${item.cuposTotales==null?"disabled":""}></div>
+        ${item.cuposTotales!=null?`<div class="note">Este mes: ${fmt(item.cuposReservados||0)} en proceso, ${fmt(item.cuposConsumidos||0)} confirmados, ${fmt(item.cuposDisponibles||0)} disponibles. El máximo no puede bajar de lo ya usado hasta el mes que viene.</div>`:""}
+        <div class="auth-err hide" id="cuError"></div>
+      </div>
+      <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Cancelar</button>
+        <button class="btn gold" style="flex:1" id="cuGuardar" data-item-id="${esc(item.id)}">Guardar</button></div>
+    </div></div>`;
 }
 
 /* ---------------- MODALES DE CATÁLOGO ---------------- */
@@ -839,12 +987,20 @@ function modalNuevoItem(){
       <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Catálogo</span><h2 style="margin-top:4px; font-size:19px">Nuevo ítem</h2></div>
         <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
       <div class="sheet-b">
-        <div class="field"><label>Familia</label>
+        <div class="field"><label>Categoría</label>
           <select id="niFamilia">${Object.entries(FAMILIAS).map(([v,n])=>`<option value="${v}">${n}</option>`).join("")}</select></div>
-        <div class="field"><label>Nombre</label><input id="niNombre" required minlength="2"></div>
-        <div class="field"><label>Descripción (opcional)</label><textarea id="niDesc" rows="2"></textarea></div>
+        <div id="niLibre">
+          <div class="field"><label>Nombre</label><input id="niNombre" minlength="2"></div>
+          <div class="field" style="margin-top:12px"><label>Descripción (opcional)</label><textarea id="niDesc" rows="2"></textarea></div>
+        </div>
+        <div id="niAliado" class="hide">
+          <div class="field"><label>Oferta de aliado (negociada por Levelop)</label>
+            <select id="niOferta">${D.aliados.filter(o=>!o.activada).map(o=>`<option value="${esc(o.id)}" data-precio="${esc(o.precioOroSugerido)}">${esc(o.nombre)}${o.descripcion?` — ${esc(o.descripcion)}`:""}</option>`).join("") || `<option value="">(No hay ofertas nuevas disponibles)</option>`}</select></div>
+          <div class="sub" style="margin-top:6px">Nombre y descripción vienen de Levelop y no se editan; el precio en Oro sí lo decides tú.</div>
+        </div>
         <div class="field"><label>Precio en Oro</label><input id="niPrecio" type="number" min="1" required></div>
-        <label class="check"><input type="checkbox" id="niAprobacion" checked> Requiere aprobación de gerencia antes de confirmarse</label>
+        <div class="field"><label>Cupos por mes (vacío = sin límite)</label><input id="niCupos" type="number" min="1" placeholder="Sin límite"></div>
+        <label class="check"><input type="checkbox" id="niAprobacion" checked> Requiere aprobación antes de confirmarse (si no, auto-confirmación)</label>
         <div class="auth-err hide" id="niError"></div>
       </div>
       <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Cancelar</button>
@@ -879,8 +1035,30 @@ document.addEventListener("click", async e=>{
   const boton = e.target.closest("button");
   if(boton && boton.id && await manejarBotonModal(boton)) return;
 
-  const t = e.target.closest("[data-cerrar],[data-stop],[data-cambiar-precio],[data-toggle-aprobacion],[data-editar-persona],[data-editar-area],[data-copiar-link],[data-anular-inv]");
+  const t = e.target.closest("[data-cerrar],[data-stop],[data-cambiar-precio],[data-toggle-aprobacion],[data-toggle-activo],[data-cambiar-cupos],[data-editar-persona],[data-editar-area],[data-copiar-link],[data-anular-inv],[data-rango],[data-sort]");
   if(t){
+    if(t.dataset.sort){
+      const tabla = t.dataset.tabla, key = t.dataset.sort, st = SORT[tabla];
+      SORT[tabla] = st && st.key===key ? {key, dir: st.dir==="asc"?"desc":"asc"} : {key, dir:"asc"};
+      ({areas:pintarPorArea, catalogo:pintarCatalogo, personas:pintarPersonas, areasAdmin:pintarAreasAdmin, invitaciones:pintarInvitaciones}[tabla]||(()=>{}))();
+      return;
+    }
+    if(t.dataset.rango){
+      D.rango = t.dataset.rango;
+      $("#rangoCanjes").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", String(x.dataset.rango===D.rango)));
+      D.canjesRango = undefined; pintarCanjesFamilia(); cargarCanjesRango();
+      return;
+    }
+    if(t.dataset.cambiarCupos){ const c = D.catalogo.find(x=>x.id===t.dataset.cambiarCupos); if(c) abrirModal(modalCupos(c)); return; }
+    if(t.dataset.toggleActivo){
+      const item = D.catalogo.find(c=>c.id===t.dataset.toggleActivo); if(!item) return;
+      try{
+        await LevelopAPI.gerencia.cambiarActivo(item.id, !item.activo);
+        item.activo = !item.activo; pintarCatalogo(); pintarTiles();
+        toast("ok","check", item.activo?"En la Tienda":"Fuera de la Tienda", `${item.nombre} ${item.activo?"vuelve a verse":"ya no se ve"} para la gente. Nada se borró.`);
+      }catch(err){ avisarError(err,"cambiarActivo"); }
+      return;
+    }
     if(t.dataset.copiarLink){ copiarLink(t.dataset.copiarLink); return; }
     if(t.dataset.anularInv){
       try{
@@ -907,7 +1085,7 @@ document.addEventListener("click", async e=>{
         await LevelopAPI.gerencia.cambiarAprobacion(item.id, nuevo);
         item.requiereAprobacion = nuevo;
         pintarCatalogo();
-        toast("ok","check","Guardado", `${item.nombre} ahora ${nuevo?"requiere":"no requiere"} aprobación.`);
+        toast("ok","check","Guardado", `${item.nombre}: ${nuevo?"requiere aprobación":"auto-confirmación"}.`);
       }catch(err){ avisarError(err, "cambiarAprobacion"); }
       return;
     }
@@ -919,21 +1097,42 @@ document.addEventListener("click", async e=>{
 function mostrarErr(sel, msg){ const el = $(sel); if(el){ el.classList.remove("hide"); el.textContent = msg; } }
 async function manejarBotonModal(b){
   if(b.id === "niGuardar"){
-    const dto = {
-      familia: $("#niFamilia").value,
-      nombre: $("#niNombre").value.trim(),
-      descripcion: $("#niDesc").value.trim() || undefined,
-      precioOro: Number($("#niPrecio").value),
-      requiereAprobacion: $("#niAprobacion").checked
-    };
-    if(dto.nombre.length<2 || !(dto.precioOro>0)){ mostrarErr("#niError","Falta el nombre (mínimo 2 caracteres) o el precio."); return true; }
+    const familia = $("#niFamilia").value;
+    const dto = { familia, precioOro: Number($("#niPrecio").value), requiereAprobacion: $("#niAprobacion").checked };
+    const cupos = Number($("#niCupos").value); if(cupos>0) dto.cuposMensuales = cupos;
+    if(familia==="aliados"){
+      dto.partnerOfferId = $("#niOferta").value;
+      if(!dto.partnerOfferId){ mostrarErr("#niError","No hay ofertas de aliados disponibles para activar."); return true; }
+    } else {
+      dto.nombre = $("#niNombre").value.trim();
+      const d = $("#niDesc").value.trim(); if(d) dto.descripcion = d;
+      if(dto.nombre.length<2){ mostrarErr("#niError","Falta el nombre (mínimo 2 caracteres)."); return true; }
+    }
+    if(!(dto.precioOro>0)){ mostrarErr("#niError","Falta el precio en Oro."); return true; }
     b.disabled = true; b.textContent = "Creando…";
     try{
-      const item = await LevelopAPI.gerencia.crearItem(dto);
-      D.catalogo.push(item);
+      await LevelopAPI.gerencia.crearItem(dto);
+      D.catalogo = await LevelopAPI.gerencia.catalogo();
+      pintarCatalogo(); pintarTiles(); cerrarModal(); cargarAliados();
+      toast("ok","check","Ítem creado", `Ya está en la Tienda. Toda la empresa recibió un aviso.`);
+    }catch(err){
+      b.disabled = false; b.textContent = "Crear";
+      mostrarErr("#niError", err && err.motivoRechazo==="ALIADO_YA_ACTIVADO" ? "Esa oferta ya está activada en tu catálogo." : (err&&err.message)||"No se pudo crear.");
+    }
+    return true;
+  }
+  if(b.id === "cuGuardar"){
+    const id = b.dataset.itemId;
+    const ilimitado = $("#cuIlimitado").checked;
+    const total = Number($("#cuTotal").value);
+    if(!ilimitado && !(total>0)){ mostrarErr("#cuError","Pon un máximo mayor a 0, o marca «Sin límite»."); return true; }
+    b.disabled = true; b.textContent = "Guardando…";
+    try{
+      await LevelopAPI.gerencia.cambiarCupos(id, ilimitado ? null : total);
+      D.catalogo = await LevelopAPI.gerencia.catalogo();
       pintarCatalogo(); cerrarModal();
-      toast("ok","check","Ítem creado", `${item.nombre} ya está en el catálogo.`);
-    }catch(err){ b.disabled = false; b.textContent = "Crear"; mostrarErr("#niError",(err&&err.message)||"No se pudo crear."); }
+      toast("ok","check","Cupos actualizados", ilimitado ? "Sin límite por mes." : `Máximo ${fmt(total)} canjes por mes.`);
+    }catch(err){ b.disabled = false; b.textContent = "Guardar"; mostrarErr("#cuError",(err&&err.message)||"No se pudo guardar."); }
     return true;
   }
   if(b.id === "cpGuardar"){
@@ -1012,6 +1211,15 @@ async function manejarBotonModal(b){
 }
 
 $("#btnNuevoItem").addEventListener("click", ()=>abrirModal(modalNuevoItem()));
+document.addEventListener("change", e=>{
+  if(e.target.id==="niFamilia"){
+    const al = e.target.value==="aliados";
+    $("#niLibre").classList.toggle("hide", al); $("#niAliado").classList.toggle("hide", !al);
+    if(al){ const o = $("#niOferta").selectedOptions[0]; if(o && o.dataset.precio && !$("#niPrecio").value) $("#niPrecio").value = o.dataset.precio; }
+  }
+  if(e.target.id==="niOferta"){ const o = e.target.selectedOptions[0]; if(o && o.dataset.precio) $("#niPrecio").value = o.dataset.precio; }
+  if(e.target.id==="cuIlimitado"){ $("#cuTotal").disabled = e.target.checked; }
+});
 $("#btnInvitar").addEventListener("click", ()=>abrirModal(modalInvitar()));
 $("#btnNuevaArea").addEventListener("click", ()=>abrirModal(modalNuevaArea()));
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") cerrarModal(); });

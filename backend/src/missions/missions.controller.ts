@@ -50,21 +50,32 @@ export class MissionsController {
   @Get()
   async listar(@CurrentMembership() m: Membership, @Query('propias') propias?: string) {
     const repo = this.ds.getRepository(Mission);
-    if (propias === 'true') {
-      return repo.find({
-        where: [
-          { tenantId: m.tenantId, creadorMembershipId: m.id },
-          { tenantId: m.tenantId, asignadoMembershipId: m.id },
-          { tenantId: m.tenantId, aceptadaPorMembershipId: m.id },
-        ],
-        order: { createdAt: 'DESC' },
-        take: 100,
-      });
-    }
-    return repo.find({
-      where: { tenantId: m.tenantId },
-      order: { createdAt: 'DESC' },
-      take: 200,
+    const filas =
+      propias === 'true'
+        ? await repo.find({
+            where: [
+              { tenantId: m.tenantId, creadorMembershipId: m.id },
+              { tenantId: m.tenantId, asignadoMembershipId: m.id },
+              { tenantId: m.tenantId, aceptadaPorMembershipId: m.id },
+            ],
+            order: { createdAt: 'DESC' },
+            take: 100,
+          })
+        : await repo.find({
+            where: { tenantId: m.tenantId },
+            order: { createdAt: 'DESC' },
+            take: 200,
+          });
+
+    // 17/09 (pedido de Alim): "mostrar cuánto Oro y Experiencia da cada una
+    // de las misiones". Se calcula con la MISMA fórmula y la MISMA
+    // configuración que paga el cierre — una consulta de config, no N. Es
+    // una estimación honesta: el Oro real al cerrar depende además de que la
+    // haya aceptado otra persona (anti-cheat §3.3) y del juego encendido.
+    const cfg = await this.economy.configDe(m.tenantId);
+    return filas.map((mi) => {
+      const r = this.economy.calcular(cfg, mi.urgencia, mi.importancia, mi.esfuerzo);
+      return { ...mi, xpEstimada: r.xp, oroEstimado: r.oro };
     });
   }
 

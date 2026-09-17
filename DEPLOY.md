@@ -4,6 +4,25 @@ Decisión de hosting: `LVL-029` (01/09/26). Frontend estático en **Vercel**, ba
 Postgres en **Railway**, JWT propio. Este documento es el paso a paso para el primer
 despliegue privado de prueba (16/09/26) y para repetirlo después.
 
+## Estado: EN VIVO desde el 16/09/26 (noche)
+
+| Pieza | Dónde |
+| :--- | :--- |
+| Repo | `github.com/alimreyes/levelop` (privado, rama `main`) |
+| Web | https://levelop-pi.vercel.app, Vercel, proyecto `levelop`, Root `web` |
+| API | https://levelop-production.up.railway.app/api/v1, Railway, Root `backend`, en el mismo proyecto que el Postgres |
+
+**Publicar un cambio**, desde `somoslevelop-main` en PowerShell:
+
+```
+git add <archivos>
+git commit -m "qué cambió"
+git push
+```
+
+Vercel y Railway se redespliegan solos. Si el cambio trae una migración nueva, se corre **antes**
+desde `backend` con `npm run migration:run`.
+
 ## Qué se despliega y desde dónde
 
 | Pieza | Carpeta en este repo | Dónde corre |
@@ -71,10 +90,14 @@ segunda corrida del mismo día.
 
 ## Paso 1 — Repositorio privado en GitHub
 
-Desde la carpeta raíz de este repo (`somoslevelop-main`), en PowerShell:
+Desde la carpeta raíz de este repo (`somoslevelop-main`), en PowerShell. Las dos líneas de
+`git config` evitan *"Filename too long"* por las rutas profundas de `CoWork/CTO/HANDOFF…` y los
+avisos de fin de línea:
 
 ```
 git init
+git config core.longpaths true
+git config core.autocrlf false
 git add .
 git status
 ```
@@ -102,25 +125,37 @@ git push -u origin main
 
 ## Paso 2 — Backend en Railway
 
-1. En el proyecto de Railway donde ya vive el Postgres: **New → GitHub Repo** → elegir el
-   repo recién subido.
-2. En el servicio nuevo, **Settings → Root Directory**: `backend`. Railway lee
-   `backend/railway.json` (build `npm ci && npm run build`, start `npm run start:prod`,
-   healthcheck `/api/v1/health`).
-3. **Variables**: copiar del `.env` local, con estos cambios:
+1. **Abrir el proyecto de Railway donde ya vive el Postgres** (el del ícono del elefante), no uno
+   nuevo. Un servicio creado en otro proyecto no ve la base y se cae con *"Falta la URL de
+   conexion para el perfil app"*. En ese proyecto: **+ New → GitHub Repo** → `alimreyes/levelop`.
+2. **Settings → Root Directory**: `backend`. Sin esto, Railpack mira la raíz del repo y falla con
+   *"Railpack failed to prepare the build"*. Railway lee `backend/railway.json`:
+   - builder `RAILPACK`
+   - build `npm run build` (Railpack ya corre `npm ci`; repetirlo daba `EBUSY … node_modules/.cache`)
+   - start `npm run start:prod` = `node dist/src/main` (el build deja `dist/src/`, porque
+     `tsconfig` también incluye `scripts/`)
+   - healthcheck `/api/v1/health`
+3. **Variables → Raw Editor.** Railway puede ofrecer importar `.env.example`: **no usar esos
+   valores**, son de plantilla (`usuario:password@host`). Pegar el `backend/.env` real y ajustar:
    - `NODE_ENV=production`
-   - `PORT`: no ponerla — Railway la inyecta.
-   - `DATABASE_URL` y las cuatro `DB_ROLE_*_URL`: si el Postgres está en el mismo proyecto
-     de Railway, usar la URL **interna** (`postgres.railway.internal`) en vez de la pública;
-     es más rápida y no sale a internet. La contraseña y el nombre de la base son los mismos.
-   - `JWT_SECRET`, `JWT_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`: iguales al local.
-   - `CORS_ORIGIN`: **vacía por ahora**; se llena en el paso 4 con el dominio de Vercel.
-   - `DB_SSL`: no ponerla salvo que el deploy falle con *"The server does not support SSL
-     connections"* (pasa con la URL interna de algunos Postgres de Railway). En ese caso,
-     `DB_SSL=false`.
-4. **Settings → Networking → Generate Domain**. Anotar el dominio
-   (`algo.up.railway.app`). Probar en el navegador:
-   `https://ALGO.up.railway.app/api/v1/health` → debe responder `{"ok":true,"db":"ok",...}`.
+   - `PORT`: borrarla, Railway la inyecta.
+   - `DATABASE_URL` y las cuatro `DB_ROLE_*_URL`: tal cual el `.env`. **Cada `DB_ROLE_*_URL` debe
+     usar su propio usuario** (`levelop_app`, `levelop_backoffice`, `levelop_lider`,
+     `levelop_interno`), no `postgres`. Con `postgres`, R-07 deja de estar garantizado por la base.
+   - `JWT_SECRET`: puede ser el que genera Railway (`${{ secret(...) }}`). `JWT_EXPIRES_IN=15m`,
+     `JWT_REFRESH_EXPIRES_IN=30d`.
+   - `CORS_ORIGIN=https://levelop-pi.vercel.app`, sin barra final. Si hay varios orígenes, van
+     separados por coma.
+   - `DB_SSL`: solo si el deploy falla con *"The server does not support SSL connections"*
+     (entonces `false`) o *"self-signed certificate"* (entonces `true`).
+4. **Aplicar:** los cambios de variables quedan "staged". Hay que apretar **Deploy** en la barra
+   morada ("Apply N changes") o no llegan al servicio.
+5. **Settings → Networking → Generate Domain.** Probar
+   `https://levelop-production.up.railway.app/api/v1/health`, que debe responder
+   `{"ok":true,"db":"ok",...}`. La raíz `/` responde 404: es normal.
+
+Si el deploy queda en **CRASHED**, no apretar Restart. Hay que abrir el deploy → **Deploy Logs**
+y leer las últimas líneas rojas.
 
 Las migraciones **no** se corren en Railway: la base es la misma que la local y ya están
 aplicadas desde la máquina de Alim (`npm run migration:run`). Cada migración nueva se sigue
@@ -128,11 +163,12 @@ corriendo desde local antes de desplegar el código que la usa.
 
 ## Paso 3 — Frontend en Vercel
 
-1. Editar `web/levelop-config.js`: reemplazar `PONER-DOMINIO-RAILWAY.up.railway.app` por el
-   dominio real del paso 2. Commit y push.
+1. `web/levelop-config.js` ya apunta a `https://levelop-production.up.railway.app/api/v1`. Si el
+   dominio de Railway cambia, se edita esa constante y se publica con commit + push.
 2. Vercel (equipo *Alim Reyes' projects*) → **Add New → Project** → importar el repo → **Root Directory**: `web` →
    Framework: *Other* (estático, sin build) → Deploy. También se puede hacer desde el
-   conector de Vercel del CTO (`create_git_project` con `rootDirectory: web`).
+   conector de Vercel del CTO (`create_git_project` con `rootDirectory: web`). **Nota 16/09:** el
+   conector respondió 403 (sin permiso para crear proyectos); el proyecto se creó desde el panel.
 3. Anotar el dominio (`levelop-xxx.vercel.app`).
 
 ## Paso 4 — Cerrar el círculo: CORS
@@ -164,7 +200,15 @@ conectar".
    `carlos@cafeandino.test` y `luisa@cafeandino.test` (`Demo2026!`): cada una cae en su área.
    Un correo inventado → aviso de «contacta a tu empleador» + CTA de demo.
 
-## Arreglo del 16/09/26 que bloqueaba el deploy
+## Arreglos del 16/09/26 que bloqueaban el deploy
 
-`backend/src/health.controller.ts` importaba `'../common/enums'` (ruta rota). `nest build`
-fallaba con TS2307 → Railway no habría compilado. Corregido a `'./common/enums'`.
+- `backend/src/health.controller.ts` importaba `'../common/enums'`, una ruta rota. `nest build`
+  fallaba con TS2307. Se corrigió a `'./common/enums'`.
+- `backend/railway.json`: builder `RAILPACK` y build sin el `npm ci` duplicado (que daba `EBUSY`).
+- `start:prod` → `node dist/src/main`, y `nest-cli.json` con `entryFile: "src/main"`
+  (antes daba *"Cannot find module '/app/dist/main'"*).
+- `.gitignore`: `*.backup`, `*.dump` y `*.sql.gz`. Un respaldo viejo de la base quedó fuera del
+  repo antes del primer push.
+
+**Regla que sale de esto:** antes de publicar, correr lo mismo que corre la plataforma:
+`npm run build` y `npm run start:prod`.

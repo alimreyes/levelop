@@ -158,6 +158,8 @@ export enum TipoNotificacion {
   MISION_CERRADA = 'MISION_CERRADA',
   CANJE_CONFIRMADO = 'CANJE_CONFIRMADO',
   CANJE_REVERTIDO = 'CANJE_REVERTIDO',
+  /** 17/09/26 — gerencia publicó un beneficio nuevo; le llega a toda la empresa. */
+  BENEFICIO_NUEVO = 'BENEFICIO_NUEVO',
 }
 
 // --- Perfiles de conexion (R-07 estructural) ---------------------------------

@@ -301,7 +301,20 @@ async function main() {
     for (const c of CATALOGO) {
       let it = catalogo.find((x) => x.nombre === c.nombre);
       if (!it) {
-        const { k, cupos, ...dto } = c;
+        const { k, cupos, ...dto } = c as any;
+        // 17/09: un ítem de `aliados` nace de una oferta de Levelop (partner_offers),
+        // no de un nombre libre. El script la crea por base si no existe.
+        if (dto.familia === 'aliados') {
+          const of = await ds.query(`SELECT id FROM partner_offers WHERE nombre = $1 LIMIT 1`, [dto.nombre]);
+          const ofertaId = of.length
+            ? of[0].id
+            : (await ds.query(
+                `INSERT INTO partner_offers (nombre, descripcion, "precioOroSugerido", zonas, activo) VALUES ($1, $2, $3, '{}', true) RETURNING id`,
+                [dto.nombre, dto.descripcion ?? null, dto.precioOro],
+              ))[0].id;
+          dto.partnerOfferId = ofertaId;
+          delete dto.nombre; delete dto.descripcion;
+        }
         it = await http('POST', gerente.t('/backoffice/catalog'), gerente.token, dto);
       }
       item[c.k] = it;
@@ -345,7 +358,7 @@ async function main() {
     /** A crea (sugiriendo a B), B acepta y B cierra: el flujo completo con Oro. */
     async function ciclo(a: string, b: string, titulo: string, o: { u?: string; i?: string; e?: string; cerrar?: boolean; enlaces?: string[]; dias?: number } = {}) {
       const mision = await http<any>('POST', yo(a).t('/missions'), yo(a).token, {
-        titulo: `${titulo} · ${hoy}`,
+        titulo: `${titulo}`,
         descripcion: `Misión de ejemplo creada por ${persona(a).nombre}.`,
         urgencia: o.u ?? 'media', importancia: o.i ?? 'media', esfuerzo: o.e ?? 'medio',
         asignadoMembershipId: yo(b).mId,
@@ -392,13 +405,13 @@ async function main() {
       ['diego', 'Revisar métricas de la campaña de agosto'],
     ] as const) {
       await http('POST', yo(k).t('/missions'), yo(k).token, {
-        titulo: `${t} · ${hoy}`, urgencia: 'media', importancia: 'media', esfuerzo: 'medio', fechaLimite: en(7),
+        titulo: `${t}`, urgencia: 'media', importancia: 'media', esfuerzo: 'medio', fechaLimite: en(7),
       });
     }
 
     // Anti-cheat: Diego crea, acepta y cierra su propia misión → XP sí, Oro 0.
     const propia = await http<any>('POST', yo('diego').t('/missions'), yo('diego').token, {
-      titulo: `Ordenar mi carpeta de diseños · ${hoy}`, urgencia: 'alta', importancia: 'alta', esfuerzo: 'alto',
+      titulo: `Ordenar mi carpeta de diseños`, urgencia: 'alta', importancia: 'alta', esfuerzo: 'alto',
     });
     await http('POST', yo('diego').t(`/missions/${propia.id}/aceptar`), yo('diego').token);
     const cierrePropia = await http<any>('POST', yo('diego').t(`/missions/${propia.id}/cerrar`), yo('diego').token);
@@ -406,7 +419,7 @@ async function main() {
 
     // Deriva de reloj: un cierre con hora del futuro se rechaza.
     const futura = await http<any>('POST', yo('pedro').t('/missions'), yo('pedro').token, {
-      titulo: `Cierre con reloj adelantado · ${hoy}`, asignadoMembershipId: yo('jose').mId,
+      titulo: `Cierre con reloj adelantado`, asignadoMembershipId: yo('jose').mId,
     });
     await http('POST', yo('jose').t(`/missions/${futura.id}/aceptar`), yo('jose').token);
     const deriva = await intentar(() => http('POST', yo('jose').t(`/missions/${futura.id}/cerrar`), yo('jose').token, {

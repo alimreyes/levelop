@@ -83,6 +83,21 @@ export class BenefitCatalogItem {
   @Column({ type: 'boolean', default: true })
   requiereAprobacion!: boolean;
 
+  /**
+   * 17/09/26 — cupos por mes calendario, lo carga gerencia. NULL = sin límite
+   * (un café de cortesía no se agota). La fila mensual de `benefit_stock` se
+   * crea sola al primer canje del mes; ver `RedemptionsService.asegurarStockDelMes`.
+   */
+  @Column({ type: 'int', nullable: true })
+  cuposMensuales!: number | null;
+
+  /**
+   * 17/09/26 — si el ítem es de categoría `aliados`, de qué oferta de Levelop
+   * nace. Nombre y descripción vienen de ahí y gerencia no los edita.
+   */
+  @Column({ type: 'uuid', nullable: true })
+  partnerOfferId!: string | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
@@ -276,4 +291,38 @@ export class RedemptionOutbox {
 
   @Column({ type: 'timestamptz', nullable: true })
   procesadoAt!: Date | null;
+}
+
+/**
+ * ALIADOS DE LEVELOP (17/09/26). Lo que Levelop negocia con terceros (cine,
+ * gimnasio, farmacia…) y ofrece a todas las empresas cliente. Lo administra la
+ * Vista interna; gerencia solo elige cuáles activar en su catálogo — el ítem
+ * que se crea hereda nombre y descripción de aquí (ver `partnerOfferId`).
+ * No tiene `tenantId` a propósito: es global.
+ */
+@Entity('partner_offers')
+export class PartnerOffer {
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
+
+  @Column({ type: 'text' })
+  nombre!: string;
+
+  @Column({ type: 'text', nullable: true })
+  descripcion!: string | null;
+
+  @Column({ type: 'int', default: 50 })
+  precioOroSugerido!: number;
+
+  @Column({ type: 'text', array: true, default: () => "'{}'" })
+  zonas!: string[];
+
+  @Column({ type: 'boolean', default: true })
+  activo!: boolean;
+
+  @CreateDateColumn({ type: 'timestamptz' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'timestamptz' })
+  updatedAt!: Date;
 }

@@ -8,6 +8,8 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
@@ -19,6 +21,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  IsIn,
   MaxLength,
   Min,
   MinLength,
@@ -29,14 +32,15 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { TenantMembershipGuard } from '../auth/tenant-membership.guard';
-import { FamiliaBeneficio, PerfilConexion, RolMembership } from '../common/enums';
+import { FamiliaBeneficio, PerfilConexion, RolMembership, TipoNotificacion } from '../common/enums';
 import { Area, Invitation, Membership } from '../identity/identity.entities';
 import {
   normalizarEmail,
   nuevoTokenInvitacion,
   vencimientoInvitacion,
 } from '../identity/invitations.util';
-import { BenefitCatalogItem, BenefitPriceVersion } from '../benefits/benefits.entities';
+import { BenefitCatalogItem, BenefitPriceVersion, PartnerOffer } from '../benefits/benefits.entities';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CurrentMembership } from '../auth/current-membership.decorator';
 
 // ---- Personas, áreas e invitaciones (16/09/26) ------------------------------
@@ -70,9 +74,14 @@ class ActualizarPersonaDto {
 
 class CrearItemCatalogoDto {
   @IsEnum(FamiliaBeneficio) familia!: FamiliaBeneficio;
-  @IsString() @MinLength(2) nombre!: string;
+  /** Obligatorio salvo en `aliados`, donde viene de la oferta de Levelop. */
+  @IsOptional() @IsString() @MinLength(2) nombre?: string;
   @IsOptional() @IsString() descripcion?: string;
   @IsInt() @Min(1) precioOro!: number;
+  /** 17/09: cupos por mes; ausente o null = sin límite. */
+  @IsOptional() @IsInt() @Min(1) cuposMensuales?: number | null;
+  /** 17/09: solo para `aliados` — la oferta de Levelop de la que nace el ítem. */
+  @IsOptional() @IsUUID() partnerOfferId?: string;
   /**
    * Pedido de Alim 14/09: no todo canje necesita aprobación humana (un café
    * no, una reunión con gerencia sí). Default `true` (seguro) si no llega —
@@ -89,6 +98,19 @@ class ActualizarAprobacionDto {
   @IsBoolean() requiereAprobacion!: boolean;
 }
 
+class ActualizarActivoDto {
+  @IsBoolean() activo!: boolean;
+}
+
+class ActualizarCuposDto {
+  /** null = sin límite. */
+  @ValidateIf((o) => o.cuposMensuales !== null) @IsInt() @Min(1) cuposMensuales!: number | null;
+}
+
+class FiltroCanjesDto {
+  @IsOptional() @IsIn(['dia', 'semana', 'mes', 'anio']) rango?: 'dia' | 'semana' | 'mes' | 'anio';
+}
+
 /**
  * BackOffice de gerencia. Conexión `backoffice` — la más restringida de las
  * cuatro (ver GRANTs de la migración inicial y R-07). Todo lo que este
@@ -100,7 +122,10 @@ class ActualizarAprobacionDto {
 @UseGuards(JwtAuthGuard, TenantMembershipGuard, RolesGuard)
 @Roles(RolMembership.GERENCIA, RolMembership.ADMIN_TENANT)
 export class GerenciaController {
-  constructor(@InjectDataSource(PerfilConexion.BACKOFFICE) private readonly ds: DataSource) {}
+  constructor(
+    @InjectDataSource(PerfilConexion.BACKOFFICE) private readonly ds: DataSource,
+    private readonly notificaciones: NotificationsService,
+  ) {}
 
   /**
    * El panel de inicio de gerencia: ¿lanzamos?, qué se canjea, cómo va cada
@@ -121,23 +146,225 @@ export class GerenciaController {
 
   @Get('catalog')
   async catalogo(@CurrentMembership() m: Membership) {
-    return this.ds.getRepository(BenefitCatalogItem).find({ where: { tenantId: m.tenantId } });
+    // 17/09: con los cupos del mes en curso, para que gerencia vea "8/12
+    // disponibles" sin abrir otra pantalla. Sin fila del mes = todos quedan.
+    return this.ds.query(
+      `SELECT i.*,
+              CASE
+                WHEN s.id IS NOT NULL THEN GREATEST(0, s."cuposTotales" - s."cuposReservados" - s."cuposConsumidos")
+                WHEN i."cuposMensuales" IS NOT NULL THEN i."cuposMensuales"
+                ELSE NULL
+              END AS "cuposDisponibles",
+              CASE WHEN s.id IS NOT NULL THEN s."cuposTotales" ELSE i."cuposMensuales" END AS "cuposTotales",
+              COALESCE(s."cuposReservados", 0)::int AS "cuposReservados",
+              COALESCE(s."cuposConsumidos", 0)::int AS "cuposConsumidos"
+         FROM benefit_catalog_items i
+    LEFT JOIN benefit_stock s
+           ON s."itemId" = i.id AND now() BETWEEN s."periodoInicio" AND s."periodoFin"
+        WHERE i."tenantId" = $1
+     ORDER BY i.familia, i.nombre`,
+      [m.tenantId],
+    );
   }
 
   @Post('catalog')
   async crearItem(@CurrentMembership() m: Membership, @Body() dto: CrearItemCatalogoDto) {
     const repo = this.ds.getRepository(BenefitCatalogItem);
-    const item = repo.create({
-      tenantId: m.tenantId,
-      familia: dto.familia,
-      nombre: dto.nombre,
-      descripcion: dto.descripcion ?? null,
-      precioOro: dto.precioOro,
-      requiereAprobacion: dto.requiereAprobacion ?? true,
-      zonas: [],
-      activo: true,
-    });
+
+    // 17/09 — Aliados: nombre y descripción vienen de la oferta de Levelop,
+    // gerencia solo elige cuál activar (y a qué precio en Oro).
+    let nombre = dto.nombre?.trim() ?? '';
+    let descripcion = dto.descripcion ?? null;
+    let zonas: string[] = [];
+    let partnerOfferId: string | null = null;
+    if (dto.familia === FamiliaBeneficio.ALIADOS) {
+      if (!dto.partnerOfferId) throw new BadRequestException('Un beneficio de aliados nace de una oferta de Levelop');
+      const oferta = await this.ds.getRepository(PartnerOffer).findOne({ where: { id: dto.partnerOfferId, activo: true } });
+      if (!oferta) throw new NotFoundException('Esa oferta de aliado no existe o ya no está activa');
+      const repetido = await repo.findOne({ where: { tenantId: m.tenantId, partnerOfferId: oferta.id } });
+      if (repetido) throw new BadRequestException({ motivoRechazo: 'ALIADO_YA_ACTIVADO' });
+      nombre = oferta.nombre;
+      descripcion = oferta.descripcion;
+      zonas = oferta.zonas;
+      partnerOfferId = oferta.id;
+    } else if (nombre.length < 2) {
+      throw new BadRequestException('Falta el nombre (mínimo 2 caracteres)');
+    }
+
+    const item = await repo.save(
+      repo.create({
+        tenantId: m.tenantId,
+        familia: dto.familia,
+        nombre,
+        descripcion,
+        precioOro: dto.precioOro,
+        requiereAprobacion: dto.requiereAprobacion ?? true,
+        cuposMensuales: dto.cuposMensuales ?? null,
+        partnerOfferId,
+        zonas,
+        activo: true,
+      }),
+    );
+
+    // 17/09 (pedido de Alim): "cuando se suba un nuevo beneficio debe salir
+    // una notificación para los usuarios". Un aviso por membresía activa,
+    // mejor esfuerzo. Va por la conexión `app` del servicio de avisos (la de
+    // gerencia no escribe en `notifications`, y no hace falta que lo haga).
+    try {
+      const gente: Array<{ id: string }> = await this.ds.query(
+        `SELECT id FROM memberships WHERE "tenantId" = $1 AND activo`,
+        [m.tenantId],
+      );
+      const mgr = this.notificaciones.manager;
+      for (const g of gente) {
+        await this.notificaciones.emitir(mgr, {
+          tenantId: m.tenantId,
+          membershipId: g.id,
+          tipo: TipoNotificacion.BENEFICIO_NUEVO,
+          mensaje: `Nuevo en la Tienda: ${item.nombre} — ${item.precioOro} de Oro`,
+          refTipo: 'catalog_item',
+          refId: item.id,
+        });
+      }
+    } catch (e) { /* best-effort */ }
+
+    return item;
+  }
+
+  /** 17/09: prender/apagar un beneficio. Apagado = sale de la Tienda (el catálogo del empleado filtra `activo`). */
+  @Patch('catalog/:id/activo')
+  async cambiarActivo(
+    @CurrentMembership() m: Membership,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ActualizarActivoDto,
+  ) {
+    const repo = this.ds.getRepository(BenefitCatalogItem);
+    const item = await repo.findOne({ where: { id, tenantId: m.tenantId } });
+    if (!item) throw new NotFoundException('Ítem no encontrado');
+    item.activo = dto.activo;
     return repo.save(item);
+  }
+
+  /**
+   * 17/09: cupos por mes ("agregar un máximo o disponibilidad"). Guarda el
+   * valor en el ítem y, si ya existe la fila de este mes, la ajusta también —
+   * sin bajar por debajo de lo ya reservado+consumido (la CHECK de la base lo
+   * impediría igual; aquí se explica en vez de fallar). null = sin límite.
+   */
+  @Put('catalog/:id/cupos')
+  async cambiarCupos(
+    @CurrentMembership() m: Membership,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ActualizarCuposDto,
+  ) {
+    return this.ds.transaction(async (tx) => {
+      const item = await tx.findOne(BenefitCatalogItem, { where: { id, tenantId: m.tenantId } });
+      if (!item) throw new NotFoundException('Ítem no encontrado');
+      item.cuposMensuales = dto.cuposMensuales;
+      await tx.save(item);
+      if (dto.cuposMensuales !== null) {
+        const usados = await tx.query(
+          `SELECT ("cuposReservados" + "cuposConsumidos")::int AS usados FROM benefit_stock
+            WHERE "itemId" = $1 AND now() BETWEEN "periodoInicio" AND "periodoFin" LIMIT 1`,
+          [id],
+        );
+        if (usados.length && usados[0].usados > dto.cuposMensuales) {
+          throw new BadRequestException(
+            `Este mes ya se usaron ${usados[0].usados} cupos; el máximo no puede ser menor que eso hasta el mes que viene`,
+          );
+        }
+        await tx.query(
+          `INSERT INTO benefit_stock ("tenantId", "itemId", "cuposTotales", "cuposReservados", "cuposConsumidos", "periodoInicio", "periodoFin")
+           VALUES ($1, $2, $3, 0, 0, date_trunc('month', now()), date_trunc('month', now()) + interval '1 month' - interval '1 second')
+           ON CONFLICT ("itemId", "periodoInicio") DO UPDATE SET "cuposTotales" = EXCLUDED."cuposTotales", "updatedAt" = now()`,
+          [m.tenantId, id, dto.cuposMensuales],
+        );
+        // Si había una fila vigente de otro período (p. ej. la del script demo,
+        // que no arranca el día 1), también se ajusta.
+        await tx.query(
+          `UPDATE benefit_stock SET "cuposTotales" = $2, "updatedAt" = now()
+            WHERE "itemId" = $1 AND now() BETWEEN "periodoInicio" AND "periodoFin"`,
+          [id, dto.cuposMensuales],
+        );
+      }
+      return item;
+    });
+  }
+
+  /** 17/09: ofertas de aliados de Levelop disponibles para activar, con marca de cuáles ya están en el catálogo. */
+  @Get('aliados')
+  async aliados(@CurrentMembership() m: Membership) {
+    return this.ds.query(
+      `SELECT o.*, (i.id IS NOT NULL) AS "activada", i.id AS "itemId"
+         FROM partner_offers o
+    LEFT JOIN benefit_catalog_items i ON i."partnerOfferId" = o.id AND i."tenantId" = $1
+        WHERE o.activo
+     ORDER BY o.nombre`,
+      [m.tenantId],
+    );
+  }
+
+  /**
+   * 17/09 (pedido de Alim): "Desempeño por área" con métricas que sí digan
+   * algo a gerencia: promedio de días por tarea, tareas por día, % de
+   * atrasos. Agregado por área sobre `missions` (sin nombres). Se respeta el
+   * piso de 4 miembros activos del acuerdo del 03/09 (`mostrarDesempeno` de
+   * `v_resumen_area`): un área de 2 personas identifica casi tan bien como el
+   * nombre.
+   */
+  @Get('areas/metricas')
+  async metricasAreas(@CurrentMembership() m: Membership) {
+    return this.ds.query(
+      `WITH cerradas AS (
+         SELECT "areaId",
+                count(*)::int AS cerradas_30d,
+                AVG(EXTRACT(EPOCH FROM ("cerradaAt" - "createdAt")) / 86400.0)::numeric(10,1) AS dias_promedio,
+                (count(*) FILTER (WHERE "fechaLimite" IS NOT NULL AND "cerradaAt" > "fechaLimite"))::int AS atrasadas_30d,
+                (count(*) FILTER (WHERE "fechaLimite" IS NOT NULL))::int AS con_fecha_30d
+           FROM missions
+          WHERE "tenantId" = $1 AND estado = 'cerrada' AND "cerradaAt" > now() - interval '30 days'
+          GROUP BY "areaId"
+       ), abiertas AS (
+         SELECT "areaId",
+                count(*)::int AS abiertas,
+                (count(*) FILTER (WHERE "fechaLimite" IS NOT NULL AND "fechaLimite" < now()))::int AS vencidas
+           FROM missions
+          WHERE "tenantId" = $1 AND estado NOT IN ('cerrada', 'cancelada')
+          GROUP BY "areaId"
+       )
+       SELECT r."areaId", r."nombreArea", r."miembrosActivos", r."mostrarDesempeno",
+              COALESCE(c.cerradas_30d, 0)                                   AS "cerradas30d",
+              ROUND(COALESCE(c.cerradas_30d, 0) / 30.0, 2)                  AS "tareasPorDia",
+              c.dias_promedio                                               AS "diasPromedioPorTarea",
+              CASE WHEN COALESCE(c.con_fecha_30d, 0) > 0
+                   THEN ROUND(100.0 * c.atrasadas_30d / c.con_fecha_30d, 0) ELSE NULL END AS "pctAtrasadas",
+              COALESCE(a.abiertas, 0)                                       AS "abiertas",
+              COALESCE(a.vencidas, 0)                                       AS "vencidasAbiertas"
+         FROM v_resumen_area r
+    LEFT JOIN cerradas c ON c."areaId" = r."areaId"
+    LEFT JOIN abiertas a ON a."areaId" = r."areaId"
+        WHERE r."tenantId" = $1
+     ORDER BY r."nombreArea"`,
+      [m.tenantId],
+    );
+  }
+
+  /**
+   * 17/09: canjes confirmados por categoría en un rango (día / semana / mes /
+   * año), para el gráfico de torta. Sale de `v_canjes_diarios`: agregado, sin
+   * identidad. Default: mes.
+   */
+  @Get('canjes')
+  async canjesPorRango(@CurrentMembership() m: Membership, @Query() f: FiltroCanjesDto) {
+    const intervalo = { dia: '1 day', semana: '7 days', mes: '30 days', anio: '365 days' }[f.rango ?? 'mes'];
+    const filas = await this.ds.query(
+      `SELECT familia, sum(total)::int AS total, sum(oro_total)::int AS "oroTotal"
+         FROM v_canjes_diarios
+        WHERE "tenantId" = $1 AND dia >= now() - $2::interval
+        GROUP BY familia ORDER BY total DESC`,
+      [m.tenantId, intervalo],
+    );
+    return { rango: f.rango ?? 'mes', categorias: filas };
   }
 
   /**

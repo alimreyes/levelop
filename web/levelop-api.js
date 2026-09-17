@@ -267,7 +267,8 @@
        * vuelve `{ participo: false, tabla: [] }`) y verTablaCompleta (±3 por
        * defecto, tabla entera si la persona lo pidió).
        */
-      ranking: () => request(urlTenant('/economy/ranking')),
+      // 17/09: `ambito` = 'global' (default) | 'area' (solo la propia área).
+      ranking: (ambito) => request(urlTenant(`/economy/ranking${ambito === 'area' ? '?ambito=area' : ''}`)),
       actualizarPrefsRanking: (dto) =>
         request(urlTenant('/economy/ranking/prefs'), { method: 'PATCH', body: dto }),
       /**
@@ -331,6 +332,18 @@
           body: { requiereAprobacion },
         }),
       areas: () => request(urlTenant('/backoffice/areas')),
+      // ---- 17/09 (documento «LEVELOP _ CAMBIOS») --------------------------
+      cambiarActivo: (id, activo) =>
+        request(urlTenant(`/backoffice/catalog/${id}/activo`), { method: 'PATCH', body: { activo } }),
+      // cuposMensuales: número por mes, o null = sin límite.
+      cambiarCupos: (id, cuposMensuales) =>
+        request(urlTenant(`/backoffice/catalog/${id}/cupos`), { method: 'PUT', body: { cuposMensuales } }),
+      // Ofertas de aliados de Levelop disponibles para activar (marca cuáles ya están).
+      aliados: () => request(urlTenant('/backoffice/aliados')),
+      // Desempeño por área con métricas: cerradas 30d, tareas/día, días promedio, % atrasadas, abiertas, vencidas.
+      metricasAreas: () => request(urlTenant('/backoffice/areas/metricas')),
+      // rango: 'dia' | 'semana' | 'mes' | 'anio' → { rango, categorias: [{familia, total, oroTotal}] }
+      canjes: (rango) => request(urlTenant(`/backoffice/canjes${rango ? `?rango=${rango}` : ''}`)),
 
       // ---- Personas, áreas e invitaciones (16/09/26) ----------------------
       // Administración, no evaluación: nombres y roles sin ningún número de
@@ -379,6 +392,10 @@
       // dto: { nombre, rif?, zonaDefault, adminEmail } → { tenant, invitacion }
       crearTenant: (dto) => request('/interno/tenants', { method: 'POST', body: dto }),
       invitaciones: (tenantId) => request(`/interno/invitaciones?tenantId=${tenantId}`),
+      // ---- Aliados de Levelop (17/09): lo que Levelop negocia y ofrece a todas las empresas
+      aliados: () => request('/interno/aliados'),
+      crearAliado: (dto) => request('/interno/aliados', { method: 'POST', body: dto }),
+      actualizarAliado: (id, dto) => request(`/interno/aliados/${id}`, { method: 'PATCH', body: dto }),
     },
   };
 

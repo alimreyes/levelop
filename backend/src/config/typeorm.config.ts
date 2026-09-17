@@ -24,6 +24,7 @@ import {
   BenefitCatalogItem,
   BenefitPriceVersion,
   BenefitStock,
+  PartnerOffer,
   Redemption,
   RedemptionOutbox,
 } from '../benefits/benefits.entities';
@@ -40,7 +41,7 @@ export const ENTIDADES = [
   Tenant, User, Membership, Area, MembershipPrefs, InternalUser, Invitation,
   Mission, MissionCollaborator, MissionThreadMessage,
   EconomyEvent, EconomyBalance, EconomyConfig,
-  BenefitCatalogItem, BenefitPriceVersion, BenefitStock, Redemption, RedemptionOutbox,
+  BenefitCatalogItem, BenefitPriceVersion, BenefitStock, Redemption, RedemptionOutbox, PartnerOffer,
   HelpSignal, HelpSignalHistory, HelpInteraction,
   Notification,
 ];

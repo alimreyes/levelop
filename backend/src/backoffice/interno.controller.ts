@@ -1,12 +1,13 @@
-import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { IsEmail, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import { IsArray, IsBoolean, IsEmail, IsInt, IsOptional, IsString, IsUUID, MaxLength, Min, MinLength } from 'class-validator';
 import { DataSource } from 'typeorm';
 import { InternalGuard } from '../auth/internal.guard';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { JwtPayload } from '../auth/jwt.strategy';
 import { EstadoTenant, PerfilConexion, RolMembership } from '../common/enums';
 import { Invitation, Tenant } from '../identity/identity.entities';
+import { PartnerOffer } from '../benefits/benefits.entities';
 import {
   normalizarEmail,
   nuevoTokenInvitacion,
@@ -25,6 +26,26 @@ class FiltroTenantDto {
  * invitación, con rol `admin_tenant`, para el dueño/gerente — él pone su
  * contraseña al abrir el link; Levelop nunca la conoce.
  */
+/**
+ * 17/09/26 — Aliados de Levelop. "En ALIADOS la gerencia no debería poder
+ * poner el nombre ni descripción, porque esto viene de lo que Levelop va a
+ * negociar; lo que queda para ellos es cuáles activar." Esto es lo que
+ * Levelop carga.
+ */
+class OfertaAliadoDto {
+  @IsString() @MinLength(2) @MaxLength(120) nombre!: string;
+  @IsOptional() @IsString() @MaxLength(400) descripcion?: string;
+  @IsOptional() @IsInt() @Min(1) precioOroSugerido?: number;
+  @IsOptional() @IsArray() @IsString({ each: true }) zonas?: string[];
+}
+class ActualizarOfertaAliadoDto {
+  @IsOptional() @IsString() @MinLength(2) @MaxLength(120) nombre?: string;
+  @IsOptional() @IsString() @MaxLength(400) descripcion?: string;
+  @IsOptional() @IsInt() @Min(1) precioOroSugerido?: number;
+  @IsOptional() @IsArray() @IsString({ each: true }) zonas?: string[];
+  @IsOptional() @IsBoolean() activo?: boolean;
+}
+
 class CrearTenantDto {
   @IsString() @MinLength(2) @MaxLength(120) nombre!: string;
   @IsOptional() @IsString() @MaxLength(40) rif?: string;
@@ -134,6 +155,46 @@ export class InternoController {
       );
       return { tenant, invitacion };
     });
+  }
+
+  // ===========================================================================
+  // ALIADOS (17/09/26) — el catálogo que Levelop negocia y ofrece a todos
+  // ===========================================================================
+
+  @Get('aliados')
+  async aliados() {
+    return this.ds.query(
+      `SELECT o.*, (SELECT count(*)::int FROM benefit_catalog_items i WHERE i."partnerOfferId" = o.id) AS "empresasQueLoActivaron"
+         FROM partner_offers o ORDER BY o.activo DESC, o.nombre`,
+    );
+  }
+
+  @Post('aliados')
+  async crearAliado(@Body() dto: OfertaAliadoDto) {
+    const repo = this.ds.getRepository(PartnerOffer);
+    return repo.save(
+      repo.create({
+        nombre: dto.nombre.trim(),
+        descripcion: dto.descripcion?.trim() || null,
+        precioOroSugerido: dto.precioOroSugerido ?? 50,
+        zonas: dto.zonas ?? [],
+        activo: true,
+      }),
+    );
+  }
+
+  /** Editar o apagar una oferta. Apagarla no toca los ítems ya activados por las empresas (eso lo decide cada gerencia). */
+  @Patch('aliados/:id')
+  async actualizarAliado(@Param('id', ParseUUIDPipe) id: string, @Body() dto: ActualizarOfertaAliadoDto) {
+    const repo = this.ds.getRepository(PartnerOffer);
+    const o = await repo.findOne({ where: { id } });
+    if (!o) throw new NotFoundException('Oferta no encontrada');
+    if (dto.nombre !== undefined) o.nombre = dto.nombre.trim();
+    if (dto.descripcion !== undefined) o.descripcion = dto.descripcion.trim() || null;
+    if (dto.precioOroSugerido !== undefined) o.precioOroSugerido = dto.precioOroSugerido;
+    if (dto.zonas !== undefined) o.zonas = dto.zonas;
+    if (dto.activo !== undefined) o.activo = dto.activo;
+    return repo.save(o);
   }
 
   /** Invitaciones de una empresa (para volver a copiar el link del admin, o ver si ya entró). */
