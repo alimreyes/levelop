@@ -17,6 +17,7 @@ import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { TenantMembershipGuard } from '../auth/tenant-membership.guard';
 import { PerfilConexion, RolMembership } from '../common/enums';
+import { EconomyService } from '../economy/economy.service';
 import { Membership } from '../identity/identity.entities';
 import { Redemption } from './benefits.entities';
 import { SolicitarCanjeDto } from './redemptions.dto';
@@ -28,6 +29,7 @@ export class RedemptionsController {
   constructor(
     @InjectDataSource(PerfilConexion.APP) private readonly ds: DataSource,
     private readonly redemptions: RedemptionsService,
+    private readonly economy: EconomyService,
   ) {}
 
   /** Catálogo filtrado por zona — mostrarle a alguien de Maracaibo algo de Caracas es una burla. */
@@ -36,7 +38,7 @@ export class RedemptionsController {
     // 17/09: además del ítem, cuántos cupos quedan este mes ("quedan 4 de 8").
     // `cuposDisponibles` = null significa sin límite. La fila del mes puede no
     // existir todavía (se crea al primer canje): en ese caso quedan todos.
-    return this.ds.query(
+    const filas: Array<Record<string, unknown> & { nivelMinimo: number | null }> = await this.ds.query(
       `SELECT i.*,
               CASE
                 WHEN s.id IS NOT NULL THEN GREATEST(0, s."cuposTotales" - s."cuposReservados" - s."cuposConsumidos")
@@ -55,6 +57,18 @@ export class RedemptionsController {
      ORDER BY i.familia, i."precioOro"`,
       [m.tenantId, m.zona],
     );
+
+    // 17/09 (tarde): el ítem bloqueado por nivel necesita decir CUÁNTA XP falta,
+    // no solo "desde nivel 3". El umbral depende de `economy_config`, que la app
+    // no tiene ni debería tener, así que se resuelve acá: una consulta de
+    // configuración para todo el catálogo, y la pantalla resta contra la XP que
+    // ya recibe de `mi-progreso`. Si el CFO cambia la fórmula, el candado se
+    // mueve solo.
+    const cfg = await this.economy.configDe(m.tenantId);
+    return filas.map((f) => ({
+      ...f,
+      xpMinima: f.nivelMinimo == null ? null : this.economy.umbralXp(cfg, f.nivelMinimo),
+    }));
   }
 
   @Get('redemptions')

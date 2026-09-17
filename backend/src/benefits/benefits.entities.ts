@@ -98,6 +98,22 @@ export class BenefitCatalogItem {
   @Column({ type: 'uuid', nullable: true })
   partnerOfferId!: string | null;
 
+  /**
+   * 17/09/26 (tarde) — nivel minimo para canjear. NULL = para todos.
+   *
+   * Es la primera vez que el nivel sirve para algo. Alim lo pidio asi:
+   * "mientras mayor es el nivel, es porque mayor cantidad de misiones ha
+   * logrado y tiene mayor permanencia en la empresa; es por eso que los
+   * recompensamos con algo mejor". El nivel sale de la XP acumulada, y la XP
+   * solo sube y nunca baja (Maestro 3.3) — asi que un beneficio que se abrio
+   * no se vuelve a cerrar, ni siquiera si la persona apaga el juego.
+   *
+   * El servidor lo verifica igual aunque la pantalla muestre el candado:
+   * `RedemptionsService.solicitar()` rechaza con NIVEL_INSUFICIENTE.
+   */
+  @Column({ type: 'int', nullable: true })
+  nivelMinimo!: number | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 

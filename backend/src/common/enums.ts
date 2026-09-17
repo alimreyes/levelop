@@ -84,6 +84,13 @@ export enum MotivoRechazo {
   ZONA_NO_APLICA = 'ZONA_NO_APLICA',
   ITEM_INACTIVO = 'ITEM_INACTIVO',
   OPT_OUT_ACTIVO = 'OPT_OUT_ACTIVO',
+  /**
+   * 17/09/26 — el nivel por fin abre algo. Hasta hoy subir de nivel no
+   * habilitaba nada, aunque el Maestro dice que el nivel "abre catalogo, no da
+   * Oro". El motivo es tipificado como los demas para que el copy pueda decir
+   * "desde nivel 3, te faltan 120 XP" en vez de un 409 mudo.
+   */
+  NIVEL_INSUFICIENTE = 'NIVEL_INSUFICIENTE',
 }
 
 // --- Beneficios y canje ------------------------------------------------------

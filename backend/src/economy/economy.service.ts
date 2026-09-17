@@ -525,6 +525,129 @@ export class EconomyService {
   }
 
   // ===========================================================================
+  // NIVEL — el umbral de cada nivel, y en cuál está una persona (17/09/26)
+  // ===========================================================================
+
+  /**
+   * XP a la que empieza el nivel N. Es la misma fórmula que `nivelPara()` leída
+   * al revés (`nivelBase × N^nivelExponente`), expuesta aparte porque desde hoy
+   * hay dos pantallas que necesitan el umbral y no el nivel: el candado de la
+   * Tienda ("desde nivel 3 — te faltan 120 XP") y la tabla que gerencia usa
+   * para decidir desde qué nivel abrir cada beneficio.
+   *
+   * Nivel 1 empieza en 0: nadie arranca debiendo XP.
+   */
+  umbralXp(cfg: EconomyConfig, nivel: number): number {
+    if (nivel <= 1) return 0;
+    return Math.ceil(cfg.nivelBase * Math.pow(nivel, Number(cfg.nivelExponente)));
+  }
+
+  /**
+   * En qué nivel está alguien, contado contra el LEDGER y no contra el cache.
+   *
+   * `economy_balances` tiene la XP y serviría para pintar, pero esto se usa
+   * para decidir si un canje procede, y una decisión que mueve valor se toma
+   * contra los eventos. Mismo criterio que `saldoOro()`: el cache es para
+   * mostrar, el log es para decidir.
+   */
+  async nivelYxp(
+    m: EntityManager,
+    tenantId: string,
+    membershipId: string,
+  ): Promise<{ xp: number; nivel: number }> {
+    const r = await m
+      .createQueryBuilder(EconomyEvent, 'e')
+      .select('COALESCE(SUM(e.xpDelta), 0)', 'xp')
+      .where('e.membershipId = :id', { id: membershipId })
+      .getRawOne<{ xp: string }>();
+    const xp = Number(r?.xp ?? 0);
+    const cfg = await this.configVigente(m, tenantId);
+    return { xp, nivel: this.nivelPara(cfg, xp) };
+  }
+
+  // ===========================================================================
+  // LOTES DE ORO — cuánto tenés y qué se te vence (17/09/26, punto 6)
+  // ===========================================================================
+
+  /**
+   * El saldo abierto en lotes por día de ganancia, con su fecha de caducidad.
+   *
+   * NO HAY TABLA NUEVA, y es deliberado: el ledger ya sabe cuándo se ganó cada
+   * Oro. Una tabla `oro_lotes` sería una segunda fuente de verdad sobre el
+   * mismo hecho, y el día que las dos se desviaran —y se desvían— ninguna de
+   * las dos serviría para responder "¿por qué bajó mi saldo?".
+   *
+   * FIFO, igual que el decay: lo que se gasta sale del Oro más viejo. Eso ya
+   * era así de hecho (`ejecutarDecay` caduca "lo ganado antes del corte menos
+   * lo ya gastado"), pero nunca se había dicho en pantalla. Desde hoy se dice,
+   * porque una regla que afecta cuánto te queda y no está escrita en ningún
+   * lado se lee como arbitrariedad.
+   *
+   * El consumido se calcula como `ganado − saldo` en vez de sumar gastos: así
+   * la reversión de un canje (que devuelve Oro con un evento aparte) queda
+   * contemplada sola, sin que yo tenga que acordarme de restarla. Cualquier
+   * tipo de evento que se agregue mañana entra en la cuenta sin tocar esto.
+   */
+  async lotesDeOro(
+    tenantId: string,
+    membershipId: string,
+  ): Promise<{
+    saldo: number;
+    decayDias: number;
+    lotes: Array<{ ganadoEl: string; oro: number; venceEl: string; diasParaVencer: number }>;
+    venceEn7: number;
+    venceEn30: number;
+  }> {
+    const m = this.ds.manager;
+    const cfg = await this.configVigente(m, tenantId);
+
+    const filas: Array<{ dia: string; oro: string }> = await m.query(
+      `SELECT date_trunc('day', "serverReceivedAt") AS dia,
+              SUM("oroDelta")::int                  AS oro
+         FROM economy_events
+        WHERE "membershipId" = $1 AND tipo = 'ORO_GANADO'
+        GROUP BY 1
+        ORDER BY 1 ASC`,
+      [membershipId],
+    );
+
+    const saldo = await this.saldoOro(m, membershipId);
+    const ganado = filas.reduce((a, f) => a + Number(f.oro), 0);
+    let porConsumir = Math.max(0, ganado - saldo);
+
+    const hoy = Date.now();
+    const lotes: Array<{ ganadoEl: string; oro: number; venceEl: string; diasParaVencer: number }> = [];
+    for (const f of filas) {
+      let oro = Number(f.oro);
+      if (porConsumir > 0) {
+        const quita = Math.min(oro, porConsumir);
+        oro -= quita;
+        porConsumir -= quita;
+      }
+      if (oro <= 0) continue;
+      const ganadoEl = new Date(f.dia);
+      const vence = new Date(ganadoEl.getTime() + cfg.decayDias * 86400000);
+      lotes.push({
+        ganadoEl: ganadoEl.toISOString(),
+        oro,
+        venceEl: vence.toISOString(),
+        diasParaVencer: Math.max(0, Math.ceil((vence.getTime() - hoy) / 86400000)),
+      });
+    }
+
+    const enDias = (d: number) =>
+      lotes.filter((l) => l.diasParaVencer <= d).reduce((a, l) => a + l.oro, 0);
+
+    return {
+      saldo,
+      decayDias: cfg.decayDias,
+      lotes,
+      venceEn7: enDias(7),
+      venceEn30: enDias(30),
+    };
+  }
+
+  // ===========================================================================
   // CONFIGURACION
   // ===========================================================================
 

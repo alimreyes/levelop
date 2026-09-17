@@ -149,6 +149,18 @@ export class RedemptionsService {
         return this.rechazo(MotivoRechazo.ZONA_NO_APLICA);
       }
 
+      // Nivel minimo (17/09/26). El candado de la Tienda es cosmetico: esta
+      // guarda es la regla. Se cuenta contra el ledger, no contra
+      // `economy_balances`, porque decide sobre valor — mismo criterio que el
+      // saldo. Y como la XP solo sube y nunca baja (Maestro 3.3), un beneficio
+      // que se abrio no se vuelve a cerrar.
+      if (item.nivelMinimo != null) {
+        const { nivel } = await this.economy.nivelYxp(m, membership.tenantId, membership.id);
+        if (nivel < item.nivelMinimo) {
+          return this.rechazo(MotivoRechazo.NIVEL_INSUFICIENTE);
+        }
+      }
+
       // --- Precio congelado (A-17, regla permanente) -------------------------
       // El precio no cambia sobre un saldo vivo. Se aplica el que regia cuando el
       // Oro fue ganado, no el de hoy. Como el Oro caduca a 90 dias y el precio se

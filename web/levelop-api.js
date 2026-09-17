@@ -283,6 +283,25 @@
        */
       cambiarJuego: (optInJuego) =>
         request(urlTenant('/economy/juego'), { method: 'PATCH', body: { optInJuego } }),
+      /**
+       * 17/09/26 — el saldo abierto en lotes por día ganado, con su fecha de
+       * caducidad (90 días). Devuelve { saldo, decayDias, lotes: [{ganadoEl,
+       * oro, venceEl, diasParaVencer}], venceEn7, venceEn30 }. Los canjes
+       * consumen primero el Oro más viejo; los lotes salen del ledger, no de
+       * una tabla aparte.
+       */
+      lotes: () => request(urlTenant('/economy/lotes')),
+      /**
+       * 17/09/26 — el beneficio marcado como «lo quiero» y el plan para
+       * llegar: { objetivo: null } o { objetivo: { nombre, precioOro, saldo,
+       * faltante, oroPromedioPorMision, misionesQueFaltan, ... } }. Solo lo ve
+       * la persona: vive en `membership_prefs`, que ninguna superficie de
+       * gestión puede leer.
+       */
+      objetivo: () => request(urlTenant('/economy/objetivo')),
+      /** `itemId = null` quita el objetivo. Uno a la vez. */
+      fijarObjetivo: (itemId) =>
+        request(urlTenant('/economy/objetivo'), { method: 'PATCH', body: { itemId } }),
     },
     // ---- Compañeros (16/09/26) --------------------------------------------
     // Nombre, área y rol de cada membresía activa del tenant — lo que un
@@ -344,6 +363,12 @@
       metricasAreas: () => request(urlTenant('/backoffice/areas/metricas')),
       // rango: 'dia' | 'semana' | 'mes' | 'anio' → { rango, categorias: [{familia, total, oroTotal}] }
       canjes: (rango) => request(urlTenant(`/backoffice/canjes${rango ? `?rango=${rango}` : ''}`)),
+      // nivelMinimo: número desde el que se puede canjear, o null = para todos.
+      cambiarNivel: (id, nivelMinimo) =>
+        request(urlTenant(`/backoffice/catalog/${id}/nivel`), { method: 'PUT', body: { nivelMinimo } }),
+      // La escalera de niveles del tenant traducida a misiones típicas, para
+      // decidir desde qué nivel abrir un beneficio sin saber la fórmula.
+      niveles: () => request(urlTenant('/backoffice/niveles')),
 
       // ---- Personas, áreas e invitaciones (16/09/26) ----------------------
       // Administración, no evaluación: nombres y roles sin ningún número de

@@ -240,6 +240,20 @@ export class MembershipPrefs {
   @Column({ type: 'boolean', default: true })
   participaEnRanking!: boolean;
 
+  /**
+   * 17/09/26 — el beneficio que la persona marco como "lo quiero". Uno a la
+   * vez; marcar otro reemplaza al anterior.
+   *
+   * Vive aqui y no en `memberships` por la misma razon que el resto de esta
+   * tabla: `membership_prefs` es una de las tres que gerencia, lider y la
+   * vista interna NO pueden leer. Que alguien este ahorrando para "Medio dia
+   * libre" no es un dato de gestion, y dejarlo donde una superficie de gestion
+   * pueda alcanzarlo seria confiar en que nadie escriba el SELECT equivocado.
+   * Aqui no hace falta confiar.
+   */
+  @Column({ type: 'uuid', nullable: true })
+  objetivoItemId!: string | null;
+
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 

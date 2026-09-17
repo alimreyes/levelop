@@ -32,7 +32,15 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { TenantMembershipGuard } from '../auth/tenant-membership.guard';
-import { FamiliaBeneficio, PerfilConexion, RolMembership, TipoNotificacion } from '../common/enums';
+import {
+  FamiliaBeneficio,
+  NivelEsfuerzo,
+  NivelTri,
+  PerfilConexion,
+  RolMembership,
+  TipoNotificacion,
+} from '../common/enums';
+import { EconomyService } from '../economy/economy.service';
 import { Area, Invitation, Membership } from '../identity/identity.entities';
 import {
   normalizarEmail,
@@ -82,6 +90,8 @@ class CrearItemCatalogoDto {
   @IsOptional() @IsInt() @Min(1) cuposMensuales?: number | null;
   /** 17/09: solo para `aliados` — la oferta de Levelop de la que nace el ítem. */
   @IsOptional() @IsUUID() partnerOfferId?: string;
+  /** 17/09 (tarde): nivel mínimo para canjear; ausente o null = para todos. */
+  @IsOptional() @IsInt() @Min(1) nivelMinimo?: number | null;
   /**
    * Pedido de Alim 14/09: no todo canje necesita aprobación humana (un café
    * no, una reunión con gerencia sí). Default `true` (seguro) si no llega —
@@ -107,6 +117,11 @@ class ActualizarCuposDto {
   @ValidateIf((o) => o.cuposMensuales !== null) @IsInt() @Min(1) cuposMensuales!: number | null;
 }
 
+class ActualizarNivelDto {
+  /** null = sin restricción de nivel. */
+  @ValidateIf((o) => o.nivelMinimo !== null) @IsInt() @Min(1) nivelMinimo!: number | null;
+}
+
 class FiltroCanjesDto {
   @IsOptional() @IsIn(['dia', 'semana', 'mes', 'anio']) rango?: 'dia' | 'semana' | 'mes' | 'anio';
 }
@@ -125,6 +140,7 @@ export class GerenciaController {
   constructor(
     @InjectDataSource(PerfilConexion.BACKOFFICE) private readonly ds: DataSource,
     private readonly notificaciones: NotificationsService,
+    private readonly economia: EconomyService,
   ) {}
 
   /**
@@ -200,6 +216,7 @@ export class GerenciaController {
         precioOro: dto.precioOro,
         requiereAprobacion: dto.requiereAprobacion ?? true,
         cuposMensuales: dto.cuposMensuales ?? null,
+        nivelMinimo: dto.nivelMinimo ?? null,
         partnerOfferId,
         zonas,
         activo: true,
@@ -289,6 +306,64 @@ export class GerenciaController {
       }
       return item;
     });
+  }
+
+  /**
+   * 17/09 (tarde) — desde qué nivel se puede canjear un ítem. null = para todos.
+   *
+   * No valida contra un nivel máximo porque no existe uno: la fórmula de nivel
+   * es una potencia sin techo. Sí es responsabilidad de la pantalla mostrar la
+   * tabla de `GET niveles` al lado, para que nadie ponga "nivel 9" sin saber
+   * que son ~110 misiones.
+   */
+  @Put('catalog/:id/nivel')
+  async cambiarNivel(
+    @CurrentMembership() m: Membership,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ActualizarNivelDto,
+  ) {
+    const repo = this.ds.getRepository(BenefitCatalogItem);
+    const item = await repo.findOne({ where: { id, tenantId: m.tenantId } });
+    if (!item) throw new NotFoundException('Ítem no encontrado');
+    item.nivelMinimo = dto.nivelMinimo;
+    return repo.save(item);
+  }
+
+  /**
+   * La escalera de niveles del tenant, traducida a algo que se pueda decidir.
+   *
+   * Gerencia no tiene por qué saber qué es `nivelBase × N^nivelExponente`. Lo
+   * que necesita para elegir desde qué nivel abrir un beneficio es cuántas
+   * misiones hay que cerrar para llegar ahí, así que eso es lo que devuelve:
+   * el umbral de XP y su equivalencia en misiones típicas (urgencia media,
+   * importancia media, esfuerzo medio) según la configuración vigente. Si el
+   * CFO cambia la fórmula, la tabla cambia sola y la recomendación con ella.
+   *
+   * `cuantaGente` no va aquí a propósito: sería "cuántas personas están en
+   * nivel 3", un dato de desempeño agregado que gerencia ya tiene por área en
+   * su propia sección, con el piso de 4. Repetirlo acá, junto a un control
+   * que se aplica por persona, es el tipo de mezcla que R-07 existe para
+   * evitar.
+   */
+  @Get('niveles')
+  async niveles(@CurrentMembership() m: Membership) {
+    const cfg = await this.economia.configDe(m.tenantId);
+    const xpMisionTipica = this.economia.calcular(
+      cfg,
+      NivelTri.MEDIA,
+      NivelTri.MEDIA,
+      NivelEsfuerzo.MEDIO,
+    ).xp;
+    const filas = [];
+    for (let n = 1; n <= 8; n++) {
+      const xp = this.economia.umbralXp(cfg, n);
+      filas.push({
+        nivel: n,
+        xpMinima: xp,
+        misionesTipicas: xpMisionTipica > 0 ? Math.round(xp / xpMisionTipica) : null,
+      });
+    }
+    return { xpMisionTipica, niveles: filas };
   }
 
   /** 17/09: ofertas de aliados de Levelop disponibles para activar, con marca de cuáles ya están en el catálogo. */

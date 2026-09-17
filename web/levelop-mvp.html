@@ -807,7 +807,8 @@ const COPY_RECHAZO = {
   CUPO_AGOTADO:       ["Alguien se llevó el último cupo", "Se acabaron los cupos. No se te descontó nada — el Oro sigue completo."],
   ZONA_NO_APLICA:     ["Este no aplica en tu ciudad", "Solo está disponible en otras zonas. Tu zona la fija RRHH de tu empresa, no se cambia desde aquí."],
   ITEM_INACTIVO:      ["Ese beneficio ya no está", "Lo sacaron del catálogo. No se te descontó nada."],
-  OPT_OUT_ACTIVO:     ["Tienes el juego apagado", "Con el juego apagado no se piden beneficios. Lo prendes desde tu Perfil."]
+  OPT_OUT_ACTIVO:     ["Tienes el juego apagado", "Con el juego apagado no se piden beneficios. Lo prendes desde tu Perfil."],
+  NIVEL_INSUFICIENTE: ["Todavía no tienes el nivel", "Este beneficio se abre a partir de cierto nivel. La experiencia solo sube: cuando llegues, queda abierto para siempre."]
 };
 
 /* =========================================================
@@ -825,6 +826,9 @@ const D = {            // datos REALES, todos del servidor
   avisos: [],          // notificaciones propias, más nuevas primero
   miembros: [],        // compañeros: { membershipId, nombre, rol, areaId, areaNombre }
   progreso: null,      // { xp, oro, nivel, xpInicioNivel, xpSiguienteNivel }
+  /* 17/09 (tarde) — puntos 6 y 9 de «Cosas para conectar ahora». */
+  lotes: null,         // { saldo, decayDias, lotes[], venceEn7, venceEn30 }
+  objetivo: null,      // { nombre, precioOro, saldo, faltante, misionesQueFaltan, ... }
   cargado: false
 };
 const state = {
@@ -996,19 +1000,27 @@ async function cargarSecundario(){
     LevelopAPI.equipo.miembros(),
     LevelopAPI.economia.miProgreso(),
     LevelopAPI.economia.ranking(),
-    LevelopAPI.avisos.listar()
+    LevelopAPI.avisos.listar(),
+    LevelopAPI.economia.lotes(),
+    LevelopAPI.economia.objetivo()
   ]);
   if(r[0].status==="fulfilled" && Array.isArray(r[0].value)) D.miembros = r[0].value;
   if(r[1].status==="fulfilled" && r[1].value) D.progreso = r[1].value;
   if(r[2].status==="fulfilled" && r[2].value) D.ranking  = r[2].value;
   if(r[3].status==="fulfilled" && Array.isArray(r[3].value)) D.avisos = r[3].value;
+  if(r[4].status==="fulfilled" && r[4].value) D.lotes    = r[4].value;
+  if(r[5].status==="fulfilled" && r[5].value) D.objetivo = r[5].value.objetivo || null;
   anunciarBeneficiosNuevos();
-  r.forEach((x,i)=>{ if(x.status==="rejected") console.warn("secundario", ["miembros","progreso","ranking","avisos"][i], x.reason); });
+  r.forEach((x,i)=>{ if(x.status==="rejected") console.warn("secundario", ["miembros","progreso","ranking","avisos","lotes","objetivo"][i], x.reason); });
   pintarBellDot();
 }
 async function refrescarSaldo(){
   try{ const s = await LevelopAPI.economia.saldo(); D.saldo = s.oro; }catch(e){ /* el saldo viejo sigue siendo mejor que un cero falso */ }
   try{ D.progreso = await LevelopAPI.economia.miProgreso(); }catch(e){ /* idem: el progreso viejo antes que un guion */ }
+  /* Los lotes y el plan del objetivo dependen del saldo: si no se refrescan
+     acá, la pantalla diría "te faltan 80" después de que ya los ganaste. */
+  try{ D.lotes = await LevelopAPI.economia.lotes(); }catch(e){ /* se muestra el anterior */ }
+  try{ const o = await LevelopAPI.economia.objetivo(); D.objetivo = o.objetivo || null; }catch(e){ /* idem */ }
 }
 /* 17/09 (Alim): "cuando se suba un nuevo beneficio debe salir una notificación
    en Avisos, así como un pop up anunciándolo". El pop-up sale UNA vez por
@@ -1167,6 +1179,46 @@ function vistaInicio(){
     </div>`;
   }).join("") : `<div class="empty">No has pedido ningún beneficio.</div>`;
 
+  /* 17/09 (tarde) — punto 9: «ponerlo de objetivo y el plan para llegar».
+     El plan sale del Oro promedio de SUS misiones abiertas, no de un número
+     inventado. Si no tiene ninguna abierta, se dice que no hay estimación en
+     vez de rellenar con algo plausible. */
+  const o = D.objetivo;
+  const wObjetivo = !o ? `<div class="empty">Marca un beneficio con «Lo quiero» en la Tienda y aquí te digo cuánto te falta.</div>`
+    : `<div class="stack g8">
+        <div class="row wrap g8" style="justify-content:space-between; align-items:baseline">
+          <b style="font-size:15px">${esc(o.nombre)}</b>
+          <span class="price"><b>${fmt(o.precioOro)}</b><small>oro</small></span>
+        </div>
+        <span class="bar-track"><span class="bar-fill c-gold" style="width:${Math.min(100, o.precioOro>0?Math.round(o.saldo/o.precioOro*100):0)}%"></span></span>
+        <div class="sub">${o.faltante===0
+          ? `Ya lo tienes: ${fmt(o.saldo)} de ${fmt(o.precioOro)}. Puedes pedirlo en la Tienda.`
+          : `Tienes ${fmt(o.saldo)}, te faltan <b>${fmt(o.faltante)}</b>.`}</div>
+        ${o.faltante>0 && o.misionesQueFaltan!==null
+          ? `<div class="sub">Cerrando misiones como las que tienes abiertas (≈ ${fmt(o.oroPromedioPorMision)} de Oro cada una), te faltan <b>${fmt(o.misionesQueFaltan)}</b>.</div>`
+          : o.faltante>0 ? `<div class="sub">No tienes misiones abiertas, así que todavía no puedo estimarte en cuántas llegas.</div>` : ""}
+        <div class="row g6"><button class="btn sm" data-tab="tienda">Ver en la Tienda</button>
+        <button class="btn sm" data-objetivo="" data-stop>Quitar objetivo</button></div>
+      </div>`;
+
+  /* Punto 6: lotes de Oro y qué se vence. Sin tabla nueva — sale del ledger. */
+  const L = D.lotes;
+  const wLotes = !L || !L.lotes || !L.lotes.length
+    ? `<div class="empty">Todavía no tienes Oro acumulado.</div>`
+    : `<div class="stack g8">
+        ${L.venceEn7>0?`<div class="note risk" style="margin:0"><b>${fmt(L.venceEn7)} de Oro</b> se te vencen en los próximos 7 días.</div>`
+         :L.venceEn30>0?`<div class="note gold" style="margin:0"><b>${fmt(L.venceEn30)} de Oro</b> se te vencen dentro de 30 días.</div>`:""}
+        ${L.lotes.slice(0,6).map(l=>`
+          <div class="row wrap g8" style="justify-content:space-between; align-items:baseline">
+            <span class="sub">Ganado el ${esc(fechaCorta(new Date(l.ganadoEl)))}</span>
+            <span class="row g6" style="align-items:baseline">
+              <b class="num">${fmt(l.oro)}</b>
+              <span class="chip ${l.diasParaVencer<=7?"risk":l.diasParaVencer<=30?"gold":""}">vence ${esc(fechaCorta(new Date(l.venceEl)))}</span>
+            </span>
+          </div>`).join("")}
+        <div class="sub">El Oro caduca a los ${fmt(L.decayDias)} días. Cuando pides un beneficio se gasta primero el más viejo, así que lo que está por vencerse se va primero.</div>
+      </div>`;
+
   return `
   ${!optIn()?`<div class="optout-banner">Tienes el juego apagado: no estás ganando Oro nuevo. Sigues viendo todo lo del trabajo.</div>`:""}
 
@@ -1192,20 +1244,21 @@ function vistaInicio(){
     ${widget("calendario","Lo que se viene", proximas.length, wProximas)}
     ${widget("capas","Estado de las misiones", D.misiones.length, wEstado)}
     ${optIn()?widget("ticket","Tus beneficios", activos.length, wActivos):""}
+    ${optIn()?widget("diana","Tu objetivo", null, wObjetivo):""}
+    ${optIn()?widget("reloj","Tu Oro y qué se vence", null, wLotes):""}
   </div>
 
   <div class="sec-h"><h2>Todavía sin conectar</h2><span class="sub">Está en el prototipo, no en el backend</span></div>
   <div class="note" style="margin-bottom:12px">Esto no está escondido ni simulado: son funciones que el prototipo dibujaba con datos inventados y que <b>todavía no tienen backend</b>. Cada una dice qué le falta. El detalle completo está en el plan de conexión.</div>
   ${listaNC([
     ["bandera","Desafío entre áreas","Es `LVL-045`: cotizado en 4,5 semanas-fundador, nunca construido. Necesita estado compartido entre dos áreas, votación y marcador."],
-    ["diana","Tu meta del mes","No hay tabla ni endpoint. Falta definir qué es una meta antes de diseñar el esquema."],
+    ["diana","Tu meta del mes","Definida el 17/09 y aprobada: la persona se pone un número de misiones para el mes y cumplirla da medalla, no Oro. Falta construirla."],
     ["trofeo","Trofeos y medallas de equipo","No hay tabla ni endpoint. Falta definir qué dispara cada uno."],
     ["carpeta","Proyectos","No aparece en el Documento Maestro. Hace falta que alguien defina qué es antes de construirlo."],
     ["chat","Hilos y menciones","La tabla `mission_thread_messages` existe en la base, pero ningún endpoint la expone todavía."],
     ["panas","Quién más está en cada misión","Los nombres ya se resuelven (16/09); lo que falta es el endpoint de `mission_collaborators` — hoy una misión tiene creador, sugerido y quien la aceptó, pero no una lista de colaboradores."],
     ["llama","Racha de días","No hay backend. Tampoco estaba definido cómo se calcula."],
-    ["megafono","Noticias de la empresa y de Levelop","No hay tabla de anuncios ni endpoint."],
-    ["reloj","Lotes de Oro y qué se te vence","El Oro sí caduca a los 90 días en el servidor, pero no hay endpoint que devuelva el desglose por lote."]
+    ["megafono","Noticias de la empresa y de Levelop","No hay tabla de anuncios ni endpoint."]
   ])}`;
 }
 function widget(ico, titulo, contador, cuerpo, cls=""){
@@ -1416,14 +1469,27 @@ const FAMILIAS = {
    aprobación; cupos del mes reales ("quedan 4 de 8", o sin límite). */
 const agotado = i => i.cuposDisponibles !== null && i.cuposDisponibles !== undefined && Number(i.cuposDisponibles) <= 0;
 const verboItem = i => i.requiereAprobacion ? "Solicitar" : "Comprar";
+/* 17/09 (tarde) — beneficios que se abren por nivel. El servidor rechaza igual
+   con NIVEL_INSUFICIENTE si alguien fuerza el botón: esto es la cortesía de
+   decirlo antes, no la regla. `xpMinima` viene del catálogo ya resuelta contra
+   la configuración del tenant — la app no calcula umbrales. */
+const nivelMio = () => (D.progreso ? Number(D.progreso.nivel) : 1);
+const bloqueado = i => i.nivelMinimo != null && nivelMio() < Number(i.nivelMinimo);
+function faltaXp(i){
+  if(i.xpMinima == null || !D.progreso) return null;
+  return Math.max(0, Number(i.xpMinima) - Number(D.progreso.xp));
+}
+const esObjetivo = i => !!(D.objetivo && D.objetivo.itemId === i.id);
 function tarjetaItem(i){
   const caro = D.saldo < i.precioOro;
+  const bloq = bloqueado(i);
+  const fx = faltaXp(i);
   const fam = FAMILIAS[i.familia] || {n:i.familia, ico:"ticket"};
   const cupos = (i.cuposDisponibles===null || i.cuposDisponibles===undefined)
     ? `<span class="chip">Sin límite</span>`
     : `<span class="chip ${agotado(i)?"risk":Number(i.cuposDisponibles)<=2?"gold":""}">${agotado(i)?"Agotado este mes":`Quedan ${fmt(i.cuposDisponibles)} de ${fmt(i.cuposTotales)}`}</span>`;
-  return `<div class="item">
-    <div class="item-h"><span class="item-ico">${IC[fam.ico]||IC.ticket}</span>
+  return `<div class="item${bloq?" locked":""}${agotado(i)?" agotado":""}${esObjetivo(i)?" objetivo":""}">
+    <div class="item-h"><span class="item-ico">${bloq?IC.candado:(IC[fam.ico]||IC.ticket)}</span>
       <div style="flex:1"><h3>${esc(i.nombre)}</h3></div>
     </div>
     ${i.descripcion?`<p>${esc(i.descripcion)}</p>`:""}
@@ -1433,12 +1499,17 @@ function tarjetaItem(i){
                                    :`<span class="chip">${IC.pin} Todas las zonas</span>`}
       ${cupos}
       <span class="chip ${i.requiereAprobacion?"":"ok"}" title="${i.requiereAprobacion?"Queda en proceso hasta que lo confirmen":"Queda confirmado al instante"}">${i.requiereAprobacion?"Con aprobación":"Al instante"}</span>
+      ${i.nivelMinimo!=null?`<span class="chip ${bloq?"risk":"ok"}" title="${bloq?"Se abre al llegar a ese nivel":"Ya lo tenés abierto"}">${bloq?IC.candado:""} Desde nivel ${fmt(i.nivelMinimo)}</span>`:""}
     </div>
+    ${bloq?`<p class="sub" style="margin:0">Se abre en el nivel ${fmt(i.nivelMinimo)}${fx!==null?` — te faltan ${fmt(fx)} XP`:""}. La experiencia solo sube: una vez abierto, queda abierto.</p>`:""}
     <div class="item-f">
       <span class="price"><b>${fmt(i.precioOro)}</b><small>oro</small></span>
-      <button class="btn sm ${caro||agotado(i)?"":"gold"}" data-pedir="${esc(i.id)}" ${caro||agotado(i)?"disabled":""}>
-        ${agotado(i)?"Agotado":caro?`Faltan ${fmt(i.precioOro - D.saldo)}`:verboItem(i)}
-      </button>
+      <div class="row g6">
+        ${bloq?"":`<button class="btn sm${esObjetivo(i)?" primary":""}" data-objetivo="${esc(i.id)}" title="${esObjetivo(i)?"Quitar de tu objetivo":"Ponerlo de objetivo y ver cuánto te falta"}">${esObjetivo(i)?"★ Tu objetivo":"☆ Lo quiero"}</button>`}
+        <button class="btn sm ${caro||agotado(i)||bloq?"":"gold"}" data-pedir="${esc(i.id)}" ${caro||agotado(i)||bloq?"disabled":""}>
+          ${bloq?`Nivel ${fmt(i.nivelMinimo)}`:agotado(i)?"Agotado":caro?`Faltan ${fmt(i.precioOro - D.saldo)}`:verboItem(i)}
+        </button>
+      </div>
     </div>
   </div>`;
 }
@@ -1874,6 +1945,21 @@ async function cambiarAmbitoRanking(ambito){
    (se reutiliza solo si ese mismo clic se reintenta), y el mensaje sale del
    estado real que devuelve el servidor. */
 let claveEnCurso = null;
+/* 17/09 (tarde) — fijar o quitar el objetivo. Uno a la vez: marcar otro
+   reemplaza al anterior, que es la regla del backend y no una limitación de
+   pantalla. Nadie más lo ve: vive en `membership_prefs`, la tabla que ninguna
+   superficie de gestión puede leer. */
+async function fijarObjetivo(itemId){
+  try{
+    const r = await LevelopAPI.economia.fijarObjetivo(itemId);
+    D.objetivo = r && r.objetivo ? r.objetivo : null;
+    toast(D.objetivo?"ok":"", "diana",
+      D.objetivo ? "Listo, es tu objetivo" : "Objetivo quitado",
+      D.objetivo ? `Te faltan ${fmt(D.objetivo.faltante)} de Oro. Lo ves en Inicio.` : "Puedes marcar otro cuando quieras.");
+    render();
+  }catch(e){ avisarError(e, "objetivo"); }
+}
+
 async function pedirBeneficio(itemId){
   const item = D.catalogo.find(i=>i.id===itemId);
   if(!claveEnCurso || claveEnCurso.itemId!==itemId){
@@ -1912,7 +1998,7 @@ document.addEventListener("click", e=>{
   const dentroAvisos = e.target.closest("#avisosdrop, #bell");
   if(!dentroAvisos) toggleAvisos(false);
 
-  const t = e.target.closest("[data-tab],[data-periodo],[data-filtro],[data-filtro-ir],[data-mision],[data-cerrar],[data-aceptar],[data-cerrarmision],[data-shopfam],[data-pedir],[data-confirmar],[data-reglas],[data-plegar],[data-nueva],[data-crear],[data-info],[data-recargar],[data-salir],[data-leer],[data-optin],[data-ranking-pref],[data-ranking-ambito],#bell,#themebtn,[data-stop]");
+  const t = e.target.closest("[data-tab],[data-periodo],[data-filtro],[data-filtro-ir],[data-mision],[data-cerrar],[data-aceptar],[data-cerrarmision],[data-shopfam],[data-pedir],[data-confirmar],[data-reglas],[data-plegar],[data-nueva],[data-crear],[data-info],[data-recargar],[data-salir],[data-leer],[data-optin],[data-ranking-pref],[data-ranking-ambito],[data-objetivo],#bell,#themebtn,[data-stop]");
   if(!t) return;
 
   const lv = e.target.closest("[data-leer-varios]"); if(lv){ marcarLeidos(lv.dataset.leerVarios.split(",")); }
@@ -1954,6 +2040,14 @@ document.addEventListener("click", e=>{
 
   if(t.hasAttribute("data-nueva")){ abrirModal(modalNueva()); return; }
   if(t.hasAttribute("data-crear")){ crearMision(); return; }
+
+  /* 17/09 (tarde) — objetivo. El atributo vacío lo quita; con id lo fija.
+     Se lee con getAttribute y no con dataset porque "" es un valor válido. */
+  if(t.hasAttribute("data-objetivo")){
+    const id = t.getAttribute("data-objetivo") || null;
+    fijarObjetivo(esObjetivo({ id }) ? null : id);
+    return;
+  }
 
   if(t.hasAttribute("data-pedir")){
     const i = D.catalogo.find(x=>String(x.id)===t.dataset.pedir);

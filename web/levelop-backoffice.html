@@ -394,7 +394,7 @@ th[data-sort] .dir{font-family:var(--mono); font-size:9px; margin-left:4px; colo
     <button class="btn gold" id="btnNuevoItem">+ Nuevo ítem</button>
   </div>
   <div class="tbl-wrap tbl-scroll"><table id="tblCatalogo"></table></div>
-  <p class="sub" style="font-size:12px; margin-top:8px"><b>Auto-confirmación</b>: la persona canjea y queda confirmado al instante (un café). <b>Requiere aprobación</b>: queda «en proceso» hasta que gerencia o el líder lo confirme (una tarde libre). <b>Cupos/mes</b>: cuántos se pueden canjear por mes calendario; sin límite si no se define. Un ítem <b>inactivo</b> desaparece de la Tienda sin borrarse.</p>
+  <p class="sub" style="font-size:12px; margin-top:8px"><b>Auto-confirmación</b>: la persona canjea y queda confirmado al instante (un café). <b>Requiere aprobación</b>: queda «en proceso» hasta que gerencia o el líder lo confirme (una tarde libre). <b>Cupos/mes</b>: cuántos se pueden canjear por mes calendario; sin límite si no se define. Un ítem <b>inactivo</b> desaparece de la Tienda sin borrarse. <b>Desde nivel</b>: el beneficio solo se puede canjear a partir de ese nivel; se sube de nivel acumulando experiencia al cerrar misiones, y como la experiencia nunca baja, un beneficio que se abrió queda abierto.</p>
 
   <div class="sec-h" style="margin-top:26px"><h2>Canjes por categoría</h2><span class="sub">Solo canjes confirmados. Agregado por categoría — nunca por ítem ni por persona</span></div>
   <div class="card">
@@ -500,7 +500,7 @@ function th(tabla, key, label, cls=""){
 
 /* ---------------- ESTADO REAL — todo viene del servidor ---------------- */
 const D = { membresia:null, gate:null, canjes:[], areas:[], catalogo:[], cargado:false,
-  /* 17/09 */ metricas:[], aliados:[], canjesRango:null, rango:"mes",
+  /* 17/09 */ metricas:[], aliados:[], canjesRango:null, rango:"mes", niveles:null,
   /* 16/09 — administración de personas (sin desempeño) */
   personas:[], areasAdmin:[], invitaciones:[] };
 const ROL_TXT = {empleado:"Empleado", lider_area:"Líder de área", gerencia:"Gerencia", admin_tenant:"Administrador"};
@@ -686,6 +686,10 @@ async function cargarCanjesRango(){
 }
 async function cargarAliados(){
   try{ D.aliados = await LevelopAPI.gerencia.aliados() || []; }catch(e){ D.aliados = []; }
+  /* 17/09 (tarde) — la escalera de niveles del tenant, para poder decidir desde
+     qué nivel abrir un beneficio sin conocer la fórmula. Si la ruta no existe
+     todavía, el modal lo dice en vez de inventar una tabla. */
+  try{ D.niveles = await LevelopAPI.gerencia.niveles(); }catch(e){ D.niveles = null; }
 }
 
 /* 16/09 — se carga aparte: si el backend todavía no tiene estas rutas (no
@@ -952,7 +956,7 @@ function pintarCatalogo(){
   const filas = ordenar(D.catalogo.map(c=>({...c, categoria:FAMILIAS[c.familia]||c.familia, precioOro:+c.precioOro, cupos: c.cuposTotales==null ? null : +c.cuposTotales})), T);
   const cuposTxt = c => c.cuposTotales==null ? `<span class="sub">Sin límite</span>` : `<b class="num">${fmt(c.cuposDisponibles)}</b> <span class="sub">de ${fmt(c.cuposTotales)}</span>`;
   t.innerHTML = `
-    <thead><tr>${th(T,"nombre","Ítem")}${th(T,"categoria","Categoría")}${th(T,"precioOro","Precio (Oro)","n")}${th(T,"requiereAprobacion","Aprobación")}${th(T,"cupos","Cupos / mes","n")}${th(T,"activo","Estado")}<th></th></tr></thead>
+    <thead><tr>${th(T,"nombre","Ítem")}${th(T,"categoria","Categoría")}${th(T,"precioOro","Precio (Oro)","n")}${th(T,"requiereAprobacion","Aprobación")}${th(T,"cupos","Cupos / mes","n")}${th(T,"nivelMinimo","Desde nivel","n")}${th(T,"activo","Estado")}<th></th></tr></thead>
     <tbody>${filas.map(c=>`
       <tr style="${c.activo?"":"opacity:.55"}">
         <td>${esc(c.nombre)}${c.partnerOfferId?` <span class="chip" title="Oferta negociada por Levelop: nombre y descripción no se editan">aliado</span>`:""}</td>
@@ -960,6 +964,7 @@ function pintarCatalogo(){
         <td class="n">${fmt(c.precioOro)}</td>
         <td><button class="chip ${c.requiereAprobacion?"gold":"ok"}" data-toggle-aprobacion="${c.id}" title="Clic para cambiar">${c.requiereAprobacion?"Requiere aprobación":"Auto-confirmación"}</button></td>
         <td class="n"><button class="chip" data-cambiar-cupos="${c.id}" title="Clic para cambiar">${cuposTxt(c)}</button></td>
+        <td class="n"><button class="chip ${c.nivelMinimo!=null?"gold":""}" data-cambiar-nivel="${c.id}" title="Clic para cambiar desde qué nivel se puede canjear">${c.nivelMinimo!=null?`Nivel ${fmt(c.nivelMinimo)}`:`<span class="sub">Para todos</span>`}</button></td>
         <td><button class="chip ${c.activo?"ok":""}" data-toggle-activo="${c.id}" title="Clic para ${c.activo?"sacarlo de":"ponerlo en"} la Tienda">${c.activo?"En la Tienda":"Inactivo"}</button></td>
         <td><button class="btn ghost" data-cambiar-precio="${c.id}">Cambiar precio</button></td>
       </tr>`).join("")}</tbody>`;
@@ -977,6 +982,39 @@ function modalCupos(item){
       </div>
       <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Cancelar</button>
         <button class="btn gold" style="flex:1" id="cuGuardar" data-item-id="${esc(item.id)}">Guardar</button></div>
+    </div></div>`;
+}
+
+/* 17/09 (tarde) — desde qué nivel se abre un beneficio.
+   La tabla de la derecha no es decoración: sin ella, "nivel 5" es un número
+   sin significado. Con ella, gerencia ve que son ~40 misiones cerradas y
+   decide con eso. Los umbrales salen de la configuración real del tenant. */
+function escaleraNiveles(seleccion){
+  if(!D.niveles || !D.niveles.niveles) return `<div class="note">No pude leer la escalera de niveles de tu empresa. Puedes fijar el nivel igual, pero sin la referencia de cuántas misiones representa.</div>`;
+  return `<div class="tbl-wrap"><table>
+    <thead><tr><th>Nivel</th><th class="n">Experiencia</th><th class="n">Misiones típicas</th></tr></thead>
+    <tbody>${D.niveles.niveles.map(n=>`
+      <tr style="${seleccion===n.nivel?"background:var(--gold-bg)":""}">
+        <td><b>${n.nivel}</b></td>
+        <td class="n">${fmt(n.xpMinima)}</td>
+        <td class="n">${n.misionesTipicas==null?"—":fmt(n.misionesTipicas)}</td>
+      </tr>`).join("")}</tbody></table></div>
+    <p class="sub" style="font-size:12px; margin-top:8px">«Misiones típicas» son misiones de urgencia media, importancia media y esfuerzo medio (${fmt(D.niveles.xpMisionTipica)} de experiencia cada una). Una misión urgente e importante da más, una chica da menos.</p>`;
+}
+function modalNivel(item){
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">${esc(item.nombre)}</span><h2 style="margin-top:4px; font-size:19px">Desde qué nivel se abre</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <label class="check"><input type="checkbox" id="nvTodos" ${item.nivelMinimo==null?"checked":""}> Para todos, sin nivel mínimo</label>
+        <div class="field"><label>Nivel mínimo para canjearlo</label><input id="nvNivel" type="number" min="1" value="${item.nivelMinimo==null?"":esc(item.nivelMinimo)}" ${item.nivelMinimo==null?"disabled":""}></div>
+        <div class="note">Quien todavía no tenga el nivel ve el beneficio con candado y cuánta experiencia le falta. No se le oculta: se le muestra hacia dónde va.</div>
+        ${escaleraNiveles(item.nivelMinimo)}
+        <div class="auth-err hide" id="nvError"></div>
+      </div>
+      <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Cancelar</button>
+        <button class="btn gold" style="flex:1" id="nvGuardar" data-item-id="${esc(item.id)}">Guardar</button></div>
     </div></div>`;
 }
 
@@ -1000,6 +1038,8 @@ function modalNuevoItem(){
         </div>
         <div class="field"><label>Precio en Oro</label><input id="niPrecio" type="number" min="1" required></div>
         <div class="field"><label>Cupos por mes (vacío = sin límite)</label><input id="niCupos" type="number" min="1" placeholder="Sin límite"></div>
+        <div class="field"><label>Desde qué nivel se puede canjear (vacío = para todos)</label><input id="niNivel" type="number" min="1" placeholder="Para todos"></div>
+        <div class="sub" style="margin-top:6px">${D.niveles && D.niveles.niveles ? `Referencia de tu empresa: ${D.niveles.niveles.filter(n=>n.nivel>1&&n.nivel<=5).map(n=>`nivel ${n.nivel} ≈ ${fmt(n.misionesTipicas)} misiones`).join(" · ")}.` : "Puedes cambiarlo después desde la tabla del catálogo."}</div>
         <label class="check"><input type="checkbox" id="niAprobacion" checked> Requiere aprobación antes de confirmarse (si no, auto-confirmación)</label>
         <div class="auth-err hide" id="niError"></div>
       </div>
@@ -1035,7 +1075,7 @@ document.addEventListener("click", async e=>{
   const boton = e.target.closest("button");
   if(boton && boton.id && await manejarBotonModal(boton)) return;
 
-  const t = e.target.closest("[data-cerrar],[data-stop],[data-cambiar-precio],[data-toggle-aprobacion],[data-toggle-activo],[data-cambiar-cupos],[data-editar-persona],[data-editar-area],[data-copiar-link],[data-anular-inv],[data-rango],[data-sort]");
+  const t = e.target.closest("[data-cerrar],[data-stop],[data-cambiar-precio],[data-toggle-aprobacion],[data-toggle-activo],[data-cambiar-cupos],[data-cambiar-nivel],[data-editar-persona],[data-editar-area],[data-copiar-link],[data-anular-inv],[data-rango],[data-sort]");
   if(t){
     if(t.dataset.sort){
       const tabla = t.dataset.tabla, key = t.dataset.sort, st = SORT[tabla];
@@ -1050,6 +1090,7 @@ document.addEventListener("click", async e=>{
       return;
     }
     if(t.dataset.cambiarCupos){ const c = D.catalogo.find(x=>x.id===t.dataset.cambiarCupos); if(c) abrirModal(modalCupos(c)); return; }
+    if(t.dataset.cambiarNivel){ const c = D.catalogo.find(x=>x.id===t.dataset.cambiarNivel); if(c) abrirModal(modalNivel(c)); return; }
     if(t.dataset.toggleActivo){
       const item = D.catalogo.find(c=>c.id===t.dataset.toggleActivo); if(!item) return;
       try{
@@ -1100,6 +1141,7 @@ async function manejarBotonModal(b){
     const familia = $("#niFamilia").value;
     const dto = { familia, precioOro: Number($("#niPrecio").value), requiereAprobacion: $("#niAprobacion").checked };
     const cupos = Number($("#niCupos").value); if(cupos>0) dto.cuposMensuales = cupos;
+    const nivel = Number($("#niNivel").value); if(nivel>0) dto.nivelMinimo = nivel;
     if(familia==="aliados"){
       dto.partnerOfferId = $("#niOferta").value;
       if(!dto.partnerOfferId){ mostrarErr("#niError","No hay ofertas de aliados disponibles para activar."); return true; }
@@ -1133,6 +1175,20 @@ async function manejarBotonModal(b){
       pintarCatalogo(); cerrarModal();
       toast("ok","check","Cupos actualizados", ilimitado ? "Sin límite por mes." : `Máximo ${fmt(total)} canjes por mes.`);
     }catch(err){ b.disabled = false; b.textContent = "Guardar"; mostrarErr("#cuError",(err&&err.message)||"No se pudo guardar."); }
+    return true;
+  }
+  if(b.id === "nvGuardar"){
+    const id = b.dataset.itemId;
+    const todos = $("#nvTodos").checked;
+    const nivel = Number($("#nvNivel").value);
+    if(!todos && !(nivel>0)){ mostrarErr("#nvError","Pon un nivel mayor a 0, o marca «Para todos»."); return true; }
+    b.disabled = true; b.textContent = "Guardando…";
+    try{
+      await LevelopAPI.gerencia.cambiarNivel(id, todos ? null : nivel);
+      D.catalogo = await LevelopAPI.gerencia.catalogo();
+      pintarCatalogo(); cerrarModal();
+      toast("ok","check","Nivel actualizado", todos ? "Ahora lo puede canjear cualquiera." : `Se abre a partir del nivel ${fmt(nivel)}.`);
+    }catch(err){ b.disabled = false; b.textContent = "Guardar"; mostrarErr("#nvError",(err&&err.message)||"No se pudo guardar."); }
     return true;
   }
   if(b.id === "cpGuardar"){
@@ -1219,6 +1275,7 @@ document.addEventListener("change", e=>{
   }
   if(e.target.id==="niOferta"){ const o = e.target.selectedOptions[0]; if(o && o.dataset.precio) $("#niPrecio").value = o.dataset.precio; }
   if(e.target.id==="cuIlimitado"){ $("#cuTotal").disabled = e.target.checked; }
+  if(e.target.id==="nvTodos"){ $("#nvNivel").disabled = e.target.checked; }
 });
 $("#btnInvitar").addEventListener("click", ()=>abrirModal(modalInvitar()));
 $("#btnNuevaArea").addEventListener("click", ()=>abrirModal(modalNuevaArea()));
