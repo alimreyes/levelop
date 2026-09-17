@@ -14,7 +14,7 @@
  * No hay variables de entorno en el frontend: son archivos estáticos.
  */
 (function (g) {
-  var RAILWAY_API = 'https://PONER-DOMINIO-RAILWAY.up.railway.app/api/v1';
+  var RAILWAY_API = 'https://levelop-production.up.railway.app/api/v1';
 
   var h = (g.location && g.location.hostname) || '';
   var esLocal =
