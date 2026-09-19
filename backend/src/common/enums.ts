@@ -167,6 +167,18 @@ export enum TipoNotificacion {
   CANJE_REVERTIDO = 'CANJE_REVERTIDO',
   /** 17/09/26 — gerencia publicó un beneficio nuevo; le llega a toda la empresa. */
   BENEFICIO_NUEVO = 'BENEFICIO_NUEVO',
+  /**
+   * 19/09/26 — alguien te nombró con @ en el hilo de una mision.
+   *
+   * El aviso lleva el nombre de quien menciona y el titulo de la mision, nunca
+   * el texto del mensaje. `notifications` SI es legible por otros roles (es una
+   * tabla por membresia, sin agregados), y el hilo NO lo es: copiar el cuerpo
+   * del mensaje al aviso filtraria por la puerta de al lado justo lo que R-07
+   * cierra por la del frente.
+   */
+  MENCION = 'MENCION',
+  /** 19/09/26 — te sumaron como colaborador de una mision. */
+  COLABORADOR_AGREGADO = 'COLABORADOR_AGREGADO',
 }
 
 // --- Perfiles de conexion (R-07 estructural) ---------------------------------

@@ -366,6 +366,13 @@ button.hud:hover{border-color:var(--gold-solid)}
 .msg-n small{font-weight:400; color:var(--ink-3); font-family:var(--mono); font-size:8px; margin-left:7px; text-transform:uppercase}
 .msg-t{font-size:13.5px; color:var(--ink-2); margin-top:3px; line-height:1.55; overflow-wrap:anywhere}
 .msg-t .mention{color:var(--gold); font-weight:700}
+/* 19/09 — hilo real de la misión. `.msg` ya existía con otro layout (fila con
+   avatar) del prototipo; esto es su propio bloque para no pisarlo. */
+.hilo-msg{padding:9px 11px; background:var(--surface-2); border:1px solid var(--line)}
+.hilo-msg .mencion{color:var(--gold-solid); font-weight:700}
+.chip-x{margin-left:4px; padding:0 4px; font-family:var(--mono); font-size:12px; line-height:1;
+  color:var(--ink-3); cursor:pointer; background:none; border:0}
+.chip-x:hover{color:var(--risk)}
 .composer{display:flex; gap:8px; align-items:flex-end}
 .composer textarea{flex:1; resize:none; padding:10px 12px; border:1px solid var(--line); background:var(--surface-2);
   font-size:13.5px; line-height:1.45; min-height:42px; max-height:120px; font-family:var(--body)}
@@ -1103,7 +1110,12 @@ const TIPO_AVISO = {
   MISION_ACEPTADA:  {ico:"check",  n:"Aceptaron tu misión"},
   MISION_CERRADA:   {ico:"check",  n:"Cerraron tu misión"},
   CANJE_CONFIRMADO: {ico:"ticket", n:"Canje confirmado"},
-  CANJE_REVERTIDO:  {ico:"alerta", n:"Canje revertido"}
+  CANJE_REVERTIDO:  {ico:"alerta", n:"Canje revertido"},
+  /* 19/09 — hilos y colaboradores. El aviso de mención no trae el texto del
+     mensaje a propósito: `notifications` sí la pueden leer otros roles, y el
+     hilo no. Ver el comentario del enum en el backend. */
+  MENCION:              {ico:"chat",  n:"Te mencionaron"},
+  COLABORADOR_AGREGADO: {ico:"panas", n:"Te sumaron a una misión"}
 };
 function pintarAvisos(){
   const lista = D.avisos.slice(0,30);
@@ -1126,7 +1138,7 @@ async function leerAviso(id, misionId){
   }
   if(misionId){
     const m = D.misiones.find(x=>x.id===misionId);
-    if(m){ toggleAvisos(false); state.abierta=m.id; abrirModal(detalleMision(m)); }
+    if(m){ toggleAvisos(false); state.abierta=m.id; abrirModal(detalleMision(m)); cargarHilo(m.id); }
   }
 }
 function toggleAvisos(forzar){
@@ -1367,6 +1379,139 @@ function vistaMisiones(){
   </div>`;
 }
 
+/* =========================================================
+   HILO Y COLABORADORES (19/09/26)
+   -------------------------------------------------------
+   Se cargan al abrir la misión, no con el resto: son de
+   una misión a la vez y pedirlos para las 200 del listado
+   sería tráfico que nadie mira. Mientras llegan, el bloque
+   dice "cargando" — no finge una lista vacía.
+   ========================================================= */
+const hiloCache = { misionId:null, mensajes:null, colaboradores:null, cargando:false };
+
+async function cargarHilo(misionId){
+  hiloCache.misionId = misionId; hiloCache.cargando = true;
+  hiloCache.mensajes = null; hiloCache.colaboradores = null;
+  try{
+    const [msgs, cols] = await Promise.all([
+      LevelopAPI.misiones.hilo(misionId),
+      LevelopAPI.misiones.colaboradores(misionId)
+    ]);
+    if(hiloCache.misionId !== misionId) return;   // abrió otra mientras tanto
+    hiloCache.mensajes = Array.isArray(msgs) ? msgs : [];
+    hiloCache.colaboradores = Array.isArray(cols) ? cols : [];
+  }catch(e){
+    if(hiloCache.misionId === misionId){ hiloCache.mensajes = []; hiloCache.colaboradores = []; }
+    console.warn("hilo", e);
+  }finally{
+    hiloCache.cargando = false;
+    const m = D.misiones.find(x=>x.id===misionId);
+    if(m && state.abierta===misionId) abrirModal(detalleMision(m));
+  }
+}
+
+function bloqueColaboradores(m){
+  const cols = hiloCache.misionId===m.id ? hiloCache.colaboradores : null;
+  const yaEstan = new Set([
+    m.creadorMembershipId, m.asignadoMembershipId, m.aceptadaPorMembershipId,
+    ...(cols||[]).map(c=>c.membershipId)
+  ].filter(Boolean));
+  const candidatos = D.miembros.filter(x=>!yaEstan.has(x.membershipId));
+
+  const lista = cols===null
+    ? `<div class="empty">Cargando…</div>`
+    : cols.length
+      ? `<div class="row wrap g6">${cols.map(c=>`
+          <span class="chip">${esc(c.nombre)}${c.areaNombre?` · ${esc(c.areaNombre)}`:""}
+            <button class="chip-x" data-quitar-colab="${esc(c.membershipId)}" data-mision-id="${esc(m.id)}" title="Quitar" data-stop>×</button>
+          </span>`).join("")}</div>`
+      : `<div class="empty">Nadie más, por ahora.</div>`;
+
+  return `<section class="card" style="padding:12px 13px">
+    <div class="row wrap g8" style="justify-content:space-between; align-items:center; margin-bottom:8px">
+      <span class="eyebrow">${IC.panas} Quién más está en esta misión</span>
+    </div>
+    ${lista}
+    ${viva(m) && candidatos.length ? `<div class="row g6" style="margin-top:10px">
+      <select id="colabSel" data-stop style="flex:1">${candidatos.map(x=>`<option value="${esc(x.membershipId)}">${esc(x.nombre)}${x.areaNombre?` · ${esc(x.areaNombre)}`:""}</option>`).join("")}</select>
+      <button class="btn sm" data-sumar-colab="${esc(m.id)}" data-stop>Sumar</button>
+    </div>`:""}
+  </section>`;
+}
+
+function bloqueHilo(m){
+  const msgs = hiloCache.misionId===m.id ? hiloCache.mensajes : null;
+  const cerrada = !viva(m);
+  const cuerpo = msgs===null
+    ? `<div class="empty">Cargando…</div>`
+    : msgs.length
+      ? `<div class="stack g8">${msgs.map(x=>`
+          <div class="hilo-msg">
+            <div class="row wrap g6" style="justify-content:space-between; align-items:baseline">
+              <b style="font-size:13px">${esc(x.autor)}</b>
+              <span class="row g6" style="align-items:baseline">
+                <span class="sub" style="font-size:11px">${esc(fechaHora(new Date(x.createdAt)))}</span>
+                ${x.membershipId===mid()?`<button class="chip-x" data-borrar-msg="${esc(x.id)}" data-mision-id="${esc(m.id)}" title="Borrar mi mensaje" data-stop>×</button>`:""}
+              </span>
+            </div>
+            <div style="font-size:13px; line-height:1.55; white-space:pre-wrap">${conMenciones(x.cuerpo)}</div>
+          </div>`).join("")}</div>`
+      : `<div class="empty">Todavía no hay mensajes.</div>`;
+
+  return `<section class="card" style="padding:12px 13px">
+    <div class="row wrap g8" style="justify-content:space-between; align-items:center; margin-bottom:8px">
+      <span class="eyebrow">${IC.chat} El hilo</span>
+      <span class="sub" style="font-size:11px">Tu líder y gerencia no ven esto</span>
+    </div>
+    ${cuerpo}
+    ${cerrada
+      ? `<div class="sub" style="margin-top:10px">La misión está cerrada: el hilo queda para leer.</div>`
+      : `<div class="row g6" style="margin-top:10px">
+          <input id="hiloTxt" data-stop placeholder="Escribe algo… usa @nombre para avisarle a alguien" maxlength="2000" style="flex:1">
+          <button class="btn sm gold" data-enviar-msg="${esc(m.id)}" data-stop>Enviar</button>
+        </div>`}
+  </section>`;
+}
+
+/* Resalta los @nombre. Se escapa PRIMERO y se marca después: al revés, un
+   mensaje con HTML adentro se ejecutaría. */
+function conMenciones(txt){
+  return esc(txt).replace(/@([\p{L}][\p{L}\d_.'-]*)/gu, '<b class="mencion">@$1</b>');
+}
+const fechaHora = d => `${String(d.getDate()).padStart(2,"0")}-${String(d.getMonth()+1).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+
+async function enviarMensaje(misionId){
+  const el = document.getElementById("hiloTxt");
+  const cuerpo = el ? el.value.trim() : "";
+  if(!cuerpo) return;
+  if(el) el.value = "";
+  try{
+    await LevelopAPI.misiones.escribir(misionId, cuerpo);
+    await cargarHilo(misionId);
+  }catch(e){ avisarError(e, "hilo"); }
+}
+async function borrarMensaje(misionId, msgId){
+  try{
+    await LevelopAPI.misiones.borrarMensaje(misionId, msgId);
+    await cargarHilo(misionId);
+  }catch(e){ avisarError(e, "hilo"); }
+}
+async function sumarColaborador(misionId){
+  const sel = document.getElementById("colabSel");
+  if(!sel || !sel.value) return;
+  try{
+    const r = await LevelopAPI.misiones.agregarColaborador(misionId, sel.value);
+    if(r && r.nuevo === false) toast("", "panas", "Ya estaba", "Esa persona ya figuraba en la misión.");
+    await cargarHilo(misionId);
+  }catch(e){ avisarError(e, "colaboradores"); }
+}
+async function quitarColaborador(misionId, membershipId){
+  try{
+    await LevelopAPI.misiones.quitarColaborador(misionId, membershipId);
+    await cargarHilo(misionId);
+  }catch(e){ avisarError(e, "colaboradores"); }
+}
+
 function detalleMision(m){
   const r = restante(venceEn(m)), e = ESTADOS[m.estado] || {n:m.estado, c:""};
   return `<div class="veil" data-cerrar>
@@ -1408,10 +1553,8 @@ function detalleMision(m){
             : "<b>Esta misión todavía no da Oro.</b> Una misión que cierra la misma persona que la creó da XP pero no Oro, hasta que alguien más la acepte. Es el anti-cheat más barato que existe y no es un error."}
         </div>`:""}
 
-        <section class="w nc" style="padding:0; border:0; background:none">
-          <div class="w-h" style="margin-bottom:8px"><span class="wi">${IC.chat}</span><h3 style="font-size:14px">El hilo y los colaboradores</h3></div>
-          ${ncBody("Las dos tablas existen (`mission_thread_messages` y `mission_collaborators`) pero ningún endpoint las expone todavía. Los nombres ya se resuelven desde el 16/09 — lo que falta es el hilo en sí y la lista de colaboradores más allá de quien la montó, la sugerida y quien la aceptó.")}
-        </section>
+        ${bloqueColaboradores(m)}
+        ${bloqueHilo(m)}
       </div>
       <div class="sheet-f">
         <button class="btn" data-cerrar>Cerrar</button>
@@ -1556,9 +1699,7 @@ function vistaTienda(){
 
   <div class="sec-h"><h2>Todavía sin conectar</h2><span class="sub">En la Tienda</span></div>
   ${listaNC([
-    ["candado","Beneficios bloqueados por nivel","El catálogo del backend no tiene campo de nivel mínimo, y sin endpoint de XP tampoco habría con qué compararlo."],
-    ["bandera","Ponerlo de objetivo y el plan para llegar","No hay dónde guardar un objetivo. Era una función del prototipo, no del backend."],
-    ["regalo","Regalar un beneficio a otra persona","Necesita un tipo de evento de economía que no existe (`ORO_TRANSFERIDO`) y una decisión sobre límites — regalar Oro entre cómplices es la forma obvia de saltarse el tope diario."],
+    ["regalo","Regalar un beneficio a otra persona","Definido y aprobado el 17/09: se regala el beneficio, nunca el Oro, con un límite de 2 por mes. Falta construirlo y falta la revisión del CFO sobre el límite."],
     ["interro","Sugerir un beneficio","No hay tabla ni endpoint, y falta definir quién lee las sugerencias."],
     ["ranking","Los más pedidos","Sale de agregar canjes por item. La vista agregada existe para gerencia, pero no hay endpoint para la app del empleado."]
   ])}`;
@@ -1998,7 +2139,7 @@ document.addEventListener("click", e=>{
   const dentroAvisos = e.target.closest("#avisosdrop, #bell");
   if(!dentroAvisos) toggleAvisos(false);
 
-  const t = e.target.closest("[data-tab],[data-periodo],[data-filtro],[data-filtro-ir],[data-mision],[data-cerrar],[data-aceptar],[data-cerrarmision],[data-shopfam],[data-pedir],[data-confirmar],[data-reglas],[data-plegar],[data-nueva],[data-crear],[data-info],[data-recargar],[data-salir],[data-leer],[data-optin],[data-ranking-pref],[data-ranking-ambito],[data-objetivo],#bell,#themebtn,[data-stop]");
+  const t = e.target.closest("[data-tab],[data-periodo],[data-filtro],[data-filtro-ir],[data-mision],[data-cerrar],[data-aceptar],[data-cerrarmision],[data-shopfam],[data-pedir],[data-confirmar],[data-reglas],[data-plegar],[data-nueva],[data-crear],[data-info],[data-recargar],[data-salir],[data-leer],[data-optin],[data-ranking-pref],[data-ranking-ambito],[data-objetivo],[data-enviar-msg],[data-borrar-msg],[data-sumar-colab],[data-quitar-colab],#bell,#themebtn,[data-stop]");
   if(!t) return;
 
   const lv = e.target.closest("[data-leer-varios]"); if(lv){ marcarLeidos(lv.dataset.leerVarios.split(",")); }
@@ -2016,6 +2157,16 @@ document.addEventListener("click", e=>{
     return;
   }
   if(t.id==="bell"){ toggleAvisos(); return; }
+
+  /* Hilo y colaboradores (19/09). Van ANTES del corte de `data-stop` porque
+     viven dentro del modal, que lleva `data-stop` para no cerrarse al hacer
+     clic adentro — el mismo orden que arreglé el 16/09 en el backoffice,
+     cuando los botones de los modales no disparaban por esta razón exacta. */
+  if(t.hasAttribute("data-enviar-msg")){ enviarMensaje(t.dataset.enviarMsg); return; }
+  if(t.hasAttribute("data-borrar-msg")){ borrarMensaje(t.dataset.misionId, t.dataset.borrarMsg); return; }
+  if(t.hasAttribute("data-sumar-colab")){ sumarColaborador(t.dataset.sumarColab); return; }
+  if(t.hasAttribute("data-quitar-colab")){ quitarColaborador(t.dataset.misionId, t.dataset.quitarColab); return; }
+
   if(t.hasAttribute("data-stop")) return;
 
   if(t.dataset.info){ abrirModal(modalInfo(t.dataset.info)); return; }
@@ -2031,7 +2182,7 @@ document.addEventListener("click", e=>{
 
   if(t.hasAttribute("data-mision")){
     const m = D.misiones.find(x=>String(x.id)===t.dataset.mision);
-    if(m){ state.abierta=m.id; abrirModal(detalleMision(m)); }
+    if(m){ state.abierta=m.id; abrirModal(detalleMision(m)); cargarHilo(m.id); }
     return;
   }
   if(t.hasAttribute("data-cerrar")){ cerrarModal(); state.abierta=null; return; }

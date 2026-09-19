@@ -258,6 +258,26 @@
       crear: (dto) => request(urlTenant('/missions'), { method: 'POST', body: dto }),
       aceptar: (id) => request(urlTenant(`/missions/${id}/aceptar`), { method: 'POST' }),
       cerrar: (id, dto) => request(urlTenant(`/missions/${id}/cerrar`), { method: 'POST', body: dto }),
+      /**
+       * 19/09/26 — hilo de la misión. Lo lee y escribe cualquiera de la
+       * empresa; en una misión cerrada queda de solo lectura. Gerencia y líder
+       * no lo ven: `mission_thread_messages` es tabla prohibida para sus roles
+       * de Postgres, no un filtro de pantalla.
+       * Cada mensaje: { id, membershipId, autor, cuerpo, createdAt }.
+       */
+      hilo: (id) => request(urlTenant(`/missions/${id}/hilo`)),
+      /** Mencionar con `@nombre` le manda un aviso a esa persona. */
+      escribir: (id, cuerpo) =>
+        request(urlTenant(`/missions/${id}/hilo`), { method: 'POST', body: { cuerpo } }),
+      /** Solo el mensaje propio; el servidor rechaza el ajeno con 403. */
+      borrarMensaje: (id, msgId) =>
+        request(urlTenant(`/missions/${id}/hilo/${msgId}`), { method: 'DELETE' }),
+      /** 19/09/26 — quién más está en la misión, además de creador/sugerido/aceptó. */
+      colaboradores: (id) => request(urlTenant(`/missions/${id}/colaboradores`)),
+      agregarColaborador: (id, membershipId) =>
+        request(urlTenant(`/missions/${id}/colaboradores`), { method: 'POST', body: { membershipId } }),
+      quitarColaborador: (id, membershipId) =>
+        request(urlTenant(`/missions/${id}/colaboradores/${membershipId}`), { method: 'DELETE' }),
     },
     economia: {
       saldo: () => request(urlTenant('/economy/saldo')),
