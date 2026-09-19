@@ -41,15 +41,21 @@ export class MembersController {
       rol: string;
       areaId: string | null;
       areaNombre: string | null;
+      areaColor: string | null;
+      areaIndice: number | null;
     }> = await this.ds.query(
       `SELECT mem.id        AS "membershipId",
               u.nombre      AS "nombre",
               mem.rol       AS "rol",
               mem."areaId"  AS "areaId",
-              a.nombre      AS "areaNombre"
+              a.nombre      AS "areaNombre",
+              a.color       AS "areaColor",
+              ax.idx        AS "areaIndice"
          FROM memberships mem
          JOIN users u ON u.id = mem."userId"
     LEFT JOIN areas a ON a.id = mem."areaId"
+    LEFT JOIN (SELECT id, (row_number() OVER (PARTITION BY "tenantId" ORDER BY "createdAt", id) - 1) AS idx
+                      FROM areas) ax ON ax.id = a.id
         WHERE mem."tenantId" = $1 AND mem.activo
      ORDER BY u.nombre ASC`,
       [m.tenantId],

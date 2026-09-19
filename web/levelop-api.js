@@ -137,9 +137,48 @@
     return `/tenants/${tenantId}${path}`;
   }
 
+  /* ====================================================================
+     COLOR POR ÁREA (19/09/26 — CAMBIOS 1.1)
+     --------------------------------------------------------------------
+     Vive acá y no en cada HTML a propósito: si cada superficie tuviera su
+     propia lista, la misma área se vería azul en la app y verde en el panel
+     del líder, y nadie lo notaría hasta que un cliente lo dijera.
+
+     Los ocho colores están validados —banda de luminosidad en claro y
+     oscuro, croma suficiente para que ninguno se lea gris, contraste ≥3:1
+     contra las dos superficies, y separación para daltonismo—. El peor par
+     adyacente queda en el borde de lo aceptable para deuteranopía, lo que
+     es legal SOLO si hay una segunda señal además del color: por eso el
+     nombre del área SIEMPRE va escrito junto a su color, nunca el color
+     solo. Si alguna pantalla rompe esa regla, deja de ser accesible.
+
+     `color` del área manda; si está vacío se deriva del `indice`, que lo
+     calcula el servidor (posición por fecha de creación) para que todas
+     las pantallas coincidan. Con más de ocho áreas la paleta se repite: es
+     una marca de identidad, no una codificación de datos, y el nombre
+     escrito al lado resuelve la ambigüedad.
+     ==================================================================== */
+  const PALETA_AREAS = [
+    '#5B8FF0', '#CF7233', '#17A398', '#A473E8',
+    '#4E9B26', '#DB4A76', '#A98713', '#B84FBE',
+  ];
+  function colorArea(area) {
+    if (!area) return null;
+    if (area.color) return area.color;
+    const i = area.indice ?? area.areaIndice;
+    if (i === null || i === undefined) return null;
+    return PALETA_AREAS[Number(i) % PALETA_AREAS.length];
+  }
+
   const LevelopAPI = {
     ErrorAPI,
     sesion: { getToken, getTenantId, getTipoSesion, cerrarSesion, haySesion: () => !!getToken() },
+
+    /** Ver el bloque de arriba. `colorArea({color, indice})` o `{areaColor, areaIndice}`. */
+    PALETA_AREAS,
+    colorArea: (area) => colorArea(area && area.areaColor !== undefined
+      ? { color: area.areaColor, indice: area.areaIndice }
+      : area),
 
     // ---- Auth --------------------------------------------------------
     /**
@@ -370,7 +409,11 @@
           method: 'PATCH',
           body: { requiereAprobacion },
         }),
+      // 19/09: cada área trae `color` (puede ser null) e `indice` estable.
       areas: () => request(urlTenant('/backoffice/areas')),
+      // color: '#rrggbb', o null para volver al derivado de la posición.
+      cambiarColorArea: (id, color) =>
+        request(urlTenant(`/backoffice/areas/${id}`), { method: 'PATCH', body: { color } }),
       // ---- 17/09 (documento «LEVELOP _ CAMBIOS») --------------------------
       cambiarActivo: (id, activo) =>
         request(urlTenant(`/backoffice/catalog/${id}/activo`), { method: 'PATCH', body: { activo } }),

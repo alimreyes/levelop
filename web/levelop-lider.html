@@ -233,17 +233,33 @@ h1,h2,h3,h4{text-transform:uppercase; letter-spacing:.01em}
 .pat-tag.t2{color:var(--sync); background:var(--sync-bg); box-shadow:inset 0 0 0 1px var(--sync-line)}
 .pat-tag.t3{color:var(--risk); background:var(--risk-bg); box-shadow:inset 0 0 0 1px var(--risk-line)}
 .pat-tag.t0{color:var(--ink-3); background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line)}
-.pat-sig{display:flex; gap:16px; flex-wrap:wrap; margin-top:12px}
-.pat-sig div{min-width:78px}
+/* 19/09 (Alim, CAMBIOS 1.1): las dos señales se leían como una sola línea de
+   texto corrida. Ahora cada una es su propia celda, con fondo, borde
+   izquierdo de color y aire entre ellas. El gap de 16px no alcanzaba porque
+   no había nada que separara visualmente una celda de la otra. */
+.pat-sig{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:13px}
+.pat-sig div{min-width:0; padding:9px 11px; background:var(--surface-2);
+  box-shadow:inset 0 0 0 1px var(--line); border-left:3px solid var(--gold)}
+.pat-sig div:last-child{border-left-color:var(--sync)}
 .pat-sig .sl{font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
-.pat-sig .sv{font-family:var(--mono); font-size:14px; font-variant-numeric:tabular-nums; margin-top:2px}
+.pat-sig .sv{font-family:var(--mono); font-size:15px; font-variant-numeric:tabular-nums; margin-top:3px; color:var(--ink)}
 .pat-body{margin-top:13px; font-size:13.5px; line-height:1.5; color:var(--ink-2)}
 .pat-body b{color:var(--ink)}
-.pat-do{margin-top:12px; padding:12px 13px; background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line);
+/* 19/09 (Alim): borde rojo. Es la única parte de la tarjeta que pide una
+   acción del líder, y hasta ahora se veía igual que el resto. */
+.pat-do{margin-top:12px; padding:12px 13px; background:var(--risk-bg);
+  box-shadow:inset 0 0 0 1px var(--risk-line); border-left:3px solid var(--risk);
   font-size:13px; line-height:1.5}
 .pat-do .dt{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--gold); margin-bottom:5px}
+  color:var(--risk); margin-bottom:5px}
 .pat-f{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
+
+/* Secciones desplegables del panel (19/09) */
+button.sec-h.pleg{width:100%; text-align:left; cursor:pointer; background:none; border:0; font:inherit; color:inherit}
+button.sec-h.pleg:hover h2{color:var(--gold)}
+.pleg-i{display:inline-block; font-size:12px; transition:transform .12s steps(2); vertical-align:middle}
+button.sec-h.pleg[aria-expanded="false"] .pleg-i{transform:rotate(-90deg)}
+[data-seccion].cerrada{display:none}
 
 .btn{display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 14px;
   font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
@@ -341,6 +357,9 @@ td.n, #tip .tr b, #tip .tr span, .pat-sig .sv, .ranklist b, .lote .bv,
     <span class="tag-int" id="tagRol">Panel · líder de área</span>
     <div class="spacer"></div>
     <div class="seg" id="areasel"></div>
+    <!-- 19/09 (Alim, CAMBIOS 1.1): el líder también juega. Hasta hoy para
+         pasar a sus misiones tenía que cerrar sesión o escribir la URL. -->
+    <a class="btn ghost" href="/app" id="irApp" title="Ir a tus misiones">Mis misiones</a>
     <button class="iconbtn" id="themebtn" title="Cambiar tema" aria-label="Cambiar tema"></button>
     <button class="iconbtn" id="logoutbtn" title="Salir" aria-label="Salir"></button>
   </div>
@@ -357,19 +376,30 @@ td.n, #tip .tr b, #tip .tr span, .pat-sig .sv, .ranklist b, .lote .bv,
 
   <div class="tiles" id="tiles"><div class="cargando">Cargando…</div></div>
 
-  <div class="sec-h"><h2>Quién necesita una mano</h2><span class="sub">Patrones sostenidos, no semanas malas</span></div>
-  <div class="note gold" style="margin-top:2px; margin-bottom:12px" id="notaNombres"></div>
-  <div id="patrones"></div>
+  <!-- 19/09 (Alim, CAMBIOS 1.1): cada sección desplegable. El estado se
+       guarda por sección en localStorage, así que el líder abre el panel y
+       encuentra lo que dejó abierto la última vez. -->
+  <button class="sec-h pleg" data-pleg="mano" aria-expanded="true"><h2>Quién necesita una mano <span class="pleg-i">▾</span></h2><span class="sub">Patrones sostenidos, no semanas malas</span></button>
+  <div data-seccion="mano">
+    <div class="note gold" style="margin-top:2px; margin-bottom:12px" id="notaNombres"></div>
+    <div id="patrones"></div>
+  </div>
 
-  <div class="sec-h"><h2>Cómo anda la colaboración</h2><span class="sub">Cuántas personas distintas comparten misión con cada quien</span></div>
-  <div class="card"><div id="colab"></div></div>
-  <div class="note" style="margin-top:12px" id="colabNota"></div>
+  <button class="sec-h pleg" data-pleg="colab" aria-expanded="true"><h2>Cómo anda la colaboración <span class="pleg-i">▾</span></h2><span class="sub">Cuántas personas distintas comparten misión con cada quien</span></button>
+  <div data-seccion="colab">
+    <div class="card"><div id="colab"></div></div>
+    <div class="note" style="margin-top:12px" id="colabNota"></div>
+  </div>
 
-  <div class="sec-h"><h2>Quién no va a estar</h2><span class="sub">Sale de los beneficios de tiempo ya canjeados</span></div>
-  <div class="tbl-wrap"><table id="tblAusencias"></table></div>
+  <button class="sec-h pleg" data-pleg="ausencias" aria-expanded="true"><h2>Quién no va a estar <span class="pleg-i">▾</span></h2><span class="sub">Sale de los beneficios de tiempo ya canjeados</span></button>
+  <div data-seccion="ausencias">
+    <div class="tbl-wrap"><table id="tblAusencias"></table></div>
+  </div>
 
-  <div class="sec-h"><h2>Lo que pide tu área</h2><span class="sub">Y en qué se diferencia del resto de la empresa</span></div>
-  <div id="demanda"></div>
+  <button class="sec-h pleg" data-pleg="demanda" aria-expanded="true"><h2>Lo que pide tu área <span class="pleg-i">▾</span></h2><span class="sub">Y en qué se diferencia del resto de la empresa</span></button>
+  <div data-seccion="demanda">
+    <div id="demanda"></div>
+  </div>
 
   <div id="ncSecciones"></div>
 
@@ -841,6 +871,32 @@ function pintarDemanda(){
 
 function abrirModal(html){ $("#modal").innerHTML = html; }
 function cerrarModal(){ $("#modal").innerHTML = ""; signalEnModal = null; }
+
+/* Secciones desplegables (19/09). El estado vive en localStorage porque es una
+   preferencia de esta persona en este navegador, no un dato del negocio: no
+   tiene por qué viajar al servidor ni seguirla a otro dispositivo. */
+const CLAVE_PLEG = "lvl-lider-plegado";
+function leerPlegado(){
+  try{ return JSON.parse(localStorage.getItem(CLAVE_PLEG) || "{}"); }catch(e){ return {}; }
+}
+function aplicarPlegado(){
+  const est = leerPlegado();
+  document.querySelectorAll("[data-pleg]").forEach(b=>{
+    const cerrada = !!est[b.dataset.pleg];
+    b.setAttribute("aria-expanded", String(!cerrada));
+    const cuerpo = document.querySelector(`[data-seccion="${b.dataset.pleg}"]`);
+    if(cuerpo) cuerpo.classList.toggle("cerrada", cerrada);
+  });
+}
+document.addEventListener("click", e=>{
+  const b = e.target.closest("[data-pleg]");
+  if(!b) return;
+  const est = leerPlegado();
+  est[b.dataset.pleg] = !est[b.dataset.pleg];
+  try{ localStorage.setItem(CLAVE_PLEG, JSON.stringify(est)); }catch(err){ /* modo privado: se pierde al salir, no rompe */ }
+  aplicarPlegado();
+});
+aplicarPlegado();
 
 document.addEventListener("click", async e=>{
   const areaBtn = e.target.closest("[data-area]");

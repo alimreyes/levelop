@@ -99,6 +99,8 @@ export class AuthService {
               m.rol           AS "rol",
               m."areaId"      AS "areaId",
               a.nombre        AS "areaNombre",
+              a.color         AS "areaColor",
+              ax.idx          AS "areaIndice",
               m.zona          AS "zona",
               m."optInJuego"  AS "optInJuego",
               u.nombre        AS "usuarioNombre",
@@ -107,6 +109,8 @@ export class AuthService {
          JOIN tenants t ON t.id = m."tenantId"
          JOIN users   u ON u.id = m."userId"
          LEFT JOIN areas a ON a.id = m."areaId"
+   LEFT JOIN (SELECT id, (row_number() OVER (PARTITION BY "tenantId" ORDER BY "createdAt", id) - 1) AS idx
+                      FROM areas) ax ON ax.id = a.id
         WHERE m."userId" = $1
           AND m.activo = true
         ORDER BY t.nombre ASC`,

@@ -22,6 +22,7 @@ import {
   IsString,
   IsUUID,
   IsIn,
+  Matches,
   MaxLength,
   Min,
   MinLength,
@@ -66,6 +67,15 @@ class CrearAreaDto {
 
 class ActualizarAreaDto {
   @IsOptional() @IsString() @MinLength(2) @MaxLength(80) nombre?: string;
+  /**
+   * 19/09 — color de la marca del area. `null` explicito = volver al color
+   * derivado de la posicion. El patron se valida aqui y no con un CHECK en la
+   * base: ver la migracion `ColorDeArea`.
+   */
+  @ValidateIf((o) => o.color !== null)
+  @IsOptional()
+  @Matches(/^#[0-9a-fA-F]{6}$/, { message: 'El color debe ser #rrggbb' })
+  color?: string | null;
   /** `null` explícito = quitar líder. Ausente = no tocar. */
   @ValidateIf((o) => o.liderMembershipId !== null)
   @IsOptional()
@@ -496,9 +506,22 @@ export class GerenciaController {
     });
   }
 
+  /**
+   * 19/09 — además de las áreas, su `indice`: la posición estable del área
+   * dentro de la empresa, por fecha de creación. Es lo que el frontend usa
+   * para derivar el color cuando `color` está vacío, y por eso lo calcula el
+   * servidor y no la pantalla: si cada superficie ordenara por su cuenta, dos
+   * pantallas pintarían la misma área de dos colores distintos.
+   */
   @Get('areas')
   async areas(@CurrentMembership() m: Membership) {
-    return this.ds.getRepository(Area).find({ where: { tenantId: m.tenantId } });
+    return this.ds.query(
+      `SELECT a.*, (row_number() OVER (ORDER BY a."createdAt", a.id) - 1)::int AS indice
+         FROM areas a
+        WHERE a."tenantId" = $1
+     ORDER BY a."createdAt", a.id`,
+      [m.tenantId],
+    );
   }
 
   // ===========================================================================
@@ -590,6 +613,7 @@ export class GerenciaController {
       const area = await tx.findOne(Area, { where: { id, tenantId: m.tenantId } });
       if (!area) throw new NotFoundException('Área no encontrada');
       if (dto.nombre !== undefined) area.nombre = dto.nombre.trim();
+      if (dto.color !== undefined) area.color = dto.color;
       if (dto.liderMembershipId !== undefined) {
         if (dto.liderMembershipId === null) {
           area.liderMembershipId = null;

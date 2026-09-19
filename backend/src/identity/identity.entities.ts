@@ -122,6 +122,14 @@ export class Area {
   @Column({ type: 'uuid', nullable: true })
   liderMembershipId!: string | null;
 
+  /**
+   * 19/09/26 — color de la marca del area. NULL = se deriva de la posicion del
+   * area contra la paleta fija de `LevelopAPI.colorArea`. Ver la migracion
+   * `ColorDeArea` sobre por que el default es una regla y no un valor.
+   */
+  @Column({ type: 'text', nullable: true })
+  color!: string | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 }

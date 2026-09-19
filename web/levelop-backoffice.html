@@ -503,7 +503,7 @@ const D = { membresia:null, gate:null, canjes:[], areas:[], catalogo:[], cargado
   /* 17/09 */ metricas:[], aliados:[], canjesRango:null, rango:"mes", niveles:null,
   /* 16/09 — administración de personas (sin desempeño) */
   personas:[], areasAdmin:[], invitaciones:[] };
-const ROL_TXT = {empleado:"Empleado", lider_area:"Líder de área", gerencia:"Gerencia", admin_tenant:"Administrador"};
+const ROL_TXT = {empleado:"Colaborador", lider_area:"Líder de área", gerencia:"Gerencia", admin_tenant:"Administrador"};
 const fechaCorta = d => { const x = new Date(d); return isNaN(x) ? "—" : x.toLocaleDateString("es-VE",{day:"2-digit",month:"short"}); };
 let itemEnModal = null;
 
@@ -824,7 +824,7 @@ function modalEditarArea(a){
         <option value="">— Sin líder —</option>
         ${candidatos.map(p=>`<option value="${esc(p.membershipId)}" ${a.liderMembershipId===p.membershipId?"selected":""}>${esc(p.nombre)} · ${esc(ROL_TXT[p.rol]||p.rol)}</option>`).join("")}
       </select></div>
-      <div class="note">Asignar líder hace dos cosas: fija el líder del área y, si esa persona era empleado, la pasa a <b>líder de área</b> y la deja en esta área. Es lo que abre el BackOffice de líder para ella.</div>
+      <div class="note">Asignar líder hace dos cosas: fija el líder del área y, si esa persona era colaborador, la pasa a <b>líder de área</b> y la deja en esta área. Es lo que abre el BackOffice de líder para ella.</div>
       <div class="auth-err hide" id="eaError"></div>
     </div>
     <div class="sheet-f"><button class="btn" data-cerrar>Cancelar</button><button class="btn gold" style="flex:1" id="eaGuardar" data-area-id="${esc(a.id)}">Guardar</button></div>

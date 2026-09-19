@@ -323,6 +323,15 @@ button.hud:hover{border-color:var(--gold-solid)}
 .mission{display:block; width:100%; text-align:left; padding:14px 15px; background:var(--surface);
   border:1px solid var(--line); transition:border-color .1s steps(2), transform .06s steps(1)}
 .mission:hover{border-color:var(--gold-solid); transform:translate(-1px,-1px); box-shadow:var(--shadow)}
+/* 19/09 — color del área (CAMBIOS 1.1). Barra a la izquierda y un fondo muy
+   tenue del mismo tono. `--area` la pone el template; sin área, nada cambia.
+   El color NUNCA va solo: al lado siempre está el nombre del área escrito. */
+.mission[style*="--area"]{border-left:3px solid var(--area);
+  background:color-mix(in srgb, var(--area) 4%, var(--surface))}
+.mission[style*="--area"]:hover{background:color-mix(in srgb, var(--area) 8%, var(--surface))}
+.area-chip{border-color:color-mix(in srgb, var(--area, var(--line-strong)) 45%, transparent);
+  color:var(--area, var(--ink-3))}
+.area-dot{display:inline-block; width:8px; height:8px; flex:none; background:var(--area, var(--line-strong))}
 .mission-top{display:flex; gap:11px; align-items:flex-start; margin-bottom:10px}
 .mission h3{font-size:17px; flex:1; line-height:1.15}
 .mission-meta{display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:11px}
@@ -335,7 +344,14 @@ button.hud:hover{border-color:var(--gold-solid)}
 .thread-count svg{width:13px; height:13px}
 
 .stat-strip{display:grid; grid-template-columns:repeat(3,1fr); gap:2px; background:var(--line); border:1px solid var(--line)}
-.stat{background:var(--surface); padding:12px 13px}
+.stat{background:var(--surface); padding:12px 13px; text-align:left; font:inherit; color:inherit;
+  border:0; width:100%; cursor:pointer}
+.stat[aria-pressed="true"]{background:var(--surface-3); box-shadow:inset 3px 0 0 var(--gold-solid)}
+/* Barra de XP del HUD (19/09) */
+.hud-xp{display:block; width:100%; height:3px; background:var(--line-strong); margin-top:3px}
+.hud-xp i{display:block; height:100%; background:var(--xp-solid)}
+.hud.is-xp{flex-direction:column; align-items:stretch; min-width:54px}
+.stat:hover{background:var(--surface-2)}
 .stat .l{font-family:var(--mono); font-size:8px; text-transform:uppercase; letter-spacing:.01em; color:var(--ink-3)}
 .stat .v{font-family:var(--display); font-weight:700; font-size:32px; line-height:.95; margin-top:4px; font-variant-numeric:tabular-nums}
 
@@ -1011,7 +1027,7 @@ async function cargarSecundario(){
     LevelopAPI.economia.lotes(),
     LevelopAPI.economia.objetivo()
   ]);
-  if(r[0].status==="fulfilled" && Array.isArray(r[0].value)) D.miembros = r[0].value;
+  if(r[0].status==="fulfilled" && Array.isArray(r[0].value)){ D.miembros = r[0].value; _areasPorId = null; }
   if(r[1].status==="fulfilled" && r[1].value) D.progreso = r[1].value;
   if(r[2].status==="fulfilled" && r[2].value) D.ranking  = r[2].value;
   if(r[3].status==="fulfilled" && Array.isArray(r[3].value)) D.avisos = r[3].value;
@@ -1094,9 +1110,20 @@ function pintarHud(){
   /* Oro y nivel: reales (16/09 — `GET /economy/mi-progreso`). Si el
      progreso todavía no cargó se ve un guion, no un 1 inventado. */
   const nv = D.progreso ? D.progreso.nivel : "—";
+  /* 19/09 (Alim, CAMBIOS 1.1 · Misiones 4): la barra de experiencia estaba en
+     Misiones y en Perfil, pero no acompañaba a la persona por la app. Acá va
+     la versión mínima: una línea de 3px bajo el nivel, con el avance dentro
+     del nivel actual. El detalle —cuánta XP falta— sigue en el widget grande,
+     que es donde hay espacio para explicarlo. */
+  const p = D.progreso;
+  const pctNivel = p ? Math.max(0, Math.min(100,
+    ((p.xp - p.xpInicioNivel) / Math.max(1, p.xpSiguienteNivel - p.xpInicioNivel)) * 100)) : 0;
   document.getElementById("hud").innerHTML = `
     ${optIn()?`<button class="hud is-gold" data-info="oro" title="Tu Oro"><span class="hud-l">Oro</span><span class="num">${fmt(D.saldo)}</span></button>
-    <button class="hud is-xp" data-info="nivel" title="Tu nivel"><span class="hud-l">Nv</span><span class="num">${esc(nv)}</span></button>`:""}
+    <button class="hud is-xp" data-info="nivel" title="${p?`Nivel ${p.nivel} · ${fmt(Math.max(0,p.xpSiguienteNivel-p.xp))} XP para el siguiente`:"Tu nivel"}">
+      <span class="hud-l">Nv</span><span class="num">${esc(nv)}</span>
+      ${p?`<span class="hud-xp"><i style="width:${pctNivel.toFixed(0)}%"></i></span>`:""}
+    </button>`:""}
     <button class="hud is-zona" data-info="zona" title="Tu ciudad">${IC.pin}<span class="hud-l zona-l">${esc(miZona())}</span></button>`;
 }
 function pintarBellDot(){
@@ -1291,6 +1318,38 @@ const FILTROS = [
   {id:"riesgo", n:"Vencidas"},
   {id:"cerrada",n:"Cerradas"}
 ];
+/* =========================================================
+   COLOR POR ÁREA (19/09/26 — CAMBIOS 1.1)
+   -------------------------------------------------------
+   La paleta y la regla de derivación viven en levelop-api.js,
+   una sola vez para las cuatro superficies. Acá solo se
+   resuelve «¿de qué color es el área de esta misión?».
+
+   Las áreas se conocen por los compañeros (`/members` ya
+   devuelve areaId, areaColor y areaIndice de cada uno), así
+   que no hace falta un endpoint nuevo: se arma un índice en
+   memoria la primera vez y se reusa.
+
+   El color nunca va solo: siempre acompaña al nombre del
+   área escrito. Es la segunda señal que hace que esto sea
+   legible para alguien con daltonismo — ver la nota larga
+   en levelop-api.js.
+   ========================================================= */
+let _areasPorId = null;
+function areasPorId(){
+  if(_areasPorId) return _areasPorId;
+  _areasPorId = {};
+  for(const x of D.miembros){
+    if(x.areaId && !_areasPorId[x.areaId]){
+      _areasPorId[x.areaId] = {id:x.areaId, nombre:x.areaNombre, color:x.areaColor, indice:x.areaIndice};
+    }
+  }
+  return _areasPorId;
+}
+const areaDe    = id => id ? (areasPorId()[id] || null) : null;
+const colorArea = id => { const a = areaDe(id); return a ? LevelopAPI.colorArea(a) : null; };
+const miAreaColor = () => D.membresia ? LevelopAPI.colorArea({color:D.membresia.areaColor, indice:D.membresia.areaIndice}) : null;
+
 /* 17/09 (Alim): «Mi área» — lo abierto de mi área, para apoyar si tengo tiempo libre. */
 const deMiArea = m => !!(D.membresia && D.membresia.areaId) && m.areaId === D.membresia.areaId;
 function misionesFiltradas(){
@@ -1300,18 +1359,33 @@ function misionesFiltradas(){
   else if(state.filtro==="area")   lista = D.misiones.filter(m=>viva(m) && deMiArea(m));
   else if(state.filtro==="riesgo") lista = D.misiones.filter(enRiesgo);
   else                             lista = D.misiones.filter(m=>m.estado===state.filtro);
-  return lista.sort((a,b)=>{
+  /* 19/09 (Alim): en «Mías» las activas van arriba y dentro de cada grupo
+     manda la fecha de entrega más próxima. Una misión cerrada no compite por
+     la atención de nadie: que se cuele entre las vivas solo porque venció
+     antes es ruido. El resto de los filtros conserva el orden de siempre
+     (todo por vencimiento), porque ahí no hay mezcla de estados. */
+  const porVencimiento = (a,b)=>{
     const va = venceEn(a), vb = venceEn(b);
     if(va===null && vb===null) return 0;
     if(va===null) return 1;
     if(vb===null) return -1;
     return va-vb;
-  });
+  };
+  if(state.filtro==="mias"){
+    return lista.sort((a,b)=>{
+      const av = viva(a)?0:1, bv = viva(b)?0:1;
+      if(av!==bv) return av-bv;
+      return porVencimiento(a,b);
+    });
+  }
+  return lista.sort(porVencimiento);
 }
 function tarjetaMision(m){
   const r = restante(venceEn(m)), e = ESTADOS[m.estado] || {n:m.estado, c:""};
-  return `<button class="mission" data-mision="${esc(m.id)}">
+  const ar = areaDe(m.areaId), col = colorArea(m.areaId);
+  return `<button class="mission" data-mision="${esc(m.id)}" ${col?`style="--area:${esc(col)}"`:""}>
     <div class="mission-top"><h3>${esc(m.titulo)}</h3></div>
+    ${ar?`<div class="mission-meta"><span class="chip area-chip">${esc(ar.nombre)}</span></div>`:""}
     <div class="mission-meta">
       <span class="chip ${e.c}">${esc(e.n)}</span>
       ${viva(m) ? `<span class="chip ${r.tipo}">${r.txt}</span>` : ""}
@@ -1364,9 +1438,9 @@ function vistaMisiones(){
   </div>
 
   <div class="stat-strip" style="margin-bottom:14px">
-    <div class="stat"><div class="l">Abiertas</div><div class="v">${abiertas}</div></div>
-    <div class="stat"><div class="l">Mías</div><div class="v">${mias}</div></div>
-    <div class="stat"><div class="l">Vencidas</div><div class="v" style="color:${vencidas?"var(--risk)":"inherit"}">${vencidas}</div></div>
+    <button class="stat" data-filtro="todas" aria-pressed="${state.filtro==="todas"}"><div class="l">Abiertas</div><div class="v">${abiertas}</div></button>
+    <button class="stat" data-filtro="mias" aria-pressed="${state.filtro==="mias"}"><div class="l">Mías</div><div class="v">${mias}</div></button>
+    <button class="stat" data-filtro="riesgo" aria-pressed="${state.filtro==="riesgo"}"><div class="l">Vencidas</div><div class="v" style="color:${vencidas?"var(--risk)":"inherit"}">${vencidas}</div></button>
   </div>
 
   ${optIn()?widgetProgreso():""}
@@ -1688,7 +1762,7 @@ function vistaTienda(){
     if(!items.length) return "";
     const abierto = !state.plegado["cat:"+k];
     return `<button class="sec-h pleg-h" data-plegar="cat:${k}" aria-expanded="${abierto}" style="width:100%; text-align:left; cursor:pointer">
-      <h2>${esc(c.n)} <span class="pleg-i ${abierto?"open":""}" style="display:inline-block; vertical-align:middle">${IC.abajo}</span></h2><span class="sub">${esc(c.d)} · ${items.length}</span></button>
+      <h2>${esc(c.n)} <span class="pleg-i ${abierto?"open":""}" style="display:inline-block; vertical-align:middle">${IC.abajo}</span></h2><span class="sub">Disponible ${items.filter(i=>!agotado(i) && !bloqueado(i)).length} de ${items.length}</span></button>
     ${abierto?`<div class="shop-grid">${items.map(tarjetaItem).join("")}</div>`:""}`;
   }).join("")}
 
@@ -1701,7 +1775,7 @@ function vistaTienda(){
   ${listaNC([
     ["regalo","Regalar un beneficio a otra persona","Definido y aprobado el 17/09: se regala el beneficio, nunca el Oro, con un límite de 2 por mes. Falta construirlo y falta la revisión del CFO sobre el límite."],
     ["interro","Sugerir un beneficio","No hay tabla ni endpoint, y falta definir quién lee las sugerencias."],
-    ["ranking","Los más pedidos","Sale de agregar canjes por item. La vista agregada existe para gerencia, pero no hay endpoint para la app del empleado."]
+    ["ranking","Los más pedidos","Sale de agregar canjes por item. La vista agregada existe para gerencia, pero no hay endpoint para la app del colaborador."]
   ])}`;
 }
 function modalPedir(item){
@@ -1908,7 +1982,7 @@ function vistaPerfil(){
 
   <button class="btn wide" style="margin-top:16px" data-salir>${IC.salir} Cerrar sesión</button>
 
-  <div class="note" style="margin-top:12px">App del empleado conectada al backend real · ${esc(D.membresia?D.membresia.tenantNombre:"")} · Lo que ves aquí sale del servidor, no de datos de ejemplo.</div>`;
+  <div class="note" style="margin-top:12px">App del colaborador conectada al backend real · ${esc(D.membresia?D.membresia.tenantNombre:"")} · Lo que ves aquí sale del servidor, no de datos de ejemplo.</div>`;
 }
 function seccionPlegable(clave, titulo, sub, cuerpo){
   const abierto = !state.plegado[clave];
@@ -2358,7 +2432,7 @@ function entrar(membresia, sinConfirmar){
    contraseña la escribe la persona; ni gerencia ni Levelop
    la ven nunca.
    ========================================================= */
-const ROL_TXT = {empleado:"Empleado", lider_area:"Líder de área", gerencia:"Gerencia", admin_tenant:"Administrador"};
+const ROL_TXT = {empleado:"Colaborador", lider_area:"Líder de área", gerencia:"Gerencia", admin_tenant:"Administrador"};
 async function pintarInvitacion(token){
   A.innerHTML = `<div class="auth-card"><div class="brand"><span class="brand-mark">L</span>Levelop<em>!</em></div><h1>Un momento…</h1><p class="sub">Leyendo tu invitación.</p></div>`;
   let inv;
