@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Levelop BackOffice</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -121,6 +122,11 @@ h3{font-weight:700; line-height:1.12; font-size:16px}
 .iconbtn svg{width:18px; height:18px}
 .chip{display:inline-flex; align-items:center; gap:5px; padding:3px 9px; font-family:var(--mono); font-size:11px;
   white-space:nowrap; background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--line); color:var(--ink-2)}
+.chip.trofeo{background:var(--gold-bg); box-shadow:inset 0 0 0 1px var(--gold-line); color:var(--gold-ink)}
+.trof-card .g6{gap:6px}
+.trof-stack{display:flex; flex-direction:column; gap:6px}
+.trof-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px}
+.trof-card{padding:12px 14px; background:var(--surface); border:1px solid var(--line)}
 .chip.ok{background:var(--ok-bg); box-shadow:inset 0 0 0 1px var(--ok-line); color:var(--ok)}
 .chip.risk{background:var(--risk-bg); box-shadow:inset 0 0 0 1px var(--risk-line); color:var(--risk)}
 .chip.gold{background:var(--gold-bg); box-shadow:inset 0 0 0 1px var(--gold-line); color:var(--gold-ink)}
@@ -389,12 +395,27 @@ th[data-sort] .dir{font-family:var(--mono); font-size:9px; margin-left:4px; colo
   <div class="sec-h"><h2>Desempeño por área</h2><span class="sub">Últimos 30 días, agregado por área — nunca por individuo (R-07). Un área muestra desempeño a partir de 4 miembros activos</span></div>
   <div class="tbl-wrap tbl-scroll" id="porArea"><table id="tblAreasMetricas"></table></div>
 
+  <!-- 24/09 — Trofeos y medallas de equipo (LVL-060 v2 §3). Son del ÁREA:
+       se otorgan solos, con el piso de 4 personas activas, y acá no aparece
+       ni puede aparecer ninguna medalla personal (este rol no lee esa tabla). -->
+  <div class="sec-h" style="margin-top:26px"><h2>Trofeos de equipo</h2><span class="sub">Los gana el área entera, nunca una persona. Se otorgan solos a partir de 4 miembros activos; los de mes o trimestre, cuando el período termina</span></div>
+  <div id="trofeosEquipo"><div class="cargando">Cargando…</div></div>
+
   <div class="sec-h" style="margin-top:26px"><h2>Catálogo de beneficios</h2><span class="sub">Precio, aprobación, cupos por mes y si está en la Tienda</span></div>
   <div class="row g8 wrapf" style="margin-bottom:12px">
     <button class="btn gold" id="btnNuevoItem">+ Nuevo ítem</button>
   </div>
   <div class="tbl-wrap tbl-scroll"><table id="tblCatalogo"></table></div>
-  <p class="sub" style="font-size:12px; margin-top:8px"><b>Auto-confirmación</b>: la persona canjea y queda confirmado al instante (un café). <b>Requiere aprobación</b>: queda «en proceso» hasta que gerencia o el líder lo confirme (una tarde libre). <b>Cupos/mes</b>: cuántos se pueden canjear por mes calendario; sin límite si no se define. Un ítem <b>inactivo</b> desaparece de la Tienda sin borrarse. <b>Desde nivel</b>: el beneficio solo se puede canjear a partir de ese nivel; se sube de nivel acumulando experiencia al cerrar misiones, y como la experiencia nunca baja, un beneficio que se abrió queda abierto.</p>
+  <!-- 19/09 (CAMBIOS 1.1 · Perfil 4): el plazo para USAR un beneficio ya
+       confirmado. Antes de hoy no existía: un canje confirmado no vencía nunca.
+       Ver la migración VencimientoDeCanjes sobre las reglas que trae. -->
+  <div class="row wrap g8" style="margin-top:10px; align-items:center">
+    <span class="sub" style="font-size:12px">Plazo para usar un beneficio ya confirmado:</span>
+    <input id="cfgDias" type="number" min="0" style="width:90px" placeholder="30">
+    <span class="sub" style="font-size:12px">días · 0 = sin vencimiento</span>
+    <button class="btn ghost" id="cfgGuardar">Guardar</button>
+  </div>
+  <p class="sub" style="font-size:12px; margin-top:8px"><b>Auto-confirmación</b>: la persona canjea y queda confirmado al instante (un café). <b>Requiere aprobación</b>: queda «en proceso» hasta que gerencia o el líder lo confirme (una tarde libre). <b>Cupos/mes</b>: cuántos se pueden canjear por mes calendario; sin límite si no se define. Un ítem <b>inactivo</b> desaparece de la Tienda sin borrarse. <b>Zonas</b>: dónde se puede canjear; solo aparecen las zonas que hoy tienen colaboradores activos, porque una zona sin gente garantiza que nadie pueda usarlo. <b>Desde nivel</b>: el beneficio solo se puede canjear a partir de ese nivel; se sube de nivel acumulando experiencia al cerrar misiones, y como la experiencia nunca baja, un beneficio que se abrió queda abierto.</p>
 
   <div class="sec-h" style="margin-top:26px"><h2>Canjes por categoría</h2><span class="sub">Solo canjes confirmados. Agregado por categoría — nunca por ítem ni por persona</span></div>
   <div class="card">
@@ -501,6 +522,7 @@ function th(tabla, key, label, cls=""){
 /* ---------------- ESTADO REAL — todo viene del servidor ---------------- */
 const D = { membresia:null, gate:null, canjes:[], areas:[], catalogo:[], cargado:false,
   /* 17/09 */ metricas:[], aliados:[], canjesRango:null, rango:"mes", niveles:null,
+  /* 19/09 */ zonas:[], configCanjes:null,
   /* 16/09 — administración de personas (sin desempeño) */
   personas:[], areasAdmin:[], invitaciones:[] };
 const ROL_TXT = {empleado:"Colaborador", lider_area:"Líder de área", gerencia:"Gerencia", admin_tenant:"Administrador"};
@@ -671,13 +693,40 @@ async function cargarTodo(){
     D.cargado = true;
     render();
   }catch(e){ avisarError(e,"cargarTodo"); $("#tiles").innerHTML=""; }
-  await Promise.all([cargarPersonas(), cargarMetricas(), cargarCanjesRango(), cargarAliados()]);
+  await Promise.all([cargarPersonas(), cargarMetricas(), cargarCanjesRango(), cargarAliados(), cargarTrofeos()]);
 }
 /* 17/09 — cada bloque nuevo se carga aparte y falla solo, sin tumbar el panel. */
 async function cargarMetricas(){
   try{ D.metricas = await LevelopAPI.gerencia.metricasAreas() || []; }
   catch(e){ D.metricas = null; console.warn("metricas", e); }
   pintarPorArea();
+}
+/* 24/09 — trofeos de equipo. Falla sola, como los demás bloques. */
+async function cargarTrofeos(){
+  try{ D.trofeos = await LevelopAPI.gerencia.trofeos(); }
+  catch(e){ D.trofeos = null; console.warn("trofeos", e); }
+  pintarTrofeos();
+}
+function pintarTrofeos(){
+  const c = $("#trofeosEquipo"); if(!c) return;
+  if(D.trofeos===null){ c.innerHTML = `<div class="sub" style="padding:12px 0">No se pudieron cargar — falta correr las migraciones <b>MedallasYMetaDelMes</b> y <b>PermisosLogrosParaApp</b> y reiniciar.</div>`; return; }
+  if(!D.trofeos){ return; }
+  const T = D.trofeos, total = T.catalogo.length;
+  if(!T.areas.length){ c.innerHTML = `<div class="sub">Sin áreas todavía.</div>`; return; }
+  const per = p => !p ? "" : /T/.test(p) ? ` · ${p.replace("-T"," T")}` : ` · ${p.slice(5)}/${p.slice(0,4)}`;
+  c.innerHTML = `<div class="trof-grid">${T.areas.map(a=>{
+    const col = LevelopAPI.colorArea ? LevelopAPI.colorArea({color:a.color, indice:T.areas.indexOf(a)}) : (a.color||"var(--line)");
+    const distintos = new Set(a.trofeos.map(t=>t.clave)).size;
+    return `<div class="trof-card" style="border-left:4px solid ${esc(col)}">
+      <div class="row g8" style="justify-content:space-between; align-items:baseline">
+        <b>${esc(a.nombre)}</b><span class="sub">${distintos} de ${total}</span></div>
+      ${a.trofeos.length
+        ? `<div class="row wrapf g6" style="margin-top:8px; gap:6px">${a.trofeos.map(t=>`<span class="chip trofeo" title="${esc(t.comoSeGana)}">${esc(t.nombre)}${esc(per(t.periodo))}</span>`).join("")}</div>`
+        : `<div class="sub" style="margin-top:8px">Todavía ninguno. El primero suele ser «Todos adentro»: que cada persona del área cierre al menos una misión en el mes.</div>`}
+    </div>`;}).join("")}</div>
+    <details style="margin-top:10px"><summary class="sub" style="cursor:pointer">Cómo se gana cada uno</summary>
+      <div class="trof-stack" style="margin-top:8px">${T.catalogo.map(x=>`<div class="sub"><b>${esc(x.nombre)}</b> — ${esc(x.comoSeGana)}</div>`).join("")}</div>
+    </details>`;
 }
 async function cargarCanjesRango(){
   try{ D.canjesRango = await LevelopAPI.gerencia.canjes(D.rango); }
@@ -690,6 +739,9 @@ async function cargarAliados(){
      qué nivel abrir un beneficio sin conocer la fórmula. Si la ruta no existe
      todavía, el modal lo dice en vez de inventar una tabla. */
   try{ D.niveles = await LevelopAPI.gerencia.niveles(); }catch(e){ D.niveles = null; }
+  /* 19/09 — las zonas con gente activa y el plazo de vencimiento de canjes. */
+  try{ D.zonas = await LevelopAPI.gerencia.zonas() || []; }catch(e){ D.zonas = []; }
+  try{ D.configCanjes = await LevelopAPI.gerencia.configCanjes(); }catch(e){ D.configCanjes = null; }
 }
 
 /* 16/09 — se carga aparte: si el backend todavía no tiene estas rutas (no
@@ -949,14 +1001,21 @@ function pintarCanjesFamilia(){
   });
 }
 
+/* El valor se pone desde JS: este control vive en el HTML estático, donde no
+   hay interpolación. */
+function pintarConfigCanjes(){
+  const el = document.getElementById("cfgDias");
+  if(el && D.configCanjes) el.value = D.configCanjes.diasParaUsarCanje;
+}
 function pintarCatalogo(){
+  pintarConfigCanjes();
   const t = $("#tblCatalogo");
   if(!D.catalogo.length){ t.innerHTML = `<tbody><tr><td class="sub" style="padding:16px">Catálogo vacío todavía.</td></tr></tbody>`; return; }
   const T="catalogo";
   const filas = ordenar(D.catalogo.map(c=>({...c, categoria:FAMILIAS[c.familia]||c.familia, precioOro:+c.precioOro, cupos: c.cuposTotales==null ? null : +c.cuposTotales})), T);
   const cuposTxt = c => c.cuposTotales==null ? `<span class="sub">Sin límite</span>` : `<b class="num">${fmt(c.cuposDisponibles)}</b> <span class="sub">de ${fmt(c.cuposTotales)}</span>`;
   t.innerHTML = `
-    <thead><tr>${th(T,"nombre","Ítem")}${th(T,"categoria","Categoría")}${th(T,"precioOro","Precio (Oro)","n")}${th(T,"requiereAprobacion","Aprobación")}${th(T,"cupos","Cupos / mes","n")}${th(T,"nivelMinimo","Desde nivel","n")}${th(T,"activo","Estado")}<th></th></tr></thead>
+    <thead><tr>${th(T,"nombre","Ítem")}${th(T,"categoria","Categoría")}${th(T,"precioOro","Precio (Oro)","n")}${th(T,"requiereAprobacion","Aprobación")}${th(T,"cupos","Cupos / mes","n")}${th(T,"nivelMinimo","Desde nivel","n")}<th>Zonas</th>${th(T,"activo","Estado")}<th></th></tr></thead>
     <tbody>${filas.map(c=>`
       <tr style="${c.activo?"":"opacity:.55"}">
         <td>${esc(c.nombre)}${c.partnerOfferId?` <span class="chip" title="Oferta negociada por Levelop: nombre y descripción no se editan">aliado</span>`:""}</td>
@@ -965,6 +1024,7 @@ function pintarCatalogo(){
         <td><button class="chip ${c.requiereAprobacion?"gold":"ok"}" data-toggle-aprobacion="${c.id}" title="Clic para cambiar">${c.requiereAprobacion?"Requiere aprobación":"Auto-confirmación"}</button></td>
         <td class="n"><button class="chip" data-cambiar-cupos="${c.id}" title="Clic para cambiar">${cuposTxt(c)}</button></td>
         <td class="n"><button class="chip ${c.nivelMinimo!=null?"gold":""}" data-cambiar-nivel="${c.id}" title="Clic para cambiar desde qué nivel se puede canjear">${c.nivelMinimo!=null?`Nivel ${fmt(c.nivelMinimo)}`:`<span class="sub">Para todos</span>`}</button></td>
+        <td><button class="chip ${c.zonas && c.zonas.length?"":""}" data-cambiar-zonas="${c.id}" title="Clic para elegir en qué zonas se puede canjear">${c.zonas && c.zonas.length ? esc(c.zonas.join(", ")) : `<span class="sub">Todas</span>`}</button></td>
         <td><button class="chip ${c.activo?"ok":""}" data-toggle-activo="${c.id}" title="Clic para ${c.activo?"sacarlo de":"ponerlo en"} la Tienda">${c.activo?"En la Tienda":"Inactivo"}</button></td>
         <td><button class="btn ghost" data-cambiar-precio="${c.id}">Cambiar precio</button></td>
       </tr>`).join("")}</tbody>`;
@@ -1015,6 +1075,31 @@ function modalNivel(item){
       </div>
       <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Cancelar</button>
         <button class="btn gold" style="flex:1" id="nvGuardar" data-item-id="${esc(item.id)}">Guardar</button></div>
+    </div></div>`;
+}
+
+/* 19/09 (Alim, CAMBIOS 1.1 · Tienda 2) — en qué zonas se puede canjear.
+   Solo se ofrecen las zonas que tienen colaboradores activos: una zona sin
+   gente no es una opción rara, es la garantía de que nadie pueda canjearlo.
+   Sin marcar ninguna = disponible en todas. */
+function modalZonas(item){
+  const actuales = new Set(item.zonas || []);
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">${esc(item.nombre)}</span><h2 style="margin-top:4px; font-size:19px">Zonas donde aplica</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        ${D.zonas.length ? `
+          <div class="note">Sin marcar ninguna, el beneficio está disponible en todas las zonas. Quien no sea de una zona marcada no lo ve en su Tienda.</div>
+          <div class="stack" style="margin-top:12px">
+            ${D.zonas.map(z=>`<label class="check"><input type="checkbox" class="zn" value="${esc(z.zona)}" ${actuales.has(z.zona)?"checked":""}> ${esc(z.zona)} <span class="sub">· ${fmt(z.personas)} persona${z.personas===1?"":"s"}</span></label>`).join("")}
+          </div>
+          ${[...actuales].filter(z=>!D.zonas.some(x=>x.zona===z)).length ? `<div class="note" style="margin-top:12px">Este ítem también tiene marcadas zonas donde hoy no hay nadie activo: <b>${esc([...actuales].filter(z=>!D.zonas.some(x=>x.zona===z)).join(", "))}</b>. Si guardas ahora, se quitan.</div>` : ""}
+        ` : `<div class="note">Todavía no hay colaboradores activos con zona asignada, así que no hay zonas para elegir. El beneficio queda disponible para todos.</div>`}
+        <div class="auth-err hide" id="znError"></div>
+      </div>
+      <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Cancelar</button>
+        <button class="btn gold" style="flex:1" id="znGuardar" data-item-id="${esc(item.id)}">Guardar</button></div>
     </div></div>`;
 }
 
@@ -1075,7 +1160,7 @@ document.addEventListener("click", async e=>{
   const boton = e.target.closest("button");
   if(boton && boton.id && await manejarBotonModal(boton)) return;
 
-  const t = e.target.closest("[data-cerrar],[data-stop],[data-cambiar-precio],[data-toggle-aprobacion],[data-toggle-activo],[data-cambiar-cupos],[data-cambiar-nivel],[data-editar-persona],[data-editar-area],[data-copiar-link],[data-anular-inv],[data-rango],[data-sort]");
+  const t = e.target.closest("[data-cerrar],[data-stop],[data-cambiar-precio],[data-toggle-aprobacion],[data-toggle-activo],[data-cambiar-cupos],[data-cambiar-nivel],[data-cambiar-zonas],[data-editar-persona],[data-editar-area],[data-copiar-link],[data-anular-inv],[data-rango],[data-sort]");
   if(t){
     if(t.dataset.sort){
       const tabla = t.dataset.tabla, key = t.dataset.sort, st = SORT[tabla];
@@ -1091,6 +1176,7 @@ document.addEventListener("click", async e=>{
     }
     if(t.dataset.cambiarCupos){ const c = D.catalogo.find(x=>x.id===t.dataset.cambiarCupos); if(c) abrirModal(modalCupos(c)); return; }
     if(t.dataset.cambiarNivel){ const c = D.catalogo.find(x=>x.id===t.dataset.cambiarNivel); if(c) abrirModal(modalNivel(c)); return; }
+    if(t.dataset.cambiarZonas){ const c = D.catalogo.find(x=>x.id===t.dataset.cambiarZonas); if(c) abrirModal(modalZonas(c)); return; }
     if(t.dataset.toggleActivo){
       const item = D.catalogo.find(c=>c.id===t.dataset.toggleActivo); if(!item) return;
       try{
@@ -1175,6 +1261,29 @@ async function manejarBotonModal(b){
       pintarCatalogo(); cerrarModal();
       toast("ok","check","Cupos actualizados", ilimitado ? "Sin límite por mes." : `Máximo ${fmt(total)} canjes por mes.`);
     }catch(err){ b.disabled = false; b.textContent = "Guardar"; mostrarErr("#cuError",(err&&err.message)||"No se pudo guardar."); }
+    return true;
+  }
+  if(b.id === "cfgGuardar"){
+    const dias = Number(document.getElementById("cfgDias").value);
+    if(!(dias>=0)){ toast("risk","alerta","Valor inválido","Pon 0 o más días."); return true; }
+    b.disabled = true; b.textContent = "Guardando…";
+    try{
+      D.configCanjes = await LevelopAPI.gerencia.cambiarConfigCanjes(dias);
+      toast("ok","check","Plazo actualizado", dias===0 ? "Los beneficios confirmados no vencen." : `${fmt(dias)} días para usar un beneficio confirmado.`);
+    }catch(err){ toast("risk","alerta","No se pudo", (err&&err.message)||"Reintenta."); }
+    b.disabled = false; b.textContent = "Guardar";
+    return true;
+  }
+  if(b.id === "znGuardar"){
+    const id = b.dataset.itemId;
+    const zonas = [...document.querySelectorAll(".zn:checked")].map(x=>x.value);
+    b.disabled = true; b.textContent = "Guardando…";
+    try{
+      await LevelopAPI.gerencia.cambiarZonas(id, zonas);
+      D.catalogo = await LevelopAPI.gerencia.catalogo();
+      pintarCatalogo(); cerrarModal();
+      toast("ok","check","Zonas actualizadas", zonas.length ? `Disponible en ${zonas.join(", ")}.` : "Disponible en todas las zonas.");
+    }catch(err){ b.disabled = false; b.textContent = "Guardar"; mostrarErr("#znError",(err&&err.message)||"No se pudo guardar."); }
     return true;
   }
   if(b.id === "nvGuardar"){

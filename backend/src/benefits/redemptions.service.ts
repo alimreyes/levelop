@@ -254,6 +254,10 @@ export class RedemptionsService {
       // nadie más lo conoce todavía.
       if (!item.requiereAprobacion) {
         canje.estado = EstadoCanje.CONFIRMADO;
+        // 19/09: desde aquí corre el plazo para usarlo. Se escribe en los DOS
+        // caminos que confirman —este y `confirmar()`— porque un canje
+        // auto-confirmado sin fecha quedaría sin vencimiento por accidente.
+        canje.confirmadoAt = new Date();
         await m.save(canje);
         if (hayStock) {
           await m.query(
@@ -346,7 +350,7 @@ export class RedemptionsService {
          ), actualizado AS (
            UPDATE redemptions r
               SET estado = $4, "confirmadoPorMembershipId" = $5,
-                  "evidenciaUrl" = $6, "updatedAt" = now()
+                  "evidenciaUrl" = $6, "confirmadoAt" = now(), "updatedAt" = now()
              FROM previo
             WHERE r.id = previo.id
            RETURNING r.id, previo."itemId", previo."membershipId"

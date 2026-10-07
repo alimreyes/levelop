@@ -21,6 +21,7 @@ import { EconomyService } from '../economy/economy.service';
 import { Membership } from '../identity/identity.entities';
 import { Redemption } from './benefits.entities';
 import { SolicitarCanjeDto } from './redemptions.dto';
+import { BadgesService } from '../badges/badges.service';
 import { CanjeNoEncontradoError, RedemptionsService, TransicionInvalidaError } from './redemptions.service';
 
 @Controller('tenants/:tenantId')
@@ -30,6 +31,7 @@ export class RedemptionsController {
     @InjectDataSource(PerfilConexion.APP) private readonly ds: DataSource,
     private readonly redemptions: RedemptionsService,
     private readonly economy: EconomyService,
+    private readonly badges: BadgesService,
   ) {}
 
   /** Catálogo filtrado por zona — mostrarle a alguien de Maracaibo algo de Caracas es una burla. */
@@ -71,13 +73,48 @@ export class RedemptionsController {
     }));
   }
 
+  /**
+   * 19/09 — además del canje, cuándo vence y el nombre del ítem.
+   *
+   * `diasParaVencer` es null cuando no aplica: porque la empresa puso 0 (sin
+   * vencimiento), porque el canje todavía no está confirmado, o porque es una
+   * fila vieja sin `confirmadoAt`. Null significa «no hay cuenta regresiva que
+   * mostrar», nunca «vence hoy» — un semáforo que se pone rojo por un dato
+   * faltante hace que la gente pierda beneficios que no había perdido.
+   *
+   * El nombre del ítem viene en el JOIN en vez de resolverse en la pantalla
+   * contra el catálogo: el catálogo solo trae los ítems ACTIVOS, así que un
+   * beneficio que gerencia dio de baja después de que alguien lo canjeó se
+   * quedaba sin nombre en el historial. Se veía «Beneficio» a secas.
+   */
   @Get('redemptions')
   async misCanjes(@CurrentMembership() m: Membership) {
-    return this.ds.getRepository(Redemption).find({
-      where: { tenantId: m.tenantId, membershipId: m.id },
-      order: { createdAt: 'DESC' },
-      take: 100,
-    });
+    return this.ds.query(
+      `SELECT r.*,
+              i.nombre  AS "itemNombre",
+              i.familia AS "itemFamilia",
+              CASE WHEN r.estado <> 'CONFIRMADO' OR r."confirmadoAt" IS NULL
+                     OR c."diasParaUsarCanje" = 0 THEN NULL
+                   ELSE (r."confirmadoAt" + (c."diasParaUsarCanje" || ' days')::interval)
+              END AS "venceEl",
+              CASE WHEN r.estado <> 'CONFIRMADO' OR r."confirmadoAt" IS NULL
+                     OR c."diasParaUsarCanje" = 0 THEN NULL
+                   ELSE CEIL(EXTRACT(EPOCH FROM (
+                          r."confirmadoAt" + (c."diasParaUsarCanje" || ' days')::interval - now()
+                        )) / 86400)::int
+              END AS "diasParaVencer"
+         FROM redemptions r
+         JOIN benefit_catalog_items i ON i.id = r."itemId"
+    LEFT JOIN LATERAL (
+           SELECT "diasParaUsarCanje" FROM economy_config
+            WHERE "tenantId" = r."tenantId" AND "vigenteHasta" IS NULL
+         ORDER BY "vigenteDesde" DESC LIMIT 1
+         ) c ON true
+        WHERE r."tenantId" = $1 AND r."membershipId" = $2
+     ORDER BY r."createdAt" DESC
+        LIMIT 100`,
+      [m.tenantId, m.id],
+    );
   }
 
   @Post('redemptions')
@@ -88,6 +125,9 @@ export class RedemptionsController {
       idempotencyKeyCliente: dto.idempotencyKeyCliente,
     });
     if (!r.ok) throw new BadRequestException({ motivoRechazo: r.motivo });
+    // Los ítems sin aprobación quedan CONFIRMADOS al pedirlos: misma razón
+    // que en `confirmar()`.
+    this.badges.evaluarSilencioso(m.tenantId);
     return r;
   }
 
@@ -112,6 +152,9 @@ export class RedemptionsController {
         confirmadoPor: m.id,
         evidenciaUrl,
       });
+      // 24/09 — «Primer canje» en el acto, no al cerrar la próxima misión.
+      // Mejor esfuerzo: el canje ya quedó confirmado pase lo que pase acá.
+      this.badges.evaluarSilencioso(m.tenantId);
       return { ok: true };
     } catch (e) {
       if (e instanceof CanjeNoEncontradoError) throw new NotFoundException(e.message);

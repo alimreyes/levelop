@@ -1,5 +1,6 @@
 import { Body, Controller, ForbiddenException, Get, Post, UseGuards } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
+import { trofeosPorArea } from '../badges/badges.catalogo';
 import { DataSource } from 'typeorm';
 import { CurrentMembership } from '../auth/current-membership.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -149,6 +150,12 @@ export class LiderController {
    * «Quién no va a estar» — ausencias ya aprobadas, sin poder revocarlas.
    * 15/09/26: agregado `u.nombre` (mismo GRANT nuevo que `ayuda`).
    */
+  /** 24/09 — Los trofeos de equipo de las áreas que lidera. Mismo formato que gerencia. */
+  @Get('trofeos')
+  async trofeos(@CurrentMembership() m: Membership) {
+    return trofeosPorArea(this.ds, m.tenantId, await this.misAreas(m));
+  }
+
   @Get('ausencias')
   async ausencias(@CurrentMembership() m: Membership) {
     const areaIds = await this.misAreas(m);

@@ -181,6 +181,24 @@ export class Membership {
   @Column({ type: 'boolean', default: true })
   optInJuego!: boolean;
 
+  /**
+   * 07/10/26 — el personaje elegido. NULL = todavia no eligio.
+   *
+   * Vive en la membresia y no en el usuario porque es la identidad DENTRO de
+   * una empresa, como la zona y el rol: quien trabaja en dos lugares puede ser
+   * Mago en uno y Dragon en el otro.
+   *
+   * Visible entre companeros, como cualquier avatar. `personajeCambiadoAt`, en
+   * cambio, no sale de su dueno: cuando alguien cambio de personaje es un dato
+   * de comportamiento sin accion posible, y eso es lo que R-07 deja afuera.
+   */
+  @Column({ type: 'text', nullable: true })
+  personaje!: string | null;
+
+  /** Unica fuente del bloqueo: el plazo se calcula, no se guarda. */
+  @Column({ type: 'timestamptz', nullable: true })
+  personajeCambiadoAt!: Date | null;
+
   @Column({ type: 'timestamptz', nullable: true })
   optOutAt!: Date | null;
 

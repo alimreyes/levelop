@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Levelop MVP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -8,7 +9,12 @@
 
 <script>
 /* Oscuro por defecto. Se aplica antes de pintar para que no haya parpadeo. */
-try{ document.documentElement.setAttribute("data-theme", localStorage.getItem("lvl-tema") || "dark"); }
+/* 07/10 — sin botón de tema (Batch de Cambios). Se respeta lo que la persona
+   hubiera elegido antes de que el botón desapareciera; si nunca eligió, sigue
+   la preferencia del sistema operativo. */
+try{ document.documentElement.setAttribute("data-theme",
+  localStorage.getItem("lvl-tema") ||
+  (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")); }
 catch(e){ document.documentElement.setAttribute("data-theme","dark"); }
 </script>
 
@@ -36,6 +42,11 @@ catch(e){ document.documentElement.setAttribute("data-theme","dark"); }
   --risk:#C0361F; --risk-bg:#FADFD9; --risk-line:#EEAE9F;
   --sync:#4A38C4; --sync-bg:#E2DEFA; --sync-line:#B4ABF0;
 
+  /* El fondo del panel grande del personaje. Es el único lugar donde el lima
+     se usa como superficie y no como acento, y por eso tiene token propio: el
+     día que cambie, cambia en un lugar. Nada de texto se apoya encima. */
+  --pj-bg:#D9F285;
+
   --shadow:4px 4px 0 rgba(11,11,12,.10);
   --shadow-lg:8px 8px 0 rgba(11,11,12,.18);
 
@@ -55,6 +66,7 @@ catch(e){ document.documentElement.setAttribute("data-theme","dark"); }
     --ok:#4FD8E8;   --ok-bg:#0A2C33;   --ok-line:#18505C;
     --risk:#FF6A52; --risk-bg:#331310; --risk-line:#57241D;
     --sync:#A79AFF; --sync-bg:#1D1846; --sync-line:#332B70;
+    --pj-bg:#2F3D08;
     --shadow:4px 4px 0 rgba(0,0,0,.5);
     --shadow-lg:8px 8px 0 rgba(0,0,0,.6);
   }
@@ -69,6 +81,7 @@ catch(e){ document.documentElement.setAttribute("data-theme","dark"); }
   --ok:#4FD8E8;   --ok-bg:#0A2C33;   --ok-line:#18505C;
   --risk:#FF6A52; --risk-bg:#331310; --risk-line:#57241D;
   --sync:#A79AFF; --sync-bg:#1D1846; --sync-line:#332B70;
+  --pj-bg:#2F3D08;
   --shadow:4px 4px 0 rgba(0,0,0,.5);
   --shadow-lg:8px 8px 0 rgba(0,0,0,.6);
 }
@@ -151,9 +164,13 @@ button.hud:hover{border-color:var(--gold-solid)}
   font-family:var(--mono); font-size:8px; letter-spacing:-.04em; text-transform:uppercase}
 .tab .ti{display:block; width:20px; height:20px}
 .tab .ti svg{width:100%; height:100%}
-.tab[aria-current="page"]{color:var(--ink)}
+/* 19/09 (Alim, CAMBIOS 1.1): un color por sección. `--sec` la pone pintarNav()
+   en cada botón; `--sec-activa` es la de la pantalla que estás viendo. El
+   ícono y el nombre siguen ahí: el color acompaña, no reemplaza. */
+.tab[aria-current="page"]{color:var(--sec)}
 .tab-mark{width:16px; height:4px; background:transparent}
-.tab[aria-current="page"] .tab-mark{background:var(--gold-solid)}
+.tab[aria-current="page"] .tab-mark{background:var(--sec)}
+.tab:hover{color:color-mix(in srgb, var(--sec) 70%, var(--ink-3))}
 
 @media (min-width:960px){
   .app{grid-template-columns:236px 1fr}
@@ -164,7 +181,8 @@ button.hud:hover{border-color:var(--gold-solid)}
     font-family:var(--mono); font-size:10.5px; letter-spacing:0; text-transform:uppercase; text-align:left;
     border:1px solid transparent}
   .railbtn:hover{background:var(--surface-2); color:var(--ink); border-color:var(--line)}
-  .railbtn[aria-current="page"]{background:var(--gold-solid); color:#0B0B0C; border-color:var(--gold-solid); font-weight:600}
+  .railbtn[aria-current="page"]{background:var(--sec); color:#FFF; border-color:var(--sec); font-weight:600}
+  .railbtn:not([aria-current="page"]):hover{border-color:var(--sec); color:var(--sec)}
   .railbtn .ti{display:block; width:18px; height:18px}
   .railbtn .ti svg{width:100%; height:100%}
   .tabbar{display:none}
@@ -186,7 +204,12 @@ button.hud:hover{border-color:var(--gold-solid)}
 .eyebrow::after{content:""; width:22px; height:4px;
   background-image:linear-gradient(90deg,var(--line-strong) 0 4px,transparent 4px 8px); background-size:8px 4px}
 
-.page-h{display:flex; align-items:flex-end; justify-content:space-between; gap:14px; margin-bottom:18px}
+/* El encabezado de cada pantalla lleva el tono de su sección: una línea
+   arriba y el texto de arriba en color. Sutil a propósito — la señal fuerte
+   es la barra de navegación, esto solo confirma dónde estás. */
+.page-h{display:flex; align-items:flex-end; justify-content:space-between; gap:14px; margin-bottom:18px;
+  padding-top:12px; border-top:3px solid var(--sec-activa, var(--line-strong))}
+.page-h .eyebrow{color:var(--sec-activa, var(--ink-3))}
 .page-h h1{font-size:40px; margin-top:4px}
 .sub{color:var(--ink-2); font-size:13px}
 .sec-h{display:flex; align-items:center; gap:12px; margin:28px 0 12px}
@@ -241,6 +264,8 @@ button.hud:hover{border-color:var(--gold-solid)}
 .av.lg{width:72px; height:72px; font-size:22px; font-family:var(--display); font-weight:700; letter-spacing:.02em}
 .av.sm{width:24px; height:24px; font-size:7.5px}
 .avstack{display:flex}
+.eb-ico{display:inline-flex; align-items:center; gap:6px}
+.eb-ico svg{width:15px; height:15px; flex:none}
 .avstack .av{margin-left:-5px}
 .avstack .av:first-child{margin-left:0}
 
@@ -323,12 +348,8 @@ button.hud:hover{border-color:var(--gold-solid)}
 .mission{display:block; width:100%; text-align:left; padding:14px 15px; background:var(--surface);
   border:1px solid var(--line); transition:border-color .1s steps(2), transform .06s steps(1)}
 .mission:hover{border-color:var(--gold-solid); transform:translate(-1px,-1px); box-shadow:var(--shadow)}
-/* 19/09 — color del área (CAMBIOS 1.1). Barra a la izquierda y un fondo muy
-   tenue del mismo tono. `--area` la pone el template; sin área, nada cambia.
-   El color NUNCA va solo: al lado siempre está el nombre del área escrito. */
-.mission[style*="--area"]{border-left:3px solid var(--area);
-  background:color-mix(in srgb, var(--area) 4%, var(--surface))}
-.mission[style*="--area"]:hover{background:color-mix(in srgb, var(--area) 8%, var(--surface))}
+/* El color de área se usa en la ficha de persona y en el panel del líder, no
+   en las tarjetas de misión: ver la nota de `SECCION_COLOR` más abajo. */
 .area-chip{border-color:color-mix(in srgb, var(--area, var(--line-strong)) 45%, transparent);
   color:var(--area, var(--ink-3))}
 .area-dot{display:inline-block; width:8px; height:8px; flex:none; background:var(--area, var(--line-strong))}
@@ -347,10 +368,86 @@ button.hud:hover{border-color:var(--gold-solid)}
 .stat{background:var(--surface); padding:12px 13px; text-align:left; font:inherit; color:inherit;
   border:0; width:100%; cursor:pointer}
 .stat[aria-pressed="true"]{background:var(--surface-3); box-shadow:inset 3px 0 0 var(--gold-solid)}
-/* Barra de XP del HUD (19/09) */
-.hud-xp{display:block; width:100%; height:3px; background:var(--line-strong); margin-top:3px}
+/* ===== Menú de arriba a la derecha (07/10 — Batch de Cambios) =============
+   La regla de Alim: «si el cuadrado es 1x1, el rectángulo es 2x1», y los dos
+   con la misma altura. `--hud-u` es la unidad; todo lo demás se deriva de ella,
+   así que ajustar el tamaño del menú entero es cambiar un número. */
+.topbar-in{--hud-u:56px}
+.hud.hud-1x1, .hud.hud-2x1{height:var(--hud-u); padding:4px 6px; display:flex;
+  flex-direction:column; align-items:center; justify-content:center; gap:2px}
+.hud.hud-1x1{width:var(--hud-u)}
+.hud.hud-2x1{width:calc(var(--hud-u) * 2)}
+/* El bloque del personaje es el SEGUNDO rectángulo 2×1 del boceto, y se lee en
+   horizontal: la miniatura a la izquierda, el nivel y su barra a la derecha.
+   La campana queda como el único cuadrado 1×1. */
+.hud.is-pj{flex-direction:row; gap:7px; padding:4px 7px; justify-content:flex-start}
+.hud-pjtxt{display:flex; flex-direction:column; gap:4px; min-width:0; flex:1; align-items:flex-start}
+.hud-nv{font-family:var(--mono); font-size:8.5px; letter-spacing:.02em; text-transform:uppercase;
+  color:var(--ink-2); line-height:1; white-space:nowrap}
+.hud-xp{display:block; width:100%; height:4px; background:var(--line-strong)}
 .hud-xp i{display:block; height:100%; background:var(--xp-solid)}
-.hud.is-xp{flex-direction:column; align-items:stretch; min-width:54px}
+.bellwrap > .iconbtn{width:var(--hud-u); height:var(--hud-u); background:var(--surface-2)}
+.bellwrap > .iconbtn .ti{width:20px; height:20px}
+@media (max-width:420px){ .topbar-in{--hud-u:48px} }
+
+/* ===== Sprites del elenco ================================================
+   `pixelated` es lo que hace que un dibujo de 32×32 se vea nítido a 120px.
+   Sin esto el navegador lo suaviza y el pixel art se vuelve una mancha. */
+.pj{image-rendering:pixelated; image-rendering:crisp-edges; display:block}
+.pj-vacio{display:grid; place-items:center; background:var(--surface-3); color:var(--ink-3);
+  font-family:var(--mono); font-size:14px; border:1px dashed var(--line-strong)}
+/* La sección del personaje en Perfil (07/10) */
+.pj-card{padding:16px}
+.pj-top{display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap; margin-bottom:14px}
+.pj-figura{flex:none; padding:12px 16px; background:var(--surface-2); border:1px solid var(--line)}
+.pj-xp{margin-top:14px; padding-top:12px; border-top:1px solid var(--line)}
+.pj-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); gap:8px}
+.pj-op{display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 6px;
+  background:var(--surface-2); border:1px solid var(--line); cursor:pointer; font:inherit; color:inherit}
+.pj-op:hover:not(:disabled){border-color:var(--gold-solid); background:var(--surface-3)}
+.pj-op.es{border-color:var(--gold-solid); border-width:2px; background:var(--gold-bg)}
+.pj-op:disabled{opacity:.42; cursor:not-allowed}
+.pj-n{font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:0; text-align:center}
+
+/* ===== El panel grande del personaje (07/10 — boceto de Alim) =============
+   Aparece en dos pantallas: al lado del saludo en Inicio, y al lado de los
+   datos en Perfil. Es el MISMO bloque en las dos, con tamaños distintos.
+   Dibujarlo diferente en cada pantalla lo convertiría en dos cosas, y la
+   persona tendría que aprenderlo dos veces.
+
+   Es un botón y no una imagen, porque tocarlo abre la hoja de personaje. Que
+   se note que se puede tocar es la mitad del pedido de Alim («solo le da click
+   y ve stats»); la otra mitad es que haya algo que ver del otro lado. */
+.pj-panel{display:grid; place-items:center; gap:6px; background:var(--pj-bg);
+  border:2px solid var(--ink); box-shadow:var(--shadow); padding:14px 12px;
+  cursor:pointer; font:inherit; color:var(--ink); position:relative;
+  min-height:150px; width:100%; text-align:center}
+.pj-panel:hover, .pj-panel:focus-visible{box-shadow:var(--shadow-lg)}
+.pj-panel .pj{filter:drop-shadow(2px 3px 0 rgba(11,11,12,.18))}
+.pj-panel .pj-pie{font-family:var(--mono); font-size:8px; text-transform:uppercase;
+  letter-spacing:.02em; color:#2C3A06; opacity:.85}
+:root[data-theme="dark"] .pj-panel .pj-pie{color:#D6F871}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .pj-panel .pj-pie{color:#D6F871} }
+.pj-panel.vacio{background:var(--surface-2); border-style:dashed}
+.hoja-top{display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap}
+.hoja-fig{flex:none; padding:12px 16px; background:var(--pj-bg); border:2px solid var(--ink)}
+
+/* Inicio: saludo + panel. Perfil: (datos sobre jugar-o-no-jugar) + panel alto.
+   El «recorte» que pidió Alim es esto: las secciones de la izquierda dejan de
+   ocupar todo el ancho para que el personaje tenga su columna. */
+.inicio-top, .perfil-top{display:grid; gap:14px; margin-bottom:16px}
+.inicio-top > .saludo, .perfil-top > .hero, .perfil-top > .juego-card{margin-bottom:0}
+@media (min-width:880px){
+  .inicio-top{grid-template-columns:minmax(0,1fr) 230px; align-items:stretch}
+  .perfil-top{grid-template-columns:minmax(0,1fr) 270px}
+  .perfil-top > .hero{grid-column:1; grid-row:1}
+  .perfil-top > .pj-panel{grid-column:2; grid-row:1 / span 2; min-height:0}
+  .perfil-top > .juego-card{grid-column:1; grid-row:2}
+}
+/* 19/09 — la tarjeta de «jugar o no jugar» destacada con el verde Levelop. */
+.juego-card{border-left:3px solid #4E9B26; background:color-mix(in srgb, #4E9B26 4%, var(--surface))}
+.juego-card .setting-b .t{display:flex; align-items:center; gap:8px}
+.juego-card .setting-b .t svg{width:16px; height:16px; color:#4E9B26}
 .stat:hover{background:var(--surface-2)}
 .stat .l{font-family:var(--mono); font-size:8px; text-transform:uppercase; letter-spacing:.01em; color:var(--ink-3)}
 .stat .v{font-family:var(--display); font-weight:700; font-size:32px; line-height:.95; margin-top:4px; font-variant-numeric:tabular-nums}
@@ -548,14 +645,62 @@ button.hud:hover{border-color:var(--gold-solid)}
 .meta-w .meta-card{height:100%; border:1px solid var(--line); background:var(--surface)}
 .proy-dot{width:8px; height:8px; flex:none; display:inline-block; vertical-align:middle}
 
-.bar-track{display:block; height:12px; background:var(--surface-2); flex:1; min-width:0; border:1px solid var(--line)}
-.bar-fill{display:block; height:100%; transition:width .3s steps(8)}
+/* 07/10 — BUG REAL, visto en pantalla: la barra de «Tu nivel y tu XP» en
+   Misiones salía como una raya de 2px sin relleno, y la del objetivo en Inicio
+   tenía el mismo problema. La causa: `flex:1` está puesto para cuando la barra
+   vive en una FILA (las de «Estado de las misiones»), donde reparte ancho. Pero
+   `.w-body` y `.stack` son flex en COLUMNA, y ahí `flex:1` manda sobre el alto:
+   pone `flex-basis:0` y, como no sobra alto que repartir, la caja se aplasta a
+   los dos bordes. `min-height` es el piso que lo impide sin tocar el caso de la
+   fila, donde el alto nunca fue el eje principal. */
+.bar-track{display:block; position:relative; height:12px; min-height:12px; background:var(--surface-2); flex:1; min-width:0; border:1px solid var(--line)}
+/* El relleno se estira con `top/bottom` y no con `height:100%`. Un porcentaje
+   de alto necesita que el padre tenga un alto DEFINIDO, y `.bar-track` es un
+   item flexible: su alto sale de `min-height`, que para el navegador no cuenta
+   como definido. El resultado era un relleno de 0px — la barra se veía vacía
+   aunque el ancho estuviera bien calculado. Con `top:0; bottom:0` el alto sale
+   de la caja y no de un porcentaje, así que no depende de eso. */
+.bar-fill{display:block; position:absolute; left:0; top:0; bottom:0; transition:width .3s steps(8)}
 .c-n{background:var(--line-strong)} .c-xp{background:var(--xp-solid)} .c-gold{background:var(--gold-solid)}
 .c-risk{background:var(--risk)} .c-ok{background:var(--ok)}
 .bl{font-size:12px; color:var(--ink-2); width:92px; flex:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .bv{font-family:var(--mono); font-size:10.5px; font-variant-numeric:tabular-nums; color:var(--ink);
   min-width:32px; text-align:right; flex:none; font-weight:500}
-.estado-row{display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:3px 0}
+.estado-row{display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:3px 0;
+  background:none; border:0; font:inherit; color:inherit}
+button.estado-row{cursor:pointer}
+.flecha{font-family:var(--mono); font-size:10px; margin-left:4px}
+.flecha.sube{color:var(--ok, #2E7D32)}
+.flecha.baja{color:var(--risk)}
+.flecha.igual{color:var(--ink-3)}
+
+/* ===== Ranking con personajes (07/10 — Batch de Cambios) ==================
+   El nombre vive debajo del avatar y aparece al pasar el mouse o al enfocar
+   con el teclado. Lo segundo no es un detalle: un nombre que solo se revela
+   con el mouse no existe para quien navega con teclado o desde un teléfono,
+   así que también se muestra al tocar (`:focus-within`) y va en el `title`. */
+/* El orden es el del boceto: personaje, puesto (con la flecha DEBAJO del
+   número), barra, XP. La barra se lleva todo el espacio sobrante porque es lo
+   único que hay que comparar entre filas. */
+.estado-row.rk{display:grid; grid-template-columns:auto auto 1fr auto; gap:11px; align-items:center; padding:7px 8px}
+.rk-pos{display:flex; flex-direction:column; align-items:center; gap:2px; min-width:34px}
+.rk-pos .num{font-size:14px; line-height:1}
+.rk-pos .flecha{margin-left:0; font-size:11px; line-height:1}
+.rk-pj{position:relative; display:flex; align-items:center; min-width:34px}
+.rk-nombre{position:absolute; left:0; top:calc(100% + 3px); white-space:nowrap; font-size:12px;
+  background:var(--surface); padding:3px 7px; border:1px solid var(--ink);
+  opacity:0; pointer-events:none; transition:opacity .1s steps(2); z-index:6}
+.estado-row.rk:hover .rk-nombre, .estado-row.rk:focus .rk-nombre,
+.estado-row.rk:focus-within .rk-nombre{opacity:1}
+/* La barra: lo que tiene en tinta, lo que le falta en verde Levelop. El fondo
+   ES «lo que falta»; no hace falta una segunda capa. */
+.rk-bar{background:#4E9B26}
+.rk-tiene{background:var(--ink)}
+@media (max-width:520px){
+  .estado-row.rk{grid-template-columns:auto auto 1fr; gap:8px}
+  .estado-row.rk .rk-bar{grid-column:1 / -1; order:2}
+  .estado-row.rk .bv{order:1}
+}
 .estado-row:hover .bl{color:var(--ink)}
 .lote{display:flex; align-items:center; gap:9px}
 .lote .chip{min-width:70px; justify-content:center}
@@ -710,7 +855,9 @@ td.n, #tip .tr b, #tip .tr span, .pat-sig .sv, .plist .pr b, .fstep .fn,
           <button class="iconbtn" id="bell" title="Avisos" aria-label="Avisos" aria-expanded="false"><span class="ti"></span><span class="dot hide" id="belldot"></span></button>
           <div class="drop" id="avisosdrop" hidden></div>
         </div>
-        <button class="iconbtn" id="themebtn" title="Cambiar tema" aria-label="Cambiar tema"><span class="ti"></span></button>
+        <!-- 07/10 (Batch de Cambios): fuera el botón de modo oscuro. El tema
+             pasa a seguir la preferencia del sistema operativo de cada quien
+             (`prefers-color-scheme`), que es lo que ya hacía por defecto. -->
       </div>
     </header>
     <main class="content" id="view"></main>
@@ -851,6 +998,9 @@ const D = {            // datos REALES, todos del servidor
   progreso: null,      // { xp, oro, nivel, xpInicioNivel, xpSiguienteNivel }
   /* 17/09 (tarde) — puntos 6 y 9 de «Cosas para conectar ahora». */
   lotes: null,         // { saldo, decayDias, lotes[], venceEn7, venceEn30 }
+  vitrina: null,       // { personales[], area[], totalGanadas, totalPersonales } (19/09)
+  personaje: null,     // { elenco, personaje, puedeCambiar, faltanDias, ... } (07/10)
+  meta: null,          // { mes, objetivo, cerradas, cumplidaAt, puedeCambiar } (19/09)
   objetivo: null,      // { nombre, precioOro, saldo, faltante, misionesQueFaltan, ... }
   cargado: false
 };
@@ -859,6 +1009,14 @@ const state = {
   filtro: "todas",
   periodo: "semana",
   shopFamilia: "todas",
+  /* 07/10 — arranca en «semana» y ya no en «sin comparar». Alim pidió que la
+     persona vea si subió o bajó; con el valor anterior la flecha sólo aparecía
+     si alguien tocaba el selector, o sea casi nunca. La semanal y no la diaria
+     porque el puesto se mueve poco en un día y una flecha que casi siempre dice
+     «igual» enseña a no mirarla. El dato es exacto, no estimado: la posición
+     histórica se reconstruye del ledger. */
+  rankingVariacion: "semana",   // null | 'dia' | 'semana' | 'mes' (19/09)
+  ordenCanjes: "",          // "" | 'pronto' | 'lejos' (19/09)
   plegado: {beneficios:false},
   abierta: null,
   cargando: false,
@@ -1022,10 +1180,13 @@ async function cargarSecundario(){
   const r = await Promise.allSettled([
     LevelopAPI.equipo.miembros(),
     LevelopAPI.economia.miProgreso(),
-    LevelopAPI.economia.ranking(),
+    LevelopAPI.economia.ranking(null, state.rankingVariacion),
     LevelopAPI.avisos.listar(),
     LevelopAPI.economia.lotes(),
-    LevelopAPI.economia.objetivo()
+    LevelopAPI.economia.objetivo(),
+    LevelopAPI.logros.vitrina(),
+    LevelopAPI.logros.meta(),
+    LevelopAPI.equipo.miPersonaje()
   ]);
   if(r[0].status==="fulfilled" && Array.isArray(r[0].value)){ D.miembros = r[0].value; _areasPorId = null; }
   if(r[1].status==="fulfilled" && r[1].value) D.progreso = r[1].value;
@@ -1033,8 +1194,12 @@ async function cargarSecundario(){
   if(r[3].status==="fulfilled" && Array.isArray(r[3].value)) D.avisos = r[3].value;
   if(r[4].status==="fulfilled" && r[4].value) D.lotes    = r[4].value;
   if(r[5].status==="fulfilled" && r[5].value) D.objetivo = r[5].value.objetivo || null;
+  if(r[6].status==="fulfilled" && r[6].value) D.vitrina = r[6].value;
+  if(r[7].status==="fulfilled" && r[7].value) D.meta = r[7].value;
+  if(r[8].status==="fulfilled" && r[8].value) D.personaje = r[8].value;
   anunciarBeneficiosNuevos();
-  r.forEach((x,i)=>{ if(x.status==="rejected") console.warn("secundario", ["miembros","progreso","ranking","avisos","lotes","objetivo"][i], x.reason); });
+  cargarMiFicha();
+  r.forEach((x,i)=>{ if(x.status==="rejected") console.warn("secundario", ["miembros","progreso","ranking","avisos","lotes","objetivo","vitrina","meta","personaje"][i], x.reason); });
   pintarBellDot();
 }
 async function refrescarSaldo(){
@@ -1065,21 +1230,151 @@ async function marcarLeidos(ids){
   for(const id of ids){ const a = D.avisos.find(x=>x.id===id); if(a && !a.leida){ a.leida = true; try{ await LevelopAPI.avisos.marcarLeida(id); }catch(e){} } }
   pintarBellDot();
 }
+/* 19/09 (Alim, CAMBIOS 1.1 · Misiones 2): «pasaron más de 10 segundos desde
+   que el líder asignó la tarea a que apareciera en el perfil del colaborador».
+
+   La causa no era la red ni el servidor: la app pedía AVISOS cada 45 segundos
+   y **las misiones no se refrescaban nunca** hasta recargar la página. O sea
+   que la misión podía tardar desde 0 hasta infinito, según cuándo la persona
+   recargara; los 10 segundos que mediste fueron suerte.
+
+   Dos arreglos, y el segundo es el que importa:
+   1. El ciclo baja de 45 a 20 segundos. Es el piso razonable para un polling
+      sin WebSocket: más frecuente empieza a costar batería en un teléfono
+      para ganar segundos que nadie percibe.
+   2. Cuando llega un aviso NUEVO sobre una misión, se recargan las misiones
+      en el acto. El aviso ya viaja por el mismo ciclo, así que en la práctica
+      «te asignaron algo» y «lo ves en tu lista» pasan en el mismo tick. Esto
+      convierte el polling en algo parecido a un push barato: el aviso hace de
+      señal, y la señal dispara el refresco de lo que de verdad cambió.
+
+   Cuando exista WebSocket esto se cae solo y no se extraña. */
+const AVISOS_DE_MISION = new Set(["MISION_CREADA","MISION_SUGERIDA","MISION_ACEPTADA","MISION_CERRADA","MENCION","COLABORADOR_AGREGADO"]);
 async function refrescarAvisos(){
   try{
+    const antes = new Set(D.avisos.map(a=>a.id));
     const l = await LevelopAPI.avisos.listar();
     if(Array.isArray(l)) D.avisos = l;
     pintarBellDot();
     anunciarBeneficiosNuevos();
     if(!document.getElementById("avisosdrop").hidden) pintarAvisos();
+
+    const hayMision = D.avisos.some(a=>!antes.has(a.id) && AVISOS_DE_MISION.has(a.tipo));
+    if(hayMision) await refrescarMisiones();
   }catch(e){ /* polling: si falla una vez, la próxima vuelve a intentar */ }
 }
+
+/* Solo las misiones. Se usa desde el ciclo y después de cualquier acción que
+   las cambie; no arrastra catálogo ni canjes porque esos no se movieron. */
+async function refrescarMisiones(){
+  try{
+    const ms = await LevelopAPI.misiones.listar();
+    if(!Array.isArray(ms)) return;
+    D.misiones = ms;
+    if(!document.querySelector(".veil")) render();   // no pisar un modal abierto
+  }catch(e){ /* la lista anterior sigue siendo mejor que una vacía */ }
+}
 /* MVP por polling (ver `TipoNotificacion` en el backend): cada 45 s. */
-setInterval(()=>{ if(D.membresia) refrescarAvisos(); }, 45000);
+setInterval(()=>{ if(D.membresia) refrescarAvisos(); }, 20000);
+/* Red de seguridad: si por alguna razón la misión llegó sin aviso (la creó
+   alguien sin sugerirte, cambió de estado, la aceptó otro), igual se ve sola
+   en el próximo minuto sin tener que recargar. */
+setInterval(()=>{ if(D.membresia && document.visibilityState === "visible") refrescarMisiones(); }, 60000);
+/* Y al volver a la pestaña, de inmediato: es el momento exacto en que alguien
+   espera ver lo último. */
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState === "visible" && D.membresia){ refrescarAvisos(); refrescarMisiones(); }
+});
 
 /* =========================================================
    NAVEGACIÓN
    ========================================================= */
+/* =========================================================
+   EL ELENCO (07/10/26 — «Batch de Cambios»)
+   -------------------------------------------------------
+   Ocho personajes de pixel art. El busto es de 32×32 y el
+   cuerpo entero de 40×48, los dos a escala 1: se muestran a
+   cualquier tamaño con `image-rendering: pixelated`, que
+   mantiene el píxel cuadrado al agrandar. Subir la versión
+   de 12× pesaría cuatro veces más y se vería igual.
+
+   Si alguien todavía no eligió NO se le asigna uno por
+   defecto: se muestra un hueco que invita a elegir. Un
+   avatar puesto por el sistema haría que elegir se sienta
+   como corregir algo, en vez de decidir.
+   ========================================================= */
+const ELENCO = [
+  {clave:"caballero", nombre:"Caballero",       d:"Va de frente y cumple lo que promete."},
+  {clave:"elfo",      nombre:"Elfo",            d:"Ve venir las cosas de lejos."},
+  {clave:"sirena",    nombre:"Sirena",          d:"Trabaja a su ritmo y no se deja apurar."},
+  {clave:"duende",    nombre:"Duende guerrero", d:"Chiquito y rapidísimo. Pide ayuda sin pena."},
+  {clave:"mago",      nombre:"Mago",            d:"Le pone orden al caos."},
+  {clave:"dragon",    nombre:"Dragón",          d:"Piensa en el equipo antes que en sí mismo."},
+  {clave:"barbaro",   nombre:"Bárbaro",         d:"Agarra lo más pesado sin quejarse."},
+  {clave:"bardo",     nombre:"Bardo",           d:"Se acuerda de dar las gracias."}
+];
+const PJ = Object.fromEntries(ELENCO.map(p=>[p.clave,p]));
+const nombrePersonaje = c => (PJ[c] ? PJ[c].nombre : null);
+const miPersonaje = () => (D.membresia && D.membresia.personaje) || null;
+
+function avatarPersonaje(clave, px){
+  if(!clave) return `<span class="pj-vacio" style="width:${px}px;height:${px}px" aria-hidden="true">?</span>`;
+  return `<img class="pj" src="personajes/${esc(clave)}_avatar_1x.png" width="${px}" height="${px}"
+    alt="${esc(nombrePersonaje(clave)||"")}" loading="lazy">`;
+}
+function cuerpoPersonaje(clave, px){
+  const alto = Math.round(px * 1.2);
+  if(!clave) return `<span class="pj-vacio" style="width:${px}px;height:${alto}px">?</span>`;
+  return `<img class="pj" src="personajes/${esc(clave)}_full_1x.png" width="${px}" height="${alto}"
+    alt="${esc(nombrePersonaje(clave)||"")}" loading="lazy">`;
+}
+
+/* El panel grande del boceto. El MISMO en Inicio y en Perfil, con dos anchos:
+   es una sola cosa, y dibujarla distinta en cada pantalla obligaría a la
+   persona a aprenderla dos veces.
+
+   Si todavía no eligió, el panel no desaparece — invita a elegir. Un hueco en
+   blanco no le enseña a nadie que hay algo para elegir, y poner un personaje
+   por defecto haría que elegir se sienta como corregir algo. */
+function panelPersonaje(ancho){
+  const c = miPersonaje();
+  if(!c) return `<button class="pj-panel vacio" data-tab="perfil" title="Todavía no eliges personaje">
+    ${cuerpoPersonaje(null, ancho)}
+    <span class="pj-pie" style="color:var(--ink-3)">Elige tu personaje</span>
+  </button>`;
+  return `<button class="pj-panel" data-hoja-pj
+    title="${esc(nombrePersonaje(c)||"")} — toca para ver tus estadísticas">
+    ${cuerpoPersonaje(c, ancho)}
+    <span class="pj-pie">${esc(nombrePersonaje(c)||"")} · ver stats</span>
+  </button>`;
+}
+
+/* =========================================================
+   COLOR POR SECCIÓN (19/09/26 — CAMBIOS 1.1, punto general)
+   -------------------------------------------------------
+   Un color por sección de la app. La sección activa se pinta
+   con el suyo en la barra de abajo y en el menú lateral, y
+   el encabezado de la página lleva el mismo tono para que
+   se note dónde estás sin tener que leer.
+
+   Los cinco están validados con el verificador de paletas,
+   en ESTE orden: la comprobación de daltonismo mira pares
+   adyacentes, y adyacente aquí significa «uno al lado del
+   otro en la barra». Cambiar el orden de las secciones sin
+   revalidar puede dejar dos vecinos indistinguibles para
+   alguien con deuteranopía.
+
+   El color nunca es la única señal: cada sección lleva su
+   ícono y su nombre escrito al lado. Eso es lo que hace que
+   la barra siga siendo usable si el color no se percibe.
+   ========================================================= */
+const SECCION_COLOR = {
+  inicio:   "#5B8FF0",
+  misiones: "#CF7233",
+  tienda:   "#17A398",
+  ranking:  "#B84FBE",
+  perfil:   "#4E9B26"
+};
 const TABS = [
   {id:"inicio",  n:"Inicio",   juego:false},
   {id:"misiones",n:"Misiones", juego:false},
@@ -1092,19 +1387,25 @@ const tabsVisibles = () => TABS.filter(t => optIn() || !t.juego);
 function pintarNav(){
   const vis = tabsVisibles();
   document.getElementById("tabbar").innerHTML = vis.map(t=>`
-    <button class="tab" data-tab="${t.id}" ${state.tab===t.id?'aria-current="page"':""}>
+    <button class="tab" data-tab="${t.id}" style="--sec:${SECCION_COLOR[t.id]||"var(--gold-solid)"}" ${state.tab===t.id?'aria-current="page"':""}>
       <span class="ti">${IC[t.id]}</span><span>${t.n}</span><span class="tab-mark"></span></button>`).join("");
   document.getElementById("rail").innerHTML =
     `<div class="brand"><span class="brand-mark">L</span>Levelop<em>!</em></div>` +
-    vis.map(t=>`<button class="railbtn" data-tab="${t.id}" ${state.tab===t.id?'aria-current="page"':""}>
+    vis.map(t=>`<button class="railbtn" data-tab="${t.id}" style="--sec:${SECCION_COLOR[t.id]||"var(--gold-solid)"}" ${state.tab===t.id?'aria-current="page"':""}>
       <span class="ti">${IC[t.id]}</span><span>${t.n}</span></button>`).join("") +
     `<div style="flex:1"></div>
      <button class="railbtn" data-salir><span class="ti">${IC.salir}</span><span>Salir</span></button>
      <div class="note" style="font-size:11px">${esc(D.membresia ? D.membresia.tenantNombre : "")}<br>Backend real · ${new Date().toLocaleDateString("es-VE")}</div>`;
 }
+/* El tono de la sección activa viaja por una variable en <html>, así que
+   cualquier parte de la página puede usarlo sin que nadie le pase el color. */
+function pintarColorSeccion(){
+  const c = SECCION_COLOR[state.tab] || "var(--gold-solid)";
+  document.documentElement.style.setProperty("--sec-activa", c);
+}
 function pintarChrome(){
   document.querySelector("#bell .ti").innerHTML = IC.bell;
-  document.querySelector("#themebtn .ti").innerHTML = IC.tema;
+
 }
 function pintarHud(){
   /* Oro y nivel: reales (16/09 — `GET /economy/mi-progreso`). Si el
@@ -1118,13 +1419,31 @@ function pintarHud(){
   const p = D.progreso;
   const pctNivel = p ? Math.max(0, Math.min(100,
     ((p.xp - p.xpInicioNivel) / Math.max(1, p.xpSiguienteNivel - p.xpInicioNivel)) * 100)) : 0;
-  document.getElementById("hud").innerHTML = `
-    ${optIn()?`<button class="hud is-gold" data-info="oro" title="Tu Oro"><span class="hud-l">Oro</span><span class="num">${fmt(D.saldo)}</span></button>
-    <button class="hud is-xp" data-info="nivel" title="${p?`Nivel ${p.nivel} · ${fmt(Math.max(0,p.xpSiguienteNivel-p.xp))} XP para el siguiente`:"Tu nivel"}">
-      <span class="hud-l">Nv</span><span class="num">${esc(nv)}</span>
-      ${p?`<span class="hud-xp"><i style="width:${pctNivel.toFixed(0)}%"></i></span>`:""}
-    </button>`:""}
-    <button class="hud is-zona" data-info="zona" title="Tu ciudad">${IC.pin}<span class="hud-l zona-l">${esc(miZona())}</span></button>`;
+  /* 07/10 (Batch de Cambios) — el menú de arriba a la derecha.
+     Tres cambios de Alim: fuera la ciudad, fuera el modo oscuro, y el nivel
+     deja de ser un número suelto para mostrarse como la miniatura del
+     personaje; al tocarla se va al Perfil.
+
+     LA REGLA DE PROPORCIÓN QUE PIDIÓ, en una variable: si el cuadrado es 1×1,
+     el rectángulo es 2×1, y los dos tienen la misma altura. Está puesta en CSS
+     con `--hud-u` (la unidad): el cuadrado mide `--hud-u` de lado y el de Oro
+     mide el doble de ancho. Cambiar el tamaño del menú es cambiar un número,
+     no reacomodar tres cajas a ojo. */
+  document.getElementById("hud").innerHTML = optIn() ? `
+    <button class="hud hud-2x1 is-gold" data-info="oro" title="Tu Oro">
+      <span class="hud-l">Oro</span><span class="num">${fmt(D.saldo)}</span>
+    </button>
+    <button class="hud hud-2x1 is-pj" data-tab="perfil"
+      title="${p?`Nivel ${p.nivel} · ${fmt(Math.max(0,p.xpSiguienteNivel-p.xp))} XP para el siguiente nivel`:"Tu perfil"}">
+      ${avatarPersonaje(miPersonaje(), 40)}
+      <span class="hud-pjtxt">
+        <span class="hud-nv">NIVEL ${esc(nv)}</span>
+        ${p?`<span class="hud-xp"><i style="width:${pctNivel.toFixed(0)}%"></i></span>`:""}
+      </span>
+    </button>` : `
+    <button class="hud hud-1x1 is-pj" data-tab="perfil" title="Tu perfil">
+      ${avatarPersonaje(miPersonaje(), 34)}
+    </button>`;
 }
 function pintarBellDot(){
   const d = document.getElementById("belldot");
@@ -1142,7 +1461,8 @@ const TIPO_AVISO = {
      mensaje a propósito: `notifications` sí la pueden leer otros roles, y el
      hilo no. Ver el comentario del enum en el backend. */
   MENCION:              {ico:"chat",  n:"Te mencionaron"},
-  COLABORADOR_AGREGADO: {ico:"panas", n:"Te sumaron a una misión"}
+  COLABORADOR_AGREGADO: {ico:"panas", n:"Te sumaron a una misión"},
+  MEDALLA_GANADA:       {ico:"trofeo", n:"¡Medalla nueva!"}
 };
 function pintarAvisos(){
   const lista = D.avisos.slice(0,30);
@@ -1261,16 +1581,21 @@ function vistaInicio(){
   return `
   ${!optIn()?`<div class="optout-banner">Tienes el juego apagado: no estás ganando Oro nuevo. Sigues viendo todo lo del trabajo.</div>`:""}
 
-  <div class="saludo">
-    <span class="pixels"><i></i><i></i><i></i><i></i><i></i></span>
-    <span class="eyebrow">${new Date().toLocaleDateString("es-VE",{weekday:"long", day:"numeric", month:"long"})}</span>
-    <h1 style="margin-top:6px">${esc(saludo)},<br>${esc((miNombre().split(" ")[0])||"")}</h1>
-    <div class="row wrap g8" style="margin-top:13px">
-      ${optIn()?`<button class="chip gold" data-info="oro">${fmt(D.saldo)} de Oro</button>`:""}
-      <button class="chip" data-info="zona">${IC.pin} ${esc(miZona())}</button>
-      ${miArea()?`<span class="chip">${esc(miArea())}</span>`:""}
-      <span class="chip">${esc(D.membresia ? D.membresia.tenantNombre : "")}</span>
+  <!-- 07/10 (Batch de Cambios): el saludo se recorta para dejarle una columna
+       al personaje. El panel es el mismo que en Perfil, más chico. -->
+  <div class="inicio-top">
+    <div class="saludo">
+      <span class="pixels"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="eyebrow">${new Date().toLocaleDateString("es-VE",{weekday:"long", day:"numeric", month:"long"})}</span>
+      <h1 style="margin-top:6px">${esc(saludo)},<br>${esc((miNombre().split(" ")[0])||"")}</h1>
+      <div class="row wrap g8" style="margin-top:13px">
+        ${optIn()?`<button class="chip gold" data-info="oro">${fmt(D.saldo)} de Oro</button>`:""}
+        <button class="chip" data-info="zona">${IC.pin} ${esc(miZona())}</button>
+        ${miArea()?`<span class="chip">${esc(miArea())}</span>`:""}
+        <span class="chip">${esc(D.membresia ? D.membresia.tenantNombre : "")}</span>
+      </div>
     </div>
+    ${panelPersonaje(78)}
   </div>
 
   <div class="row wrap g8" style="justify-content:space-between; margin-bottom:14px">
@@ -1286,17 +1611,14 @@ function vistaInicio(){
     ${optIn()?widget("diana","Tu objetivo", null, wObjetivo):""}
     ${optIn()?widget("reloj","Tu Oro y qué se vence", null, wLotes):""}
   </div>
+  ${optIn()?widgetMeta():""}
 
   <div class="sec-h"><h2>Todavía sin conectar</h2><span class="sub">Está en el prototipo, no en el backend</span></div>
   <div class="note" style="margin-bottom:12px">Esto no está escondido ni simulado: son funciones que el prototipo dibujaba con datos inventados y que <b>todavía no tienen backend</b>. Cada una dice qué le falta. El detalle completo está en el plan de conexión.</div>
   ${listaNC([
     ["bandera","Desafío entre áreas","Es `LVL-045`: cotizado en 4,5 semanas-fundador, nunca construido. Necesita estado compartido entre dos áreas, votación y marcador."],
-    ["diana","Tu meta del mes","Definida el 17/09 y aprobada: la persona se pone un número de misiones para el mes y cumplirla da medalla, no Oro. Falta construirla."],
-    ["trofeo","Trofeos y medallas de equipo","No hay tabla ni endpoint. Falta definir qué dispara cada uno."],
     ["carpeta","Proyectos","No aparece en el Documento Maestro. Hace falta que alguien defina qué es antes de construirlo."],
-    ["chat","Hilos y menciones","La tabla `mission_thread_messages` existe en la base, pero ningún endpoint la expone todavía."],
-    ["panas","Quién más está en cada misión","Los nombres ya se resuelven (16/09); lo que falta es el endpoint de `mission_collaborators` — hoy una misión tiene creador, sugerido y quien la aceptó, pero no una lista de colaboradores."],
-    ["llama","Racha de días","No hay backend. Tampoco estaba definido cómo se calcula."],
+    ["llama","Racha de días","Definida a medias: falta que Alim elija entre racha diaria y racha semanal. La objeción a la diaria está escrita en LVL-062."],
     ["megafono","Noticias de la empresa y de Levelop","No hay tabla de anuncios ni endpoint."]
   ])}`;
 }
@@ -1380,12 +1702,34 @@ function misionesFiltradas(){
   }
   return lista.sort(porVencimiento);
 }
+/* 24/09 — «Quién más está en cada misión», en la tarjeta. El equipo es quien
+   la tiene a cargo (la aceptó, o se la sugirieron si nadie la aceptó todavía)
+   más los colaboradores. Los ids llegan con el listado; nombre y área salen de
+   la lista de compañeros que ya está cargada. */
+function equipoDe(m){
+  const aCargo = m.aceptadaPorMembershipId || m.asignadoMembershipId || null;
+  const ids = [aCargo, ...((m.colaboradores)||[])].filter(Boolean);
+  return [...new Set(ids)];
+}
+function avataresEquipo(m){
+  const ids = equipoDe(m);
+  if(!ids.length) return "";
+  const MAX = 4, vis = ids.slice(0, MAX), resto = ids.length - vis.length;
+  const nombres = ids.map(nombreDe);
+  const persona = id => (D.miembros||[]).find(x=>x.membershipId===id);
+  return `<span class="row g6" style="align-items:center" title="En esta misión: ${esc(nombres.join(", "))}">
+    <span class="avstack">${vis.map(id=>{
+      const p = persona(id), col = (p && colorArea(p.areaId)) || "#0C6E78";
+      return `<span class="av sm" style="background:${esc(col)}">${esc(id===mid()?"TÚ":iniciales(p?p.nombre:""))}</span>`;
+    }).join("")}${resto>0?`<span class="av sm" style="background:var(--ink-3,#555)">+${resto}</span>`:""}</span>
+    <span class="sub" style="font-size:11px">${ids.length<=2?esc(nombres.join(" y ")):`${esc(nombres[0])} y ${ids.length-1} más`}</span>
+  </span>`;
+}
+
 function tarjetaMision(m){
   const r = restante(venceEn(m)), e = ESTADOS[m.estado] || {n:m.estado, c:""};
-  const ar = areaDe(m.areaId), col = colorArea(m.areaId);
-  return `<button class="mission" data-mision="${esc(m.id)}" ${col?`style="--area:${esc(col)}"`:""}>
+  return `<button class="mission" data-mision="${esc(m.id)}">
     <div class="mission-top"><h3>${esc(m.titulo)}</h3></div>
-    ${ar?`<div class="mission-meta"><span class="chip area-chip">${esc(ar.nombre)}</span></div>`:""}
     <div class="mission-meta">
       <span class="chip ${e.c}">${esc(e.n)}</span>
       ${viva(m) ? `<span class="chip ${r.tipo}">${r.txt}</span>` : ""}
@@ -1393,6 +1737,7 @@ function tarjetaMision(m){
       ${m.asignadoMembershipId===mid() && m.estado==="abierta" ? `<span class="chip gold">Sugerida para ti</span>` : ""}
       ${enRiesgo(m) ? `<span class="chip risk">Vencida</span>` : ""}
     </div>
+    ${equipoDe(m).length ? `<div style="margin:-2px 0 10px">${avataresEquipo(m)}</div>` : ""}
     <div class="mission-foot">
       <span class="area-tag">${m.creadorMembershipId!==mid()?`De ${esc(nombreDe(m.creadorMembershipId))} · `:""}Urgencia ${esc(NIVEL_TXT[m.urgencia]||m.urgencia)} · Esfuerzo ${esc(NIVEL_TXT[m.esfuerzo]||m.esfuerzo)}</span>
       ${optIn() && viva(m) ? `<span class="chip ${daraOro(m)?"gold":""}" title="${daraOro(m)?"Ya la aceptó otra persona: al cerrar paga Oro":"Sin Oro hasta que otra persona la acepte"}">${typeof m.xpEstimada==="number"?`+${fmt(m.xpEstimada)} XP · +${fmt(m.oroEstimado)} Oro`:(daraOro(m)?"Da Oro al cerrar":"Sin Oro hasta que otro la acepte")}</span>` : ""}
@@ -1418,8 +1763,8 @@ function widgetProgreso(){
         <span class="num" style="font-size:22px">${fmt(p.xp)} XP</span>
         <span class="sub">${falta>0?`Faltan ${fmt(falta)} XP para el nivel ${p.nivel+1}`:"Nivel máximo alcanzado con esta configuración"}</span>
       </div>
-      <span class="bar-track" style="display:block"><span class="bar-fill c-xp" style="width:${pct.toFixed(0)}%"></span></span>
-      <div class="sub" style="margin-top:8px">La XP solo sube — no se gasta ni baja. El nivel abre catálogo, no da Oro.</div>
+      <span class="bar-track rk-bar" style="display:block"><span class="bar-fill rk-tiene" style="width:${pct.toFixed(0)}%"></span></span>
+      <div class="sub" style="margin-top:8px">En negro lo que llevas de este nivel, en verde lo que falta. La XP solo sube — no se gasta ni baja. El nivel abre catálogo, no da Oro.</div>
     </div>
   </section>`;
 }
@@ -1492,18 +1837,22 @@ function bloqueColaboradores(m){
   ].filter(Boolean));
   const candidatos = D.miembros.filter(x=>!yaEstan.has(x.membershipId));
 
+  const aCargo = m.aceptadaPorMembershipId || m.asignadoMembershipId || null;
+  const chipACargo = aCargo ? `<span class="chip xp" title="${m.aceptadaPorMembershipId?"La aceptó":"Sugerida para esta persona"}">${esc(nombreDe(aCargo))} · a cargo</span>` : "";
+  const colsSinACargo = (cols||[]).filter(c=>c.membershipId!==aCargo);
   const lista = cols===null
     ? `<div class="empty">Cargando…</div>`
-    : cols.length
-      ? `<div class="row wrap g6">${cols.map(c=>`
+    : (colsSinACargo.length || chipACargo)
+      ? `<div class="row wrap g6">${chipACargo}${colsSinACargo.map(c=>`
           <span class="chip">${esc(c.nombre)}${c.areaNombre?` · ${esc(c.areaNombre)}`:""}
             <button class="chip-x" data-quitar-colab="${esc(c.membershipId)}" data-mision-id="${esc(m.id)}" title="Quitar" data-stop>×</button>
-          </span>`).join("")}</div>`
-      : `<div class="empty">Nadie más, por ahora.</div>`;
+          </span>`).join("")}</div>
+         ${!colsSinACargo.length ? `<div class="sub" style="margin-top:6px">Nadie más, por ahora.</div>` : ""}`
+      : `<div class="empty">Nadie a cargo ni sumado todavía. Acéptala o suma a alguien.</div>`;
 
   return `<section class="card" style="padding:12px 13px">
     <div class="row wrap g8" style="justify-content:space-between; align-items:center; margin-bottom:8px">
-      <span class="eyebrow">${IC.panas} Quién más está en esta misión</span>
+      <span class="eyebrow eb-ico">${IC.panas} Quién más está en esta misión</span>
     </div>
     ${lista}
     ${viva(m) && candidatos.length ? `<div class="row g6" style="margin-top:10px">
@@ -1534,7 +1883,7 @@ function bloqueHilo(m){
 
   return `<section class="card" style="padding:12px 13px">
     <div class="row wrap g8" style="justify-content:space-between; align-items:center; margin-bottom:8px">
-      <span class="eyebrow">${IC.chat} El hilo</span>
+      <span class="eyebrow eb-ico">${IC.chat} El hilo</span>
       <span class="sub" style="font-size:11px">Tu líder y gerencia no ven esto</span>
     </div>
     ${cuerpo}
@@ -1570,6 +1919,13 @@ async function borrarMensaje(misionId, msgId){
     await cargarHilo(misionId);
   }catch(e){ avisarError(e, "hilo"); }
 }
+/* 24/09 — tras sumar o quitar, la tarjeta del listado también se entera. */
+function sincronizarEquipo(misionId){
+  const m = D.misiones.find(x=>x.id===misionId);
+  if(m && hiloCache.misionId===misionId && Array.isArray(hiloCache.colaboradores)){
+    m.colaboradores = hiloCache.colaboradores.map(c=>c.membershipId);
+  }
+}
 async function sumarColaborador(misionId){
   const sel = document.getElementById("colabSel");
   if(!sel || !sel.value) return;
@@ -1577,12 +1933,14 @@ async function sumarColaborador(misionId){
     const r = await LevelopAPI.misiones.agregarColaborador(misionId, sel.value);
     if(r && r.nuevo === false) toast("", "panas", "Ya estaba", "Esa persona ya figuraba en la misión.");
     await cargarHilo(misionId);
+    sincronizarEquipo(misionId);
   }catch(e){ avisarError(e, "colaboradores"); }
 }
 async function quitarColaborador(misionId, membershipId){
   try{
     await LevelopAPI.misiones.quitarColaborador(misionId, membershipId);
     await cargarHilo(misionId);
+    sincronizarEquipo(misionId);
   }catch(e){ avisarError(e, "colaboradores"); }
 }
 
@@ -1837,9 +2195,25 @@ function vistaRanking(){
   const R = D.ranking;
   const prefs = { verTabla: !!(R && R.prefs && R.prefs.verTablaCompleta) };
   const ambito = state.rankingAmbito || "global";
+  /* 19/09 (Alim, CAMBIOS 1.1 · Ranking 3): los dos interruptores estaban al
+     final de la página y obligaban a bajar hasta el fondo para tocarlos. Suben
+     acá arriba como dos chips, discretos; el texto largo que explicaba cada uno
+     no se pierde, pasa al `title` y al modal de ayuda. */
+  const vr = state.rankingVariacion;
   const cab = `<div class="page-h"><div><span class="eyebrow">Entre todos</span><h1>Ranking</h1></div>
     ${(D.membresia && D.membresia.areaId) ? `<div class="seg"><button data-ranking-ambito="global" aria-pressed="${ambito==="global"}">Toda la empresa</button><button data-ranking-ambito="area" aria-pressed="${ambito==="area"}">Mi área</button></div>` : ""}
-  </div>`;
+  </div>
+  ${R && R.participo ? `<div class="row wrap g6" style="margin-bottom:12px">
+    <button class="chip ${prefs.verTabla?"ok":""}" data-ranking-pref="verTablaCompleta" data-valor="${!prefs.verTabla}"
+      title="Por defecto ves tu puesto y ±3. Una tabla entera de arriba a abajo desinfla al que va de último.">${prefs.verTabla?"✓ ":""}Tabla completa</button>
+    <button class="chip ok" data-ranking-pref="participaEnRanking" data-valor="false"
+      title="Si lo apagas sigues jugando y ganando Oro; solo no sales en la tabla de nadie ni ves la de nadie.">✓ Apareces</button>
+    <span style="flex:1"></span>
+    <div class="seg">
+      ${[["",'Sin comparar'],["dia","Día"],["semana","Semana"],["mes","Mes"]].map(([k,n])=>
+        `<button data-ranking-var="${k}" aria-pressed="${(vr||"")===k}">${n}</button>`).join("")}
+    </div>
+  </div>` : ""}`;
 
   if(!R) return cab + `<div class="card empty">El ranking no cargó. Reintenta en un momento.</div>`;
 
@@ -1856,19 +2230,48 @@ function vistaRanking(){
     </section>`;
   }
 
-  const maxXp = Math.max(1, ...R.tabla.map(f=>f.xp||0));
+  /* 07/10 (Batch de Cambios) — el ranking cambia de referencia.
+     Antes cada barra se medía contra el MÁXIMO VISIBLE de la tabla. Como por
+     defecto cada quien ve solo su puesto y ±3, el «máximo» era el vecino de
+     arriba: dos personas veían barras distintas con los mismos datos, y nadie
+     podía comparar nada entre sí.
+
+     Ahora el techo lo pone el LÍDER, como pidió Alim: la barra llena es la XP
+     del #1 y todos se miden contra ese mismo número. En negro lo que la
+     persona tiene; en verde lo que le falta para alcanzarlo.
+
+     `xpLider` sale de `R.lider` cuando el servidor lo manda; si no, del máximo
+     de la tabla. Esa diferencia importa con la tabla recortada: sin el dato del
+     líder, quien ve ±3 creería que el primero de su ventana es el primero de la
+     empresa. */
+  const xpLider = Math.max(1, (R.lider && R.lider.xp) || Math.max(...R.tabla.map(f=>f.xp||0), 1));
   const filas = R.tabla.map(f=>{
     const yo = f.membershipId===mid();
-    return `<div class="estado-row ${yo?"me":""}" style="${yo?"outline:2px solid var(--gold); outline-offset:-2px":""}">
-      <span class="bl"><b class="num">#${f.posicion}</b> ${esc(yo?"Tú":f.nombre)} <span class="sub">· Nv ${f.nivel}</span></span>
-      <span class="bar-track"><span class="bar-fill c-xp" style="width:${((f.xp||0)/maxXp*100).toFixed(0)}%"></span></span>
+    const pct = Math.min(100, ((f.xp||0)/xpLider*100));
+    const falta = Math.max(0, xpLider - (f.xp||0));
+    return `<button class="estado-row rk ${yo?"me":""}" data-ficha="${esc(f.membershipId)}"
+      style="${yo?"outline:2px solid var(--gold); outline-offset:-2px":""}"
+      title="${esc(yo?"Tú":f.nombre)}${f.personaje?` · ${esc(nombrePersonaje(f.personaje)||"")}`:""} · Nv ${f.nivel}${falta>0?` · le faltan ${fmt(falta)} XP para alcanzar al #1`:" · lidera"}">
+      <span class="rk-pj">${avatarPersonaje(f.personaje, 32)}<span class="rk-nombre">${esc(yo?"Tú":f.nombre)}</span></span>
+      <span class="rk-pos"><b class="num">#${f.posicion}</b>${flechaPuesto(f.posicion, f.posicionAntes, true)}</span>
+      <span class="bar-track rk-bar" aria-label="${fmt(f.xp)} de ${fmt(xpLider)} XP del líder">
+        <span class="bar-fill rk-tiene" style="width:${pct.toFixed(1)}%"></span>
+      </span>
       <span class="bv num">${fmt(f.xp)} XP</span>
-    </div>`;
+    </button>`;
   }).join("");
+
+  /* La misma flecha que va en cada fila, también arriba en «Tu puesto»: es lo
+     que Alim marcó con «tanto en Toda la empresa como en Mi área». Sale de la
+     fila propia de la tabla, así que respeta el ámbito elegido sin un segundo
+     cálculo — y si no hay comparación elegida no se dibuja nada, en vez de un
+     símbolo que afirmaría algo que no medimos. */
+  const miFila = R.tabla.find(x=>x.membershipId===mid());
+  const miFlecha = miFila ? flechaPuesto(miFila.posicion, miFila.posicionAntes) : "";
 
   return cab + `
   <div class="stat-strip" style="margin-bottom:14px">
-    <div class="stat"><div class="l">Tu puesto</div><div class="v">${R.miPosicion?`#${R.miPosicion}`:"—"}</div></div>
+    <div class="stat"><div class="l">Tu puesto</div><div class="v">${R.miPosicion?`#${R.miPosicion}`:"—"}${miFlecha?` <span style="font-size:14px">${miFlecha}</span>`:""}</div></div>
     <div class="stat"><div class="l">En la tabla</div><div class="v">${R.tabla.length}</div></div>
     <div class="stat"><div class="l">Se ordena por</div><div class="v" style="font-size:14px">XP</div></div>
   </div>
@@ -1876,17 +2279,7 @@ function vistaRanking(){
     <div class="w-h"><span class="wi">${IC.ranking}</span><h3>${prefs.verTabla?"Tabla completa":"Tú y los de al lado"}${ambito==="area"?" · "+esc(miArea()||"tu área"):""}</h3></div>
     <div class="w-body"><div class="stack g8">${filas || `<div class="empty">Nadie con XP todavía.</div>`}</div></div>
   </section>
-  <div class="card" style="margin-top:14px">
-    <div class="setting">
-      <div class="setting-b"><div class="t">Ver la tabla completa</div><div class="d">Por defecto ves tu puesto y ±3. Una tabla entera de arriba a abajo desinfla al que va de último — por eso viene apagada.</div></div>
-      <button class="switch" role="switch" aria-checked="${prefs.verTabla}" data-ranking-pref="verTablaCompleta" data-valor="${!prefs.verTabla}"></button>
-    </div>
-    <div class="setting">
-      <div class="setting-b"><div class="t">Aparecer en el ranking</div><div class="d">Si lo apagas sigues jugando y ganando Oro; solo no sales en la tabla de nadie ni ves la de nadie.</div></div>
-      <button class="switch" role="switch" aria-checked="true" data-ranking-pref="participaEnRanking" data-valor="false"></button>
-    </div>
-  </div>
-  <div class="note" style="margin-top:12px">Se ordena por XP, que solo sube con misiones cerradas. «El que más mejoró contra su propia semana pasada» sería otra tabla distinta — no está construida, y esta no la reemplaza.</div>`;
+  <div class="note" style="margin-top:14px">Toca a cualquiera de la tabla para ver su ficha. Los dos interruptores del ranking están arriba.</div>`;
 }
 
 /* =========================================================
@@ -1896,22 +2289,24 @@ function vistaPerfil(){
   const M = D.membresia || {};
   const activos = D.canjes.filter(c => c.estado==="RESERVADO" || c.estado==="CONFIRMADO");
 
-  const ESTADO_CANJE = {
-    SOLICITADO:  {chip:"sync", txt:"Solicitado"},
-    RESERVADO:   {chip:"sync", txt:"En proceso"},
-    CONFIRMADO:  {chip:"ok",   txt:"Confirmado"},
-    RECHAZADO:   {chip:"risk", txt:"Rechazado"},
-    INDETERMINADO:{chip:"sync",txt:"No sabemos"},
-    REVERTIDO:   {chip:"",     txt:"Revertido"}
-  };
+  const ESTADO_CANJE = ESTADO_CANJE_G;
 
   return `
-  <div class="page-h"><div><span class="eyebrow">Tu cuenta</span><h1>Perfil</h1></div></div>
+  <div class="page-h"><div><span class="eyebrow">Tu cuenta</span><h1>Perfil</h1></div>
+    ${optIn()?`<button class="btn sm gold" data-vitrina>${IC.trofeo} Vitrina de trofeos${D.vitrina?` · ${D.vitrina.totalGanadas}`:""}</button>`:""}
+  </div>
 
-  <div class="hero" style="margin-bottom:14px">
+  <!-- 07/10 (Batch de Cambios): «ajustar el recorte de estas secciones para que
+       se ajuste al agregado del usuario». Los datos y la tarjeta de jugar-o-no
+       dejan de ocupar todo el ancho y comparten la fila con el personaje, que
+       ocupa la columna de la derecha completa. En teléfono vuelven a apilarse. -->
+  <div class="perfil-top">
+  <div class="hero">
     <div class="hero-top">
       <span class="av-wrap">
-        <span class="av lg" style="background:#0C6E78">${esc(iniciales(miNombre()))}</span>
+        ${miPersonaje()
+          ? avatarPersonaje(miPersonaje(), 56)
+          : `<span class="av lg" style="background:#0C6E78">${esc(iniciales(miNombre()))}</span>`}
       </span>
       <div style="flex:1; min-width:0">
         <div class="hero-n">${esc(miNombre())}</div>
@@ -1931,35 +2326,56 @@ function vistaPerfil(){
       <div class="stat"><div class="l">Beneficios</div><div class="v">${activos.length}</div></div>
     </div>`:""}
   </div>
+  ${panelPersonaje(120)}
 
-  <div class="card" style="margin-bottom:14px">
+  <!-- 19/09 (Alim, CAMBIOS 1.1 · Perfil 2): el detalle largo se leía como una
+       advertencia antes de que nadie hubiera decidido nada. Ahora arriba va una
+       frase corta y amable, y el detalle completo aparece recién al tocar el
+       botón, con confirmación. Es el mismo texto: cambió CUÁNDO se lee, no qué
+       dice — nadie apaga el juego sin haber visto las consecuencias. -->
+  <div class="card juego-card">
     <div class="setting">
       <div class="setting-b">
-        <div class="t">Jugar o no jugar</div>
-        <div class="d">Es tuyo apagarlo cuando quieras, sin pedirle permiso a nadie.</div>
+        <div class="t">${IC.mano} ${optIn()?"¿Necesitas un respiro?":"Tienes el juego en pausa"}</div>
+        <div class="d">${optIn()
+          ? "Entendemos que a veces uno quiere tomarse un break del juego. Es tuyo apagarlo cuando quieras, sin pedirle permiso a nadie."
+          : "Cuando quieras volver, tu nivel y tu experiencia te están esperando: la XP no se pierde."}</div>
       </div>
-      <button class="switch" role="switch" aria-checked="${optIn()}" aria-label="Participar en el juego" data-optin="${!optIn()}"></button>
-    </div>
-    <div style="padding:0 14px 14px">
-      <div class="note">Si lo apagas: dejas de ganar Oro nuevo, tu saldo sigue caducando a los 90 días como el de todos, y lo que caduque mientras esté apagado no vuelve al prenderlo. Todo lo del trabajo (misiones, avisos) sigue igual. Nadie tiene que aprobarlo y a tu líder no le llega ningún aviso.</div>
+      <button class="switch" role="switch" aria-checked="${optIn()}" aria-label="Participar en el juego"
+        ${optIn()?`data-apagar-juego`:`data-optin="true"`}></button>
     </div>
   </div>
+  </div>
+
+  ${seccionPersonaje()}
 
   ${optIn() && D.progreso ? `<div class="stat-strip" style="margin-bottom:14px">
     <div class="stat"><div class="l">Nivel</div><div class="v">${D.progreso.nivel}</div></div>
-    <div class="stat"><div class="l">XP</div><div class="v">${fmt(D.progreso.xp)}</div></div>
-    <div class="stat"><div class="l">Puesto</div><div class="v">${D.ranking && D.ranking.participo && D.ranking.miPosicion ? `#${D.ranking.miPosicion}` : "—"}</div></div>
+    <div class="stat"><div class="l">Puesto general</div><div class="v">${miFicha && miFicha.juego && miFicha.juego.puestoGeneral ? `#${miFicha.juego.puestoGeneral}` : (D.ranking && D.ranking.participo && D.ranking.miPosicion ? `#${D.ranking.miPosicion}` : "—")}${indicadorPuesto("general")}</div></div>
+    <div class="stat"><div class="l">Puesto en tu área</div><div class="v">${miFicha && miFicha.juego && miFicha.juego.puestoArea ? `#${miFicha.juego.puestoArea}` : "—"}${indicadorPuesto("area")}</div></div>
+  </div>
+  <div class="row wrap g6" style="margin-bottom:14px">
+    <button class="btn sm" data-ficha="${esc(mid()||"")}">Ver tu ficha completa</button>
   </div>`:""}
 
   ${seccionPlegable("beneficios","Tus beneficios", `${activos.length} activos`, `
+    <div class="row wrap g6" style="margin-bottom:10px">
+      <div class="seg">${[["","Todos"],["pronto","Vencen pronto"],["lejos","Vencen después"]].map(([k,n])=>
+        `<button data-orden-canjes="${k}" aria-pressed="${(state.ordenCanjes||"")===k}">${n}</button>`).join("")}</div>
+      <span style="flex:1"></span>
+      <button class="btn sm" data-historial-pedidos>Historial de pedidos</button>
+    </div>
     <div class="stack g8">
-    ${D.canjes.length ? D.canjes.map(c=>{
-      const it = D.catalogo.find(i=>i.id===c.itemId);
+    ${D.canjes.length ? canjesOrdenados(activosPrimero(D.canjes)).map(c=>{
       const e = ESTADO_CANJE[c.estado] || {chip:"", txt:c.estado};
+      const v = chipVencimiento(c);
       return `<div class="benefit ${c.estado==="INDETERMINADO"?"ind":""}">
         <span class="item-ico">${IC.ticket}</span>
         <div style="flex:1; min-width:0">
-          <h4>${esc(it ? it.nombre : "Beneficio")}</h4>
+          <div class="row wrap g8" style="justify-content:space-between; align-items:flex-start">
+            <h4 style="flex:1; min-width:0">${esc(nombreCanje(c))}</h4>
+            ${v}
+          </div>
           <div class="area-tag" style="margin-top:3px">Pedido ${esc(fecha(new Date(c.createdAt)))} · ${fmt(c.precioOroAplicado)} de Oro</div>
           <div class="row wrap g8" style="margin-top:8px">
             <span class="chip ${e.chip}">${esc(e.txt)}</span>
@@ -1975,8 +2391,7 @@ function vistaPerfil(){
 
   <div class="sec-h"><h2>Todavía sin conectar</h2><span class="sub">En tu perfil</span></div>
   ${listaNC([
-    ["trofeo","Trofeos y medallas","No hay tabla ni endpoint."],
-    ["llama","Racha","No hay backend ni definición de cómo se calcula."],
+    ["llama","Racha","Falta una decisión, no código: diaria o semanal. Ver LVL-062."],
     ["tuerca","Cambiar tu nombre o tu color","No hay endpoint para editar el perfil. Tu nombre sale de la base como lo cargó tu empresa."]
   ])}
 
@@ -2032,7 +2447,7 @@ const VIEWS = {inicio:vistaInicio, misiones:vistaMisiones, tienda:vistaTienda, r
 function render(){
   if(!D.membresia) return;
   if(!tabsVisibles().some(t=>t.id===state.tab)) state.tab="inicio";
-  pintarNav(); pintarHud(); pintarChrome();
+  pintarColorSeccion(); pintarNav(); pintarHud(); pintarChrome();
   const v = document.getElementById("view");
   if(state.cargando && !D.cargado){ v.innerHTML = `<div class="cargando">Cargando…</div>`; return; }
   if(state.errorCarga && !D.cargado){
@@ -2072,7 +2487,11 @@ async function cerrarMision(id){
     const r = await LevelopAPI.misiones.cerrar(id, {clientOccurredAt: new Date().toISOString()});
     await Promise.all([
       LevelopAPI.misiones.listar().then(l=>{ D.misiones = Array.isArray(l)?l:D.misiones; }),
-      refrescarSaldo()
+      refrescarSaldo(),
+      /* 24/09 — la meta del mes y la vitrina se quedaban con el número viejo
+         hasta recargar la página. Si fallan, no tumban el cierre. */
+      LevelopAPI.logros.meta().then(x=>{ if(x) D.meta = x; }).catch(()=>{}),
+      LevelopAPI.logros.vitrina().then(x=>{ if(x) D.vitrina = x; }).catch(()=>{})
     ]);
     cerrarModal(); render();
 
@@ -2142,14 +2561,512 @@ async function cambiarPrefRanking(campo, valor){
   try{
     const dto = {}; dto[campo] = !!valor;
     await LevelopAPI.economia.actualizarPrefsRanking(dto);
-    D.ranking = await LevelopAPI.economia.ranking(state.rankingAmbito);
+    D.ranking = await LevelopAPI.economia.ranking(state.rankingAmbito, state.rankingVariacion);
     render();
   }catch(e){ avisarError(e, "ranking"); }
 }
 async function cambiarAmbitoRanking(ambito){
   state.rankingAmbito = ambito;
-  try{ D.ranking = await LevelopAPI.economia.ranking(ambito); }catch(e){ avisarError(e, "ranking"); }
+  await recargarRanking();
+}
+/* 19/09 (Alim, CAMBIOS 1.1 · Ranking 1): quién subió y quién bajó. La posición
+   anterior la reconstruye el servidor desde el ledger, así que es exacta y no
+   una estimación. Sube = menos número. */
+async function cambiarVariacionRanking(v){
+  state.rankingVariacion = v || null;
+  await recargarRanking();
+}
+async function recargarRanking(){
+  try{ D.ranking = await LevelopAPI.economia.ranking(state.rankingAmbito, state.rankingVariacion); }
+  catch(e){ avisarError(e, "ranking"); }
   render();
+}
+/* Subíó, bajó o se mantuvo. Dos presentaciones del mismo dato:
+   - con cuenta (`▲2`), para donde hay espacio y el número agrega algo;
+   - solo el glifo, que es lo que dibujó Alim debajo del puesto en el ranking.
+   En las dos, cuántos puestos se movió va en el `title`, así que el dato no se
+   pierde: cambia dónde se lee, no si existe. El «se mantuvo» no es un «=»
+   suelto sino una raya horizontal, para que las tres formas se distingan de un
+   vistazo aunque alguien no vea bien el color. */
+function flechaPuesto(pos, antes, glifo){
+  if(antes === null || antes === undefined) return "";
+  const d = antes - pos;
+  if(d > 0)  return `<span class="flecha sube" title="Subió ${d} puesto${d===1?"":"s"}">▲${glifo?"":d}</span>`;
+  if(d < 0)  return `<span class="flecha baja" title="Bajó ${-d} puesto${d===-1?"":"s"}">▼${glifo?"":-d}</span>`;
+  return `<span class="flecha igual" title="Se mantuvo en el mismo puesto">${glifo?"─":"="}</span>`;
+}
+
+/* Los seis estados del canje, con su copy. Era local a la vista de Perfil;
+   desde el 19/09 lo usa también el modal de historial, así que sube. */
+const ESTADO_CANJE_G = {
+  SOLICITADO:   {chip:"sync", txt:"Solicitado"},
+  RESERVADO:    {chip:"sync", txt:"En proceso"},
+  CONFIRMADO:   {chip:"ok",   txt:"Confirmado"},
+  RECHAZADO:    {chip:"risk", txt:"Rechazado"},
+  INDETERMINADO:{chip:"sync", txt:"No sabemos"},
+  REVERTIDO:    {chip:"",     txt:"Revertido"}
+};
+
+/* 19/09 — el detalle completo de apagar el juego, con confirmación. El texto
+   es el mismo que estaba antes en la tarjeta: no se suavizó nada, solo se
+   movió al momento en que importa. */
+function modalApagarJuego(){
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Tu decisión</span>
+        <h2 style="margin-top:4px">Antes de apagar el juego</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="note">Si lo apagas: dejas de ganar Oro nuevo, tu saldo sigue caducando a los 90 días como el de todos, y lo que caduque mientras esté apagado no vuelve al prenderlo.</div>
+        <div class="note ok" style="margin-top:10px">Lo que NO cambia: todo el trabajo sigue igual —misiones, avisos, el hilo— y tu experiencia y tu nivel no se pierden. Nadie tiene que aprobarlo y a tu líder no le llega ningún aviso.</div>
+      </div>
+      <div class="sheet-f">
+        <button class="btn" style="flex:1" data-cerrar>Mejor no</button>
+        <button class="btn primary" style="flex:1" data-optin="false">Apagar el juego</button>
+      </div>
+    </div></div>`;
+}
+
+/* =========================================================
+   VITRINA DE TROFEOS Y META DEL MES (19/09/26)
+   -------------------------------------------------------
+   Los alientos rotan por día, no al azar en cada render:
+   un mensaje que cambia cada vez que parpadeas se siente
+   como una máquina hablando. Uno por día se siente como
+   alguien que te saluda.
+   ========================================================= */
+const ALIENTOS = [
+  "¡Vamos, que nadie se te compara!",
+  "¡Eso es, la estás patiendo!",
+  "¡Échale, que vas fino!",
+  "¡Tú sí sabes, mi pana!",
+  "¡Dale que vas, que esto es tuyo!"
+];
+const alientoDelDia = () => ALIENTOS[Math.floor(Date.now()/86400000) % ALIENTOS.length];
+
+function modalVitrina(){
+  const V = D.vitrina;
+  if(!V) return `<div class="veil" data-cerrar><div class="sheet" data-stop>
+    <div class="sheet-b"><div class="empty">Cargando…</div></div>
+    <div class="sheet-f"><button class="btn" data-cerrar>Cerrar</button></div></div></div>`;
+  const ganadas = V.personales.filter(x=>x.ganada);
+  const faltan  = V.personales.filter(x=>!x.ganada);
+  const conTrofeo = V.area.filter(x=>x.veces>0);
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">${IC.trofeo} Tu vitrina</span>
+        <h2 style="margin-top:4px">${ganadas.length} de ${V.totalPersonales}</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        <div class="note gold"><b>${ganadas.length ? esc(alientoDelDia()) : "Acá va a estar todo lo que te ganes."}</b>
+          ${ganadas.length ? "" : " Arranca cerrando una misión — la primera ya cuenta."}</div>
+
+        ${ganadas.length ? `<div class="sec-h" style="margin-top:14px"><h2 style="font-size:15px">Las que tienes</h2></div>
+          <div class="stack g8">${ganadas.map(x=>`
+            <div class="row wrap g8" style="align-items:baseline; padding:8px 0; border-bottom:1px solid var(--line)">
+              <span class="chip gold">${IC.trofeo} ${esc(x.nombre)}</span>
+              <span class="sub" style="flex:1">${esc(x.comoSeGana)}</span>
+              <span class="sub">${esc(fechaCorta(new Date(x.ganadaAt)))}</span>
+            </div>`).join("")}</div>` : ""}
+
+        ${faltan.length ? `<div class="sec-h" style="margin-top:16px"><h2 style="font-size:15px">Las que faltan</h2></div>
+          <div class="stack g8">${faltan.map(x=>`
+            <div class="row wrap g8" style="align-items:baseline; padding:8px 0; border-bottom:1px solid var(--line); opacity:.62">
+              <span class="chip">${esc(x.nombre)}</span>
+              <span class="sub" style="flex:1">${esc(x.comoSeGana)}</span>
+            </div>`).join("")}</div>` : ""}
+
+        <div class="sec-h" style="margin-top:16px"><h2 style="font-size:15px">Trofeos de tu área</h2></div>
+        ${conTrofeo.length
+          ? `<div class="row wrap g6">${conTrofeo.map(x=>`<span class="chip gold" title="${esc(x.comoSeGana)}">${esc(x.nombre)}${x.veces>1?` ×${x.veces}`:""}</span>`).join("")}</div>`
+          : `<div class="empty">Tu área todavía no ganó ninguno. Son del área, no de una persona.</div>`}
+      </div>
+      <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Cerrar</button></div>
+    </div></div>`;
+}
+
+/* La meta del mes. Cumplirla NO da Oro — si lo diera, la meta racional de todo
+   el mundo sería el número más bajo posible. Da medalla, y alimenta las tres
+   rachas de trimestre, semestre y año. */
+/* =========================================================
+   TU PERSONAJE, EN EL PERFIL (07/10/26)
+   -------------------------------------------------------
+   Dos secciones que pidió Alim: el personaje completo, y
+   cuánta experiencia llevás y cuánta falta.
+
+   El selector muestra los ocho SIEMPRE, incluso bloqueado.
+   Esconderlos durante el bloqueo convertiría una regla en
+   un misterio: la persona necesita poder mirar lo que va a
+   elegir dentro de tres semanas.
+   ========================================================= */
+function seccionPersonaje(){
+  const P = D.personaje;             // { elenco, personaje, puedeCambiar, faltanDias, ... }
+  const actual = miPersonaje();
+  const p = D.progreso;
+
+  const barraXp = p ? (() => {
+    const span = Math.max(1, p.xpSiguienteNivel - p.xpInicioNivel);
+    const pct  = Math.max(0, Math.min(100, ((p.xp - p.xpInicioNivel) / span) * 100));
+    const falta = Math.max(0, p.xpSiguienteNivel - p.xp);
+    return `<div class="pj-xp">
+      <div class="row wrap g8" style="justify-content:space-between; align-items:baseline">
+        <b>Nivel ${p.nivel}</b>
+        <span class="sub">${falta>0?`Te faltan ${fmt(falta)} XP para el nivel ${p.nivel+1}`:"Nivel máximo con esta configuración"}</span>
+      </div>
+      <span class="bar-track rk-bar" style="margin-top:7px"><span class="bar-fill rk-tiene" style="width:${pct.toFixed(0)}%"></span></span>
+      <div class="sub" style="margin-top:6px">${fmt(p.xp)} XP acumulada · el nivel abre catálogo, no da Oro</div>
+    </div>`;
+  })() : "";
+
+  const estado = !P ? "" :
+    P.puedeCambiar
+      ? `<span class="chip ok">Puedes cambiar</span>`
+      : `<span class="chip">Puedes cambiar en ${P.faltanDias} día${P.faltanDias===1?"":"s"}</span>`;
+
+  const selector = `<div class="pj-grid">${ELENCO.map(x=>{
+    const esActual = x.clave === actual;
+    const bloq = P && !P.puedeCambiar && !esActual;
+    return `<button class="pj-op ${esActual?"es":""}" data-elegir-pj="${esc(x.clave)}" ${bloq?"disabled":""}
+      title="${esc(x.nombre)} — ${esc(x.d)}">
+      ${avatarPersonaje(x.clave, 44)}
+      <span class="pj-n">${esc(x.nombre)}</span>
+    </button>`;
+  }).join("")}</div>`;
+
+  /* 07/10 (tarde): el cuerpo entero salió de acá y subió al panel grande de
+     arriba. Dibujarlo dos veces en la misma pantalla no agregaba nada y le
+     quitaba sitio al elenco, que es para lo que existe esta sección. */
+  return `<section class="card pj-card" style="margin-bottom:14px">
+    <div class="pj-top">
+      <div style="flex:1; min-width:0">
+        <span class="eyebrow">Tu personaje</span>
+        <h2 style="font-size:22px; margin:4px 0 6px">${esc(nombrePersonaje(actual) || "Todavía no elegiste")}</h2>
+        <p class="sub" style="margin:0">${esc(actual ? (PJ[actual].d) : "Elige uno de los ocho. Es cómo te ven tus compañeros en el ranking y en tu ficha.")}</p>
+        <div class="row wrap g6" style="margin-top:10px">${estado}</div>
+        ${barraXp}
+      </div>
+    </div>
+    <div class="sec-h" style="margin-top:4px"><h2 style="font-size:15px">El elenco</h2>
+      <span class="sub">${P && !P.puedeCambiar ? `Cambiaste hace poco. El próximo cambio se habilita en ${P.faltanDias} día${P.faltanDias===1?"":"s"}.` : "Elegir es gratis. Después queda bloqueado un tiempo."}</span></div>
+    ${selector}
+  </section>`;
+}
+
+async function elegirPersonaje(clave){
+  try{
+    D.personaje = await LevelopAPI.equipo.elegirPersonaje(clave);
+    if(D.membresia) D.membresia.personaje = D.personaje.personaje;
+    toast("ok","check", `Ahora eres ${nombrePersonaje(clave)}`,
+      D.personaje.puedeCambiar ? "Puedes cambiarlo cuando quieras."
+        : `Podrás cambiarlo de nuevo en ${D.personaje.faltanDias} días.`);
+    render();
+  }catch(e){
+    if(e && e.motivoRechazo === "PERSONAJE_BLOQUEADO"){
+      return toast("risk","candado","Todavía no", (e && e.message) || "Hace poco cambiaste de personaje.", 6000);
+    }
+    avisarError(e, "personaje");
+  }
+}
+
+function widgetMeta(){
+  const M = D.meta;
+  if(!M) return "";
+  if(M.objetivo === null){
+    return `<section class="w" style="margin-bottom:14px">
+      <div class="w-h"><span class="wi">${IC.diana}</span><h3>Tu meta del mes</h3></div>
+      <div class="w-body">
+        ${M.puedeCambiar
+          ? `<div class="sub" style="margin-bottom:10px">¿Cuántas misiones te propones cerrar este mes? La eliges tú y no la ve nadie más. Cumplirla no da Oro: da medalla.${new Date().getDate()>7?` <b>Ojo: pasado el día 7, la que elijas queda fija hasta fin de mes.</b>`:` Puedes ajustarla hasta el día 7.`}</div>
+             <div class="row g6">${[3,5,10,15].map(n=>`<button class="btn sm" data-fijar-meta="${n}">${n}</button>`).join("")}
+             <input id="metaOtro" type="number" min="1" max="200" placeholder="Otro" style="width:80px" data-stop>
+             <button class="btn sm gold" data-fijar-meta="">Fijar</button></div>`
+          : `<div class="empty">La del mes que viene la puedes poner el día 1.</div>`}
+      </div></section>`;
+  }
+  const pct = Math.min(100, Math.round((M.cerradas / M.objetivo) * 100));
+  return `<section class="w" style="margin-bottom:14px">
+    <div class="w-h"><span class="wi">${IC.diana}</span><h3>Tu meta del mes</h3>
+      <span class="c">${M.cerradas} de ${M.objetivo}</span></div>
+    <div class="w-body">
+      <span class="bar-track"><span class="bar-fill ${M.cumplidaAt?"c-gold":"c-xp"}" style="width:${pct}%"></span></span>
+      <div class="sub" style="margin-top:8px">${M.cumplidaAt
+        ? `Cumplida. La medalla ya es tuya — y si la cumples tres meses seguidos, viene otra.`
+        : `Te faltan ${M.objetivo - M.cerradas} misión${M.objetivo - M.cerradas===1?"":"es"}. Solo la ves tú.`}</div>
+      ${M.puedeCambiar && !M.cumplidaAt ? `<div class="row g6" style="margin-top:10px">
+        <input id="metaOtro" type="number" min="1" max="200" value="${M.objetivo}" style="width:80px" data-stop>
+        <button class="btn sm" data-fijar-meta="">Cambiarla</button>
+        <span class="sub" style="align-self:center">Hasta el día 7</span></div>` : ""}
+    </div></section>`;
+}
+async function fijarMeta(valor){
+  const n = valor ? Number(valor) : Number((document.getElementById("metaOtro")||{}).value);
+  if(!(n>0)) return toast("risk","alerta","Pon un número","Al menos una misión.");
+  try{
+    D.meta = await LevelopAPI.logros.fijarMeta(n);
+    toast("ok","diana","Meta fijada", `${n} misiones este mes. No la ve nadie más.`);
+    // Si ya la cumplió al fijarla, la medalla sale en el acto: refrescar la vitrina.
+    try{ D.vitrina = await LevelopAPI.logros.vitrina(); }catch(_){}
+    render();
+  }catch(e){ avisarError(e, "meta"); }
+}
+
+/* Historial de pedidos (CAMBIOS 1.1 · Perfil 3): todo lo pedido alguna vez,
+   fuera de la lista de arriba, que muestra lo que sigue vigente. */
+function modalHistorialPedidos(){
+  const filas = [...D.canjes].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Tienda</span>
+        <h2 style="margin-top:4px">Historial de pedidos</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">
+        ${filas.length ? `<div class="stack g8">${filas.map(c=>{
+          const e = ESTADO_CANJE_G[c.estado] || {chip:"", txt:c.estado};
+          return `<div class="row wrap g8" style="justify-content:space-between; align-items:baseline; padding:9px 0; border-bottom:1px solid var(--line)">
+            <span style="flex:1; min-width:0"><b>${esc(nombreCanje(c))}</b>
+              <span class="sub" style="display:block">${esc(fecha(new Date(c.createdAt)))} · ${fmt(c.precioOroAplicado)} de Oro</span></span>
+            <span class="chip ${e.chip}">${esc(e.txt)}</span>
+          </div>`;
+        }).join("")}</div>
+        <div class="sub" style="margin-top:12px">${filas.length} pedido${filas.length===1?"":"s"} en total · ${fmt(filas.reduce((a,c)=>a+(c.estado==="REVERTIDO"||c.estado==="RECHAZADO"?0:c.precioOroAplicado),0))} de Oro gastado</div>`
+        : `<div class="empty">Todavía no has pedido nada.</div>`}
+      </div>
+      <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Cerrar</button></div>
+    </div></div>`;
+}
+
+/* =========================================================
+   VENCIMIENTO DE BENEFICIOS (19/09/26 — CAMBIOS 1.1 · Perfil 4)
+   -------------------------------------------------------
+   Semáforo con la escala que pidió Alim: rojo a 2 días o
+   menos, amarillo a 3, verde de 4 en adelante.
+
+   `diasParaVencer` viene del servidor y puede ser null: la
+   empresa apagó el vencimiento, el canje no está confirmado,
+   o es una fila vieja sin fecha de confirmación. Null NO se
+   dibuja como «vence hoy» — un semáforo que se pone rojo por
+   un dato que falta hace que alguien corra a usar un
+   beneficio que no estaba por vencerse.
+   ========================================================= */
+function chipVencimiento(c){
+  const d = c.diasParaVencer;
+  if(d === null || d === undefined) return "";
+  if(d <= 0) return `<span class="chip risk" title="El plazo para usarlo ya pasó">Venció</span>`;
+  const tono = d <= 2 ? "risk" : d === 3 ? "gold" : "ok";
+  return `<span class="chip ${tono}" title="Se vence el ${esc(fechaCorta(new Date(c.venceEl)))}">Se vence en ${d} día${d===1?"":"s"}</span>`;
+}
+/* El nombre sale del propio canje (viene en el JOIN del servidor desde el
+   19/09). Antes se buscaba en el catálogo, y el catálogo solo trae ítems
+   activos: un beneficio dado de baja después de canjearlo se quedaba sin
+   nombre en el historial de quien lo pidió. */
+const nombreCanje = c => c.itemNombre || "Beneficio";
+/* Lo que todavía sirve va arriba; lo cerrado, abajo. Dentro de cada grupo
+   manda el orden que la persona eligió. */
+function activosPrimero(lista){
+  const vivo = c => c.estado==="CONFIRMADO" || c.estado==="RESERVADO" || c.estado==="SOLICITADO";
+  return [...lista].sort((a,b)=>(vivo(a)?0:1)-(vivo(b)?0:1));
+}
+function canjesOrdenados(lista){
+  const o = state.ordenCanjes;
+  if(!o) return lista;
+  const k = c => (c.diasParaVencer === null || c.diasParaVencer === undefined) ? Infinity : c.diasParaVencer;
+  return [...lista].sort((a,b)=> o==="pronto" ? k(a)-k(b) : k(b)-k(a));
+}
+
+/* =========================================================
+   FICHA DE UNA PERSONA (19/09/26)
+   -------------------------------------------------------
+   La misma para las tres puertas: el ranking, tu propio
+   perfil y —en el panel del líder— su gente. Un solo
+   endpoint, así que la promesa «el líder no ve nada que la
+   persona no vea de sí misma» se puede comprobar abriendo
+   las dos pantallas, en vez de creerla.
+
+   `juego: null` = sin estadísticas que mostrar. No dice por
+   qué, y no debe: es lo mismo para quien apagó el juego y
+   para quien recién entró.
+   ========================================================= */
+const fichaCache = { id:null, datos:null };
+/* La propia ficha se guarda aparte: el perfil la usa para «Puesto general» y
+   «Puesto en tu área» sin tener que abrir el modal. */
+let miFicha = null;
+async function cargarMiFicha(){
+  if(!mid()) return;
+  try{ miFicha = await LevelopAPI.equipo.ficha(mid()); }catch(e){ /* el perfil cae al puesto del ranking */ }
+}
+/* Los tres indicadores que pidió Alim (CAMBIOS 1.1 · Perfil 5). Salen de la
+   variación elegida en el Ranking: si no eligió ninguna, no se inventa una
+   flecha — se muestra nada, que es honesto, en vez de un «=» que afirmaría
+   algo que no medimos. */
+function indicadorPuesto(cual){
+  const R = D.ranking;
+  if(!R || !R.participo || !state.rankingVariacion) return "";
+  const f = (R.tabla||[]).find(x=>x.membershipId===mid());
+  if(!f || f.posicionAntes === null || f.posicionAntes === undefined) return "";
+  if(cual === "area" && state.rankingAmbito !== "area") return "";
+  if(cual === "general" && state.rankingAmbito === "area") return "";
+  return ` <span style="font-size:14px">${flechaPuesto(f.posicion, f.posicionAntes)}</span>`;
+}
+async function abrirFicha(membershipId){
+  fichaCache.id = membershipId; fichaCache.datos = null;
+  abrirModal(modalFicha());
+  try{
+    const f = await LevelopAPI.equipo.ficha(membershipId);
+    if(fichaCache.id !== membershipId) return;
+    fichaCache.datos = f;
+  }catch(e){
+    if(fichaCache.id === membershipId) fichaCache.datos = {error:true};
+  }
+  if(document.querySelector(".veil")) abrirModal(modalFicha());
+}
+function modalFicha(){
+  const f = fichaCache.datos;
+  const col = f ? LevelopAPI.colorArea({color:f.areaColor, indice:f.areaIndice}) : null;
+  const cuerpo = !f
+    ? `<div class="empty">Cargando…</div>`
+    : f.error
+      ? `<div class="empty">No se pudo cargar la ficha.</div>`
+      : `
+      <div class="row wrap g8" style="margin-bottom:12px">
+        ${f.areaNombre?`<span class="chip area-chip" ${col?`style="--area:${esc(col)}"`:""}><span class="area-dot" ${col?`style="--area:${esc(col)}"`:""}></span> ${esc(f.areaNombre)}</span>`:""}
+        <span class="chip">${esc(ROL_TXT[f.rol]||f.rol)}</span>
+        <span class="chip">Desde ${esc(fechaCorta(new Date(f.desde)))}</span>
+      </div>
+      ${!f.juego ? `<div class="note">Esta persona todavía no tiene estadísticas de juego que mostrar.</div>` : `
+        <div class="stat-strip" style="margin-bottom:12px">
+          <div class="stat"><div class="l">Nivel</div><div class="v">${f.juego.nivel}</div></div>
+          <div class="stat"><div class="l">Puesto general</div><div class="v">${f.juego.puestoGeneral?`#${f.juego.puestoGeneral}`:"—"}</div></div>
+          <div class="stat"><div class="l">Puesto en su área</div><div class="v">${f.juego.puestoArea?`#${f.juego.puestoArea}`:"—"}</div></div>
+        </div>
+        <div class="card" style="padding:4px 13px">
+          <div class="kv"><span>Experiencia</span><span class="num">${fmt(f.juego.xp)} XP</span></div>
+          <div class="kv"><span>Cerradas esta semana</span><span class="num">${fmt(f.juego.stats.cerradasSemana)}</span></div>
+          <div class="kv"><span>Cerradas en total</span><span class="num">${fmt(f.juego.stats.cerradasTotal)}</span></div>
+          <div class="kv"><span>En curso ahora</span><span class="num">${fmt(f.juego.stats.enCurso)}</span></div>
+          <div class="kv"><span>Tarda en resolver</span><span class="num">${f.juego.stats.diasPromedio===null?"—":`${f.juego.stats.diasPromedio} días`}</span></div>
+          <div class="kv"><span>Áreas con las que colabora</span><span class="num">${fmt(f.juego.stats.areasCruzadas)}</span></div>
+        </div>
+        <div class="sec-h" style="margin-top:14px"><h2 style="font-size:15px">Trofeos y medallas</h2></div>
+        ${f.juego.medallas && f.juego.medallas.length
+          ? `<div class="row wrap g6">${f.juego.medallas.map(md=>`<span class="chip gold">${esc(md.nombre)}</span>`).join("")}</div>`
+          : `<div class="empty">Todavía ninguna. Están definidas y entran en la próxima entrega.</div>`}
+      `}`;
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h">
+        ${f && !f.error && f.personaje ? `<span style="flex:none">${avatarPersonaje(f.personaje, 44)}</span>` : ""}
+        <div style="flex:1"><span class="eyebrow">Ficha${f && f.personaje ? ` · ${esc(nombrePersonaje(f.personaje)||"")}` : ""}</span>
+        <h2 style="margin-top:4px">${f && !f.error ? esc(f.nombre) : "—"}</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">${cuerpo}</div>
+      <div class="sheet-f"><button class="btn" style="flex:1" data-cerrar>Cerrar</button></div>
+    </div></div>`;
+}
+
+/* =========================================================
+   HOJA DE PERSONAJE (07/10/26 — «Batch de Cambios»)
+   -------------------------------------------------------
+   «Por los momentos solo le da click y ve stats, tipo juego,
+   de sus misiones completadas y demás métricas dentro de la
+   empresa.»
+
+   NO HAY NINGÚN DATO NUEVO ACÁ: todo sale de la ficha, que es
+   el mismo endpoint que ven los compañeros y el líder. Es a
+   propósito. Si la hoja de personaje mostrara algo que la
+   ficha no muestra, habría dos verdades sobre la misma
+   persona, y la promesa de R-07 —«el líder no ve de su gente
+   nada que la persona no vea de sí misma»— dejaría de poder
+   auditarse en un solo lugar.
+
+   BARRAS SOLO DONDE HAY DENOMINADOR REAL: la XP dentro del
+   nivel, y el puesto dentro del total de gente. «Cerradas en
+   total» no lleva barra porque no tiene techo, y una barra sin
+   techo es un número inventado dibujado como si fuera un
+   hecho.
+   ========================================================= */
+async function abrirHojaPersonaje(){
+  abrirModal(modalHojaPersonaje());
+  if(!miFicha){
+    await cargarMiFicha();
+    if(document.querySelector(".veil")) abrirModal(modalHojaPersonaje());
+  }
+}
+function modalHojaPersonaje(){
+  const c = miPersonaje();
+  const f = (miFicha && miFicha.juego) ? miFicha.juego : null;
+  const p = D.progreso;
+
+  const barraNivel = p ? (()=>{
+    const span = Math.max(1, p.xpSiguienteNivel - p.xpInicioNivel);
+    const pct  = Math.max(0, Math.min(100, ((p.xp - p.xpInicioNivel) / span) * 100));
+    const falta = Math.max(0, p.xpSiguienteNivel - p.xp);
+    return `<div style="margin-top:12px">
+      <div class="row wrap g8" style="justify-content:space-between; align-items:baseline">
+        <b class="num">${fmt(p.xp)} XP</b>
+        <span class="sub">${falta>0?`faltan ${fmt(falta)} para el nivel ${p.nivel+1}`:"nivel máximo"}</span>
+      </div>
+      <span class="bar-track rk-bar" style="margin-top:6px"><span class="bar-fill rk-tiene" style="width:${pct.toFixed(0)}%"></span></span>
+    </div>`;
+  })() : "";
+
+  const fila = (etiqueta, valor, nota) => `<div class="kv"><span>${esc(etiqueta)}${nota?` <span class="sub">· ${esc(nota)}</span>`:""}</span><span class="num">${valor}</span></div>`;
+
+  const cuerpo = !c
+    ? `<div class="empty">Todavía no eliges personaje. Baja a «El elenco», en tu perfil, y elige uno.</div>`
+    : `
+    <div class="hoja-top">
+      <div class="hoja-fig">${cuerpoPersonaje(c, 110)}</div>
+      <div style="flex:1; min-width:0">
+        <span class="eyebrow">Hoja de personaje</span>
+        <h2 style="font-size:24px; margin:4px 0 2px">${esc(nombrePersonaje(c)||"")}</h2>
+        <p class="sub" style="margin:0">${esc(PJ[c] ? PJ[c].d : "")}</p>
+        ${barraNivel}
+      </div>
+    </div>
+
+    ${!f ? (miFicha
+        ? `<div class="note" style="margin-top:14px">Tienes el juego apagado, así que no hay estadísticas que mostrar. Tu personaje sigue siendo tuyo y lo ven tus compañeros igual. Al prenderlo vuelve todo: la XP no se pierde.</div>`
+        : `<div class="empty" style="margin-top:14px">Cargando tus estadísticas…</div>`) : `
+      <div class="stat-strip" style="margin-top:16px">
+        <div class="stat"><div class="l">Nivel</div><div class="v">${f.nivel}</div></div>
+        <div class="stat"><div class="l">En la empresa</div><div class="v">${f.puestoGeneral?`#${f.puestoGeneral}`:"—"}</div></div>
+        <div class="stat"><div class="l">En tu área</div><div class="v">${f.puestoArea?`#${f.puestoArea}`:"—"}</div></div>
+      </div>
+
+      <div class="sec-h" style="margin-top:16px"><h2 style="font-size:15px">Tus misiones</h2></div>
+      <div class="card" style="padding:4px 13px">
+        ${fila("Cerradas en total", fmt(f.stats.cerradasTotal))}
+        ${fila("Cerradas esta semana", fmt(f.stats.cerradasSemana))}
+        ${fila("En curso ahora", fmt(f.stats.enCurso))}
+        ${fila("Tardas en cerrar", f.stats.diasPromedio===null?"—":`${f.stats.diasPromedio} d`, "desde que la aceptas")}
+        ${fila("Áreas con las que colaboraste", fmt(f.stats.areasCruzadas))}
+        ${fila("Medallas ganadas", `${fmt(f.medallas?f.medallas.length:0)}${D.vitrina?` / ${fmt(D.vitrina.totalPersonales)}`:""}`)}
+      </div>
+
+      ${f.puestoGeneral && f.totalGeneral ? `<div style="margin-top:14px">
+        <div class="row wrap g8" style="justify-content:space-between; align-items:baseline">
+          <span class="sub">Tu lugar entre ${fmt(f.totalGeneral)} personas que juegan</span>
+          <b class="num">#${f.puestoGeneral}</b>
+        </div>
+        <span class="bar-track" style="margin-top:6px"><span class="bar-fill c-gold"
+          style="width:${Math.max(2, Math.round((1 - (f.puestoGeneral-1)/Math.max(1,f.totalGeneral)) * 100))}%"></span></span>
+      </div>` : ""}
+
+      <div class="note" style="margin-top:14px">Esto es lo mismo que ve cualquiera que abra tu ficha, ni más ni menos. Los poderes de cada personaje todavía no están: hoy elegir personaje es elegir cómo te ves, no cómo juegas.</div>
+    `}`;
+
+  return `<div class="veil" data-cerrar>
+    <div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h">
+        <div style="flex:1"><span class="eyebrow">Tu personaje</span>
+        <h2 style="margin-top:4px">${esc(nombrePersonaje(c) || "Sin personaje")}</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">${cuerpo}</div>
+      <div class="sheet-f">
+        <button class="btn" style="flex:1" data-cerrar>Cerrar</button>
+        <button class="btn primary" style="flex:1" data-tab="perfil">Cambiar personaje</button>
+      </div>
+    </div></div>`;
 }
 
 /* 17/09 — BUG REAL (reportado por Alim: "hice una compra y no se realizó el
@@ -2213,7 +3130,7 @@ document.addEventListener("click", e=>{
   const dentroAvisos = e.target.closest("#avisosdrop, #bell");
   if(!dentroAvisos) toggleAvisos(false);
 
-  const t = e.target.closest("[data-tab],[data-periodo],[data-filtro],[data-filtro-ir],[data-mision],[data-cerrar],[data-aceptar],[data-cerrarmision],[data-shopfam],[data-pedir],[data-confirmar],[data-reglas],[data-plegar],[data-nueva],[data-crear],[data-info],[data-recargar],[data-salir],[data-leer],[data-optin],[data-ranking-pref],[data-ranking-ambito],[data-objetivo],[data-enviar-msg],[data-borrar-msg],[data-sumar-colab],[data-quitar-colab],#bell,#themebtn,[data-stop]");
+  const t = e.target.closest("[data-tab],[data-periodo],[data-filtro],[data-filtro-ir],[data-mision],[data-cerrar],[data-aceptar],[data-cerrarmision],[data-shopfam],[data-pedir],[data-confirmar],[data-reglas],[data-plegar],[data-nueva],[data-crear],[data-info],[data-recargar],[data-salir],[data-leer],[data-optin],[data-ranking-pref],[data-ranking-ambito],[data-objetivo],[data-enviar-msg],[data-borrar-msg],[data-sumar-colab],[data-quitar-colab],[data-ficha],[data-ranking-var],[data-apagar-juego],[data-historial-pedidos],[data-orden-canjes],[data-vitrina],[data-fijar-meta],[data-elegir-pj],[data-hoja-pj],#bell,[data-stop]");
   if(!t) return;
 
   const lv = e.target.closest("[data-leer-varios]"); if(lv){ marcarLeidos(lv.dataset.leerVarios.split(",")); }
@@ -2222,14 +3139,16 @@ document.addEventListener("click", e=>{
   if(t.hasAttribute("data-optin")){ cambiarJuego(t.dataset.optin==="true"); return; }
   if(t.hasAttribute("data-ranking-pref")){ cambiarPrefRanking(t.dataset.rankingPref, t.dataset.valor==="true"); return; }
   if(t.hasAttribute("data-ranking-ambito")){ cambiarAmbitoRanking(t.dataset.rankingAmbito); return; }
+  if(t.hasAttribute("data-ranking-var")){ cambiarVariacionRanking(t.dataset.rankingVar); return; }
+  if(t.hasAttribute("data-ficha")){ abrirFicha(t.dataset.ficha); return; }
+  if(t.hasAttribute("data-apagar-juego")){ abrirModal(modalApagarJuego()); return; }
+  if(t.hasAttribute("data-historial-pedidos")){ abrirModal(modalHistorialPedidos()); return; }
+  if(t.hasAttribute("data-vitrina")){ abrirModal(modalVitrina()); return; }
+  if(t.hasAttribute("data-elegir-pj")){ elegirPersonaje(t.dataset.elegirPj); return; }
+  if(t.hasAttribute("data-hoja-pj")){ abrirHojaPersonaje(); return; }
+  if(t.hasAttribute("data-fijar-meta")){ fijarMeta(t.dataset.fijarMeta); return; }
+  if(t.hasAttribute("data-orden-canjes")){ state.ordenCanjes = t.dataset.ordenCanjes; render(); return; }
 
-  if(t.id==="themebtn"){
-    const cur = document.documentElement.getAttribute("data-theme")||"dark";
-    const nuevo = cur==="dark" ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", nuevo);
-    try{ localStorage.setItem("lvl-tema", nuevo); }catch(err){}
-    return;
-  }
   if(t.id==="bell"){ toggleAvisos(); return; }
 
   /* Hilo y colaboradores (19/09). Van ANTES del corte de `data-stop` porque

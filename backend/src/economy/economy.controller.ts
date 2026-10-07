@@ -95,7 +95,11 @@ export class EconomyController {
    *    ±3 posiciones alrededor de la suya, no la tabla entera.
    */
   @Get('ranking')
-  async ranking(@CurrentMembership() m: Membership, @Query('ambito') ambito?: string) {
+  async ranking(
+    @CurrentMembership() m: Membership,
+    @Query('ambito') ambito?: string,
+    @Query('variacion') variacion?: string,
+  ) {
     // 17/09: `?ambito=area` limita la tabla a la propia área (pedido de Alim:
     // "ver el Ranking tanto global como por área"). Mismas reglas de
     // participación; solo cambia el conjunto. Sin área asignada = global.
@@ -112,6 +116,7 @@ export class EconomyController {
       participaEnRanking: prefs?.participaEnRanking ?? true,
       ambito: porArea ? 'area' : 'global',
       tieneArea: !!m.areaId,
+      variacion: ['dia', 'semana', 'mes'].includes(variacion ?? '') ? variacion : null,
     };
 
     if (!m.optInJuego || (prefs && prefs.participaEnRanking === false)) {
@@ -121,15 +126,33 @@ export class EconomyController {
     const filas: Array<{
       membershipId: string;
       nombre: string;
+      personaje: string | null;
       xp: number;
       oro: number;
       nivel: number;
       posicion: number;
+      posicionAntes: number | null;
     }> = await this.ds.query(
+      /**
+       * 19/09 — `?variacion=dia|semana|mes` agrega quién subió y quién bajó.
+       *
+       * No hay tabla de histórico de posiciones, y no hace falta: la XP de
+       * cualquiera en cualquier fecha es la suma de sus eventos hasta ese
+       * momento, y el ledger los tiene todos. Se reconstruye la tabla de hace
+       * N días y se comparan las dos posiciones. Exacto, no aproximado — y
+       * nada que mantener ni que se pueda desincronizar.
+       *
+       * Sin `variacion`, el subselect no se ejecuta (el parámetro llega nulo)
+       * y la consulta cuesta lo mismo que antes.
+       */
       `WITH base AS (
-         SELECT mem.id AS "membershipId", u.nombre,
+         SELECT mem.id AS "membershipId", u.nombre, mem.personaje,
                 COALESCE(eb.xp, 0)::int AS xp, COALESCE(eb.oro, 0)::int AS oro,
-                COALESCE(eb.nivel, 1)::int AS nivel
+                COALESCE(eb.nivel, 1)::int AS nivel,
+                CASE WHEN $3::timestamptz IS NULL THEN NULL ELSE COALESCE((
+                  SELECT SUM(e."xpDelta") FROM economy_events e
+                   WHERE e."membershipId" = mem.id AND e."serverReceivedAt" < $3::timestamptz
+                ), 0) END::int AS "xpAntes"
            FROM memberships mem
            JOIN users u ON u.id = mem."userId"
            LEFT JOIN economy_balances eb ON eb."membershipId" = mem.id
@@ -138,16 +161,20 @@ export class EconomyController {
             AND COALESCE(mp."participaEnRanking", true)
             AND ($2::uuid IS NULL OR mem."areaId" = $2::uuid)
        )
-       SELECT *, RANK() OVER (ORDER BY xp DESC)::int AS posicion FROM base
+       SELECT "membershipId", nombre, personaje, xp, oro, nivel,
+              RANK() OVER (ORDER BY xp DESC)::int AS posicion,
+              CASE WHEN "xpAntes" IS NULL THEN NULL
+                   ELSE RANK() OVER (ORDER BY "xpAntes" DESC)::int END AS "posicionAntes"
+         FROM base
        ORDER BY posicion`,
-      [m.tenantId, porArea ? m.areaId : null],
+      [m.tenantId, porArea ? m.areaId : null, this.corteVariacion(variacion)],
     );
 
     const miFila = filas.find((f) => f.membershipId === m.id);
     const verTablaCompleta = prefs?.verTablaCompleta ?? false;
 
     if (verTablaCompleta || !miFila) {
-      return { participo: true, miPosicion: miFila?.posicion ?? null, tabla: filas, prefs: prefsOut };
+      return { participo: true, miPosicion: miFila?.posicion ?? null, tabla: filas, lider: liderDe(filas), prefs: prefsOut };
     }
 
     // ±3 alrededor de la posición propia, ordenado por posición — el default
@@ -155,7 +182,20 @@ export class EconomyController {
     // sin que lo pida explícitamente.
     const idx = filas.findIndex((f) => f.membershipId === m.id);
     const tabla = filas.slice(Math.max(0, idx - 3), idx + 4);
-    return { participo: true, miPosicion: miFila.posicion, tabla, prefs: prefsOut };
+    /**
+     * 07/10 (Batch de Cambios) — el líder viaja aparte de la tabla.
+     *
+     * Alim pidió que la barra de cada quien se mida contra la XP del #1. Con la
+     * tabla completa eso se podía sacar del primer elemento; con el recorte de
+     * ±3 —que es el default— la pantalla NO tiene al líder, y mediría contra el
+     * vecino de arriba creyendo que es el primero.
+     *
+     * Por eso `lider` sale de `filas`, que siempre es la tabla ENTERA, y no de
+     * `tabla`, que es lo que termina viéndose. Es un nombre y un número que
+     * cualquiera del ranking ya puede ver pidiendo la tabla completa: no expone
+     * nada nuevo.
+     */
+    return { participo: true, miPosicion: miFila.posicion, tabla, lider: liderDe(filas), prefs: prefsOut };
   }
 
   // ===========================================================================
@@ -273,6 +313,12 @@ export class EconomyController {
     return this.objetivo(m);
   }
 
+  /** `dia` = 24 h atrás, `semana` = 7 días, `mes` = 30. Cualquier otra cosa, sin variación. */
+  private corteVariacion(v?: string): Date | null {
+    const dias = v === 'dia' ? 1 : v === 'semana' ? 7 : v === 'mes' ? 30 : null;
+    return dias === null ? null : new Date(Date.now() - dias * 86400000);
+  }
+
   @Patch('ranking/prefs')
   async actualizarPrefsRanking(
     @CurrentMembership() m: Membership,
@@ -287,4 +333,16 @@ export class EconomyController {
     if (dto.participaEnRanking !== undefined) prefs.participaEnRanking = dto.participaEnRanking;
     return repo.save(prefs);
   }
+}
+
+/**
+ * El #1 de la tabla completa: su XP es el techo contra el que se dibuja la
+ * barra de todos los demás. Fuera de la clase porque no toca estado ni
+ * conexiones — es una función sobre una lista.
+ */
+function liderDe(
+  filas: Array<{ membershipId: string; nombre: string; xp: number; posicion: number }>,
+): { membershipId: string; nombre: string; xp: number } | null {
+  const primero = filas.find((f) => f.posicion === 1) ?? filas[0];
+  return primero ? { membershipId: primero.membershipId, nombre: primero.nombre, xp: primero.xp } : null;
 }

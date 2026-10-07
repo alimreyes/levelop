@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Levelop · Líder de Área</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -254,6 +255,16 @@ h1,h2,h3,h4{text-transform:uppercase; letter-spacing:.01em}
   color:var(--risk); margin-bottom:5px}
 .pat-f{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
 
+/* Tira de personas del área (19/09) */
+.tira-gente{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px}
+.persona{display:flex; align-items:center; gap:8px; padding:7px 11px 7px 8px; background:var(--surface-2);
+  box-shadow:inset 0 0 0 1px var(--line); cursor:pointer; font:inherit; color:inherit;
+  border:0; border-left:3px solid var(--area, var(--line-strong))}
+.persona:hover{box-shadow:inset 0 0 0 1px var(--gold)}
+.persona .av{width:26px; height:26px; flex:none; display:grid; place-items:center;
+  font-family:var(--mono); font-size:11px; color:var(--surface); background:var(--area, var(--ink-3))}
+.persona .nm{font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px}
+
 /* Secciones desplegables del panel (19/09) */
 button.sec-h.pleg{width:100%; text-align:left; cursor:pointer; background:none; border:0; font:inherit; color:inherit}
 button.sec-h.pleg:hover h2{color:var(--gold)}
@@ -379,6 +390,14 @@ td.n, #tip .tr b, #tip .tr span, .pat-sig .sv, .ranklist b, .lote .bv,
   <!-- 19/09 (Alim, CAMBIOS 1.1): cada sección desplegable. El estado se
        guarda por sección en localStorage, así que el líder abre el panel y
        encuentra lo que dejó abierto la última vez. -->
+  <!-- 19/09 (Alim, CAMBIOS 1.1 · Líder): la gente del área, clickeable.
+       Abre EXACTAMENTE la misma ficha que abre un compañero desde el ranking
+       y la misma que la persona ve de sí misma — un solo endpoint. Ver la nota
+       larga en members.controller.ts sobre por qué eso importa más que el
+       ahorro de código. -->
+  <div class="sec-h"><h2>Tu gente</h2><span class="sub">Toca a alguien para ver su ficha — la misma que ve cualquier compañero</span></div>
+  <div id="tiraGente" class="tira-gente"></div>
+
   <button class="sec-h pleg" data-pleg="mano" aria-expanded="true"><h2>Quién necesita una mano <span class="pleg-i">▾</span></h2><span class="sub">Patrones sostenidos, no semanas malas</span></button>
   <div data-seccion="mano">
     <div class="note gold" style="margin-top:2px; margin-bottom:12px" id="notaNombres"></div>
@@ -399,6 +418,12 @@ td.n, #tip .tr b, #tip .tr span, .pat-sig .sv, .ranklist b, .lote .bv,
   <button class="sec-h pleg" data-pleg="demanda" aria-expanded="true"><h2>Lo que pide tu área <span class="pleg-i">▾</span></h2><span class="sub">Y en qué se diferencia del resto de la empresa</span></button>
   <div data-seccion="demanda">
     <div id="demanda"></div>
+  </div>
+
+  <!-- 24/09 — Trofeos de equipo: los mismos que ve gerencia, solo de tus áreas. -->
+  <button class="sec-h pleg" data-pleg="trofeos" aria-expanded="true"><h2>Trofeos de tu área <span class="pleg-i">▾</span></h2><span class="sub">Los gana el área entera, nunca una persona</span></button>
+  <div data-seccion="trofeos">
+    <div id="trofeosArea"><div class="cargando">Cargando…</div></div>
   </div>
 
   <div id="ncSecciones"></div>
@@ -520,7 +545,12 @@ const semanas = fechaISO => { const d=(Date.now()-new Date(fechaISO).getTime())/
 const fechaCorta = iso => { try{ return new Date(iso).toLocaleDateString("es-VE",{day:"2-digit",month:"short",year:"numeric"}); }catch(e){ return esc(iso); } };
 
 /* ---------------- ESTADO REAL — todo viene del servidor ---------------- */
-const D = { membresia:null, ayuda:[], historial:[], colaboracion:[], ausencias:[], resumenArea:[], demanda:[], cargado:false };
+const D = { membresia:null, ayuda:[], historial:[], colaboracion:[], ausencias:[], resumenArea:[], demanda:[],
+  /* 19/09 — la gente del área, para la tira de fichas de arriba. Sale de
+     `/members`, la misma ruta que usa la app del colaborador: nombre, área y
+     rol, nada más. El líder no recibe por esta vía ningún dato que un
+     compañero cualquiera no reciba. */
+  miembros:[], cargado:false };
 let areaSel = null;       // null = todas las áreas que lidera
 let signalEnModal = null;
 
@@ -678,6 +708,7 @@ async function cargarTodo(){
       LevelopAPI.lider.resumenArea(),
       LevelopAPI.lider.loQuePideTuArea(),
     ]);
+    try{ D.miembros = await LevelopAPI.equipo.miembros() || []; }catch(e){ D.miembros = []; }
     D.ayuda = Array.isArray(ayuda)?ayuda:[];
     D.historial = Array.isArray(historial)?historial:[];
     D.colaboracion = Array.isArray(colaboracion)?colaboracion:[];
@@ -686,6 +717,7 @@ async function cargarTodo(){
     D.demanda = Array.isArray(demanda)?demanda:[];
     D.cargado = true;
     render();
+    cargarTrofeos();
   }catch(e){
     avisarError(e,"cargarTodo");
     $("#tiles").innerHTML="";
@@ -693,16 +725,110 @@ async function cargarTodo(){
   }
 }
 
+/* 24/09 — trofeos de equipo. Se cargan aparte y fallan solos. */
+async function cargarTrofeos(){
+  try{ D.trofeos = await LevelopAPI.lider.trofeos(); }catch(e){ D.trofeos = null; console.warn("trofeos", e); }
+  pintarTrofeos();
+}
+function pintarTrofeos(){
+  const c = $("#trofeosArea"); if(!c) return;
+  if(D.trofeos===null){ c.innerHTML = `<div class="sub">No se pudieron cargar — falta correr las migraciones <b>MedallasYMetaDelMes</b> y <b>PermisosLogrosParaApp</b>.</div>`; return; }
+  const T = D.trofeos; if(!T) return;
+  const per = p => !p ? "" : /T/.test(p) ? ` · ${p.replace("-T"," T")}` : ` · ${p.slice(5)}/${p.slice(0,4)}`;
+  const ganadosClaves = a => new Set(a.trofeos.map(t=>t.clave));
+  c.innerHTML = T.areas.map(a=>{
+    const tiene = ganadosClaves(a);
+    const faltan = T.catalogo.filter(x=>!tiene.has(x.clave) && x.clave!=="desafio_ganado" && x.clave!=="bicampeon");
+    return `<div class="card" style="margin-bottom:12px">
+      <div class="row g8" style="justify-content:space-between; align-items:baseline"><b>${esc(a.nombre)}</b><span class="sub">${tiene.size} de ${T.catalogo.length}</span></div>
+      ${a.trofeos.length
+        ? `<div class="row wrapf g8" style="margin-top:10px">${a.trofeos.map(t=>`<span class="chip gold" title="${esc(t.comoSeGana)}">${esc(t.nombre)}${esc(per(t.periodo))}</span>`).join("")}</div>`
+        : `<div class="sub" style="margin-top:8px">Todavía ninguno.</div>`}
+      ${faltan.length ? `<div class="sub" style="margin-top:12px"><b>Lo que tienen a mano:</b> ${faltan.slice(0,3).map(x=>`${esc(x.nombre)} (${esc(x.comoSeGana.replace(/\.$/,"").toLowerCase())})`).join(" · ")}.</div>`:""}
+    </div>`;
+  }).join("") || `<div class="sub">Sin áreas.</div>`;
+}
+
 function nombreArea(areaId){ const a = D.resumenArea.find(x=>x.areaId===areaId); return a ? a.nombreArea : areaId; }
 
 function render(){
   pintarSelector();
+  pintarGente();
   pintarTiles();
   pintarPatrones();
   pintarColaboracion();
   pintarAusencias();
   pintarDemanda();
   pintarSeccionesNC();
+}
+
+/* 19/09 — la gente del área. Si el líder tiene más de un área y eligió una,
+   se filtra; con «todas» se muestran las de todas sus áreas. */
+function pintarGente(){
+  const cont = $("#tiraGente");
+  if(!cont) return;
+  const areas = new Set(D.resumenArea.map(a=>a.areaId));
+  const gente = D.miembros.filter(x =>
+    x.areaId && (areaSel ? x.areaId === areaSel : areas.has(x.areaId)));
+  if(!gente.length){
+    cont.innerHTML = `<div class="cargando">${D.cargado?"Tu área todavía no tiene gente cargada.":"Cargando…"}</div>`;
+    return;
+  }
+  cont.innerHTML = gente.map(x=>{
+    const col = LevelopAPI.colorArea({color:x.areaColor, indice:x.areaIndice});
+    const ini = (x.nombre||"?").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
+    return `<button class="persona" data-ficha="${esc(x.membershipId)}" ${col?`style="--area:${esc(col)}"`:""} title="${esc(x.nombre)}">
+      <span class="av">${esc(ini)}</span><span class="nm">${esc(x.nombre)}</span>
+    </button>`;
+  }).join("");
+}
+
+/* La ficha: el MISMO endpoint y el MISMO contenido que ve un compañero desde
+   el ranking. Si algún día esta función mostrara un campo de más, la promesa
+   «el líder no ve nada que la persona no vea de sí misma» dejaría de ser
+   cierta — por eso no arma su propio HTML a partir de otros datos, sino que
+   pinta lo que devuelve `equipo.ficha`. */
+const fichaCache = { id:null, datos:null };
+async function abrirFicha(membershipId){
+  fichaCache.id = membershipId; fichaCache.datos = null;
+  abrirModal(modalFicha());
+  try{
+    const f = await LevelopAPI.equipo.ficha(membershipId);
+    if(fichaCache.id !== membershipId) return;
+    fichaCache.datos = f;
+  }catch(e){ if(fichaCache.id === membershipId) fichaCache.datos = {error:true}; }
+  if(document.querySelector(".veil")) abrirModal(modalFicha());
+}
+function modalFicha(){
+  const f = fichaCache.datos;
+  const col = f && !f.error ? LevelopAPI.colorArea({color:f.areaColor, indice:f.areaIndice}) : null;
+  const st = f && f.juego ? f.juego.stats : null;
+  const cuerpo = !f ? `<div class="cargando">Cargando…</div>`
+    : f.error ? `<div class="note">No se pudo cargar la ficha.</div>`
+    : `<div class="row" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px">
+        ${f.areaNombre?`<span class="chip" ${col?`style="border-left:3px solid ${esc(col)}"`:""}>${esc(f.areaNombre)}</span>`:""}
+        <span class="chip">Desde ${fechaCorta(f.desde)}</span>
+      </div>
+      ${!f.juego
+        ? `<div class="note">Esta persona todavía no tiene estadísticas de juego que mostrar.</div>`
+        : `<div class="pat-sig">
+             <div><div class="sl">Nivel</div><div class="sv">${f.juego.nivel}</div></div>
+             <div><div class="sl">Puesto en su área</div><div class="sv">${f.juego.puestoArea?`#${f.juego.puestoArea}`:"—"}</div></div>
+           </div>
+           <div class="note" style="margin-top:12px">
+             Cerradas esta semana: <b>${st.cerradasSemana}</b> · En total: <b>${st.cerradasTotal}</b> ·
+             En curso: <b>${st.enCurso}</b> · Tarda en resolver: <b>${st.diasPromedio===null?"—":st.diasPromedio+" días"}</b> ·
+             Colabora con <b>${st.areasCruzadas}</b> área${st.areasCruzadas===1?"":"s"} más
+           </div>
+           <div class="note" style="margin-top:10px">Trofeos y medallas: ${f.juego.medallas && f.juego.medallas.length ? f.juego.medallas.map(m=>esc(m.nombre)).join(" · ") : "todavía ninguna"}.</div>`}
+      <div class="note gold" style="margin-top:12px">Esta es exactamente la misma ficha que ve cualquier compañero desde el ranking, y la misma que la persona ve de sí misma. No hay una versión ampliada para vos.</div>`;
+  return `<div class="veil" data-cerrar><div class="sheet" role="dialog" aria-modal="true" data-stop>
+      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">Ficha</span>
+        <h2 style="margin-top:4px">${f && !f.error ? esc(f.nombre) : "—"}</h2></div>
+        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
+      <div class="sheet-b">${cuerpo}</div>
+      <div class="sheet-f"><button class="btn" data-cerrar>Cerrar</button></div>
+    </div></div>`;
 }
 
 function pintarSelector(){
@@ -905,6 +1031,8 @@ document.addEventListener("click", async e=>{
     render();
     return;
   }
+  const fb = e.target.closest("[data-ficha]");
+  if(fb){ abrirFicha(fb.dataset.ficha); return; }
   const t = e.target.closest("[data-cerrar],[data-stop],[data-registrar],[data-historial]");
   if(t){
     if(t.hasAttribute("data-stop")) return;

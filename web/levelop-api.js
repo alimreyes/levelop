@@ -327,7 +327,15 @@
        * defecto, tabla entera si la persona lo pidió).
        */
       // 17/09: `ambito` = 'global' (default) | 'area' (solo la propia área).
-      ranking: (ambito) => request(urlTenant(`/economy/ranking${ambito === 'area' ? '?ambito=area' : ''}`)),
+      // 19/09: `variacion` = 'dia' | 'semana' | 'mes' agrega `posicionAntes` a
+      // cada fila, reconstruida desde el ledger. Sin ella, la consulta cuesta
+      // lo mismo que siempre.
+      ranking: (ambito, variacion) => {
+        const q = [];
+        if (ambito === 'area') q.push('ambito=area');
+        if (variacion) q.push(`variacion=${encodeURIComponent(variacion)}`);
+        return request(urlTenant(`/economy/ranking${q.length ? `?${q.join('&')}` : ''}`));
+      },
       actualizarPrefsRanking: (dto) =>
         request(urlTenant('/economy/ranking/prefs'), { method: 'PATCH', body: dto }),
       /**
@@ -362,6 +370,19 @@
       fijarObjetivo: (itemId) =>
         request(urlTenant('/economy/objetivo'), { method: 'PATCH', body: { itemId } }),
     },
+    /* ---- Logros: vitrina y meta del mes (19/09/26) ----------------------
+       La vitrina devuelve el catálogo COMPLETO con lo ganado marcado, no solo
+       lo conseguido: una vitrina que solo muestra lo que ya tenés no dice
+       hacia dónde ir. La meta del mes no la ve nadie más — su tabla ni
+       siquiera es legible por los roles de gerencia y líder. */
+    logros: {
+      vitrina: () => request(urlTenant('/logros/vitrina')),
+      meta: () => request(urlTenant('/logros/meta')),
+      /** Solo durante los primeros 7 días del mes; después el servidor la rechaza. */
+      fijarMeta: (objetivo) =>
+        request(urlTenant('/logros/meta'), { method: 'PUT', body: { objetivo } }),
+    },
+
     // ---- Compañeros (16/09/26) --------------------------------------------
     // Nombre, área y rol de cada membresía activa del tenant — lo que un
     // compañero ya sabe de otro por trabajar en la misma empresa. Sirve para
@@ -369,6 +390,27 @@
     // alguien" al montar una misión. No devuelve email, zona, saldo ni XP.
     equipo: {
       miembros: () => request(urlTenant('/members')),
+      /**
+       * 19/09/26 — la ficha de una persona: lo mismo que ve un compañero, lo
+       * mismo que ve ella de sí misma y lo mismo que ve su líder. Un solo
+       * endpoint para que esa promesa se pueda auditar abriendo las dos
+       * pantallas, en vez de creerla.
+       *
+       * `juego: null` cuando no hay estadísticas que mostrar — y eso cubre por
+       * igual a quien apagó el juego y a quien recién entró. Es a propósito:
+       * si «sin datos» significara «apagó el juego», el opt-out dejaría de ser
+       * privado. Nunca devuelve `optInJuego`, saldo, email ni zona.
+       */
+      ficha: (membershipId) => request(urlTenant(`/members/${membershipId}/ficha`)),
+      /**
+       * 07/10/26 — el elenco, tu personaje y si podés cambiarlo hoy.
+       * `puedeCambiar` y `faltanDias` los calcula el servidor: un bloqueo que
+       * vive en el navegador no es un bloqueo. La pantalla apaga el botón por
+       * cortesía, pero quien rechaza es el backend.
+       */
+      miPersonaje: () => request(urlTenant('/members/mi-personaje')),
+      elegirPersonaje: (personaje) =>
+        request(urlTenant('/members/mi-personaje'), { method: 'PUT', body: { personaje } }),
     },
     // ---- Avisos ---------------------------------------------------------
     // MVP por polling (no hay WebSocket todavía) — llamar `listar()` cada
@@ -424,6 +466,8 @@
       aliados: () => request(urlTenant('/backoffice/aliados')),
       // Desempeño por área con métricas: cerradas 30d, tareas/día, días promedio, % atrasadas, abiertas, vencidas.
       metricasAreas: () => request(urlTenant('/backoffice/areas/metricas')),
+      // 24/09 — trofeos de equipo por área (sin personas: son del área).
+      trofeos: () => request(urlTenant('/backoffice/trofeos')),
       // rango: 'dia' | 'semana' | 'mes' | 'anio' → { rango, categorias: [{familia, total, oroTotal}] }
       canjes: (rango) => request(urlTenant(`/backoffice/canjes${rango ? `?rango=${rango}` : ''}`)),
       // nivelMinimo: número desde el que se puede canjear, o null = para todos.
@@ -432,6 +476,17 @@
       // La escalera de niveles del tenant traducida a misiones típicas, para
       // decidir desde qué nivel abrir un beneficio sin saber la fórmula.
       niveles: () => request(urlTenant('/backoffice/niveles')),
+      // 19/09: las zonas que existen de verdad — las de los colaboradores
+      // activos, con cuánta gente hay en cada una. Ofrecer una zona sin gente
+      // es ofrecer una forma de equivocarse.
+      zonas: () => request(urlTenant('/backoffice/zonas')),
+      // zonas: lista de strings; vacía = disponible en todas.
+      cambiarZonas: (id, zonas) =>
+        request(urlTenant(`/backoffice/catalog/${id}/zonas`), { method: 'PUT', body: { zonas } }),
+      // Días para usar un canje confirmado. 0 = sin vencimiento.
+      configCanjes: () => request(urlTenant('/backoffice/config/canjes')),
+      cambiarConfigCanjes: (diasParaUsarCanje) =>
+        request(urlTenant('/backoffice/config/canjes'), { method: 'PUT', body: { diasParaUsarCanje } }),
 
       // ---- Personas, áreas e invitaciones (16/09/26) ----------------------
       // Administración, no evaluación: nombres y roles sin ningún número de
@@ -462,6 +517,8 @@
       ausencias: () => request(urlTenant('/lider/ausencias')),
       resumenArea: () => request(urlTenant('/lider/resumen-area')),
       loQuePideTuArea: () => request(urlTenant('/lider/lo-que-pide-tu-area')),
+      // 24/09 — trofeos de equipo de las áreas que lidera. Mismo formato que gerencia.
+      trofeos: () => request(urlTenant('/lider/trofeos')),
     },
 
     // ---- Vista interna de Levelop ---------------------------------------

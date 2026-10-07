@@ -1,4 +1,5 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
+import { AreaBadge, MemberBadge, MemberGoal } from '../badges/badges.entities';
 import { config as loadEnv } from 'dotenv';
 import { PerfilConexion } from '../common/enums';
 import {
@@ -39,6 +40,7 @@ loadEnv();
 
 export const ENTIDADES = [
   Tenant, User, Membership, Area, MembershipPrefs, InternalUser, Invitation,
+  MemberBadge, AreaBadge, MemberGoal,
   Mission, MissionCollaborator, MissionThreadMessage,
   EconomyEvent, EconomyBalance, EconomyConfig,
   BenefitCatalogItem, BenefitPriceVersion, BenefitStock, Redemption, RedemptionOutbox, PartnerOffer,

@@ -16,6 +16,8 @@ import { InternoController } from './backoffice/interno.controller';
 import { NotificationsService } from './notifications/notifications.service';
 import { NotificationsController } from './notifications/notifications.controller';
 import { MembersController } from './identity/members.controller';
+import { BadgesService } from './badges/badges.service';
+import { BadgesController } from './badges/badges.controller';
 import { HealthController } from './health.controller';
 
 /**
@@ -44,9 +46,10 @@ import { HealthController } from './health.controller';
     InternoController,
     NotificationsController,
     MembersController,
+    BadgesController,
     HealthController,
   ],
-  providers: [EconomyService, RedemptionsService, NotificationsService],
-  exports: [EconomyService, RedemptionsService, NotificationsService],
+  providers: [EconomyService, RedemptionsService, NotificationsService, BadgesService],
+  exports: [EconomyService, RedemptionsService, NotificationsService, BadgesService],
 })
 export class AppModule {}

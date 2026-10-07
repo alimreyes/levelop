@@ -251,6 +251,18 @@ export class Redemption {
   @Column({ type: 'uuid', nullable: true })
   confirmadoPorMembershipId!: string | null;
 
+  /**
+   * 19/09/26 — cuando paso a CONFIRMADO. Desde aqui corre el plazo para usarlo
+   * (`economy_config.diasParaUsarCanje`, 0 = sin vencimiento).
+   *
+   * No existia hasta hoy, aunque si existia `confirmadoPorMembershipId`:
+   * guardabamos QUIEN confirmo y no CUANDO. Las filas viejas se rellenaron con
+   * `updatedAt` en la migracion, que es una aproximacion declarada; de aqui en
+   * adelante lo escribe `confirmar()` y es exacto.
+   */
+  @Column({ type: 'timestamptz', nullable: true })
+  confirmadoAt!: Date | null;
+
   @Column({ type: 'uuid' })
   idempotencyKey!: string;
 

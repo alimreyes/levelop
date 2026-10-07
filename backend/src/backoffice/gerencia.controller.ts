@@ -13,9 +13,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
+import { trofeosPorArea } from '../badges/badges.catalogo';
 import {
   IsBoolean,
   IsEmail,
+  IsArray,
   IsEnum,
   IsInt,
   IsOptional,
@@ -127,6 +129,16 @@ class ActualizarCuposDto {
   @ValidateIf((o) => o.cuposMensuales !== null) @IsInt() @Min(1) cuposMensuales!: number | null;
 }
 
+class ActualizarZonasDto {
+  /** Lista vacía = disponible en todas las zonas. */
+  @IsArray() @IsString({ each: true }) @MaxLength(60, { each: true }) zonas!: string[];
+}
+
+class ActualizarConfigCanjesDto {
+  /** 0 = los canjes confirmados no vencen. */
+  @IsInt() @Min(0) diasParaUsarCanje!: number;
+}
+
 class ActualizarNivelDto {
   /** null = sin restricción de nivel. */
   @ValidateIf((o) => o.nivelMinimo !== null) @IsInt() @Min(1) nivelMinimo!: number | null;
@@ -168,6 +180,17 @@ export class GerenciaController {
       this.ds.query(`SELECT * FROM v_resumen_area WHERE "tenantId" = $1`, [m.tenantId]),
     ]);
     return { gate: gate[0] ?? null, canjes, areas };
+  }
+
+  /**
+   * 24/09 — «Trofeos y medallas de equipo» (LVL-060 v2 §3): los trofeos que
+   * ganó cada área. Son del área, no de nadie, y ya vienen con el piso de 4.
+   * Las medallas PERSONALES no están acá ni pueden estar: este rol no tiene
+   * SELECT sobre `member_badges` (R-07).
+   */
+  @Get('trofeos')
+  async trofeos(@CurrentMembership() m: Membership) {
+    return trofeosPorArea(this.ds, m.tenantId, null);
   }
 
   @Get('catalog')
@@ -374,6 +397,89 @@ export class GerenciaController {
       });
     }
     return { xpMisionTipica, niveles: filas };
+  }
+
+  /**
+   * 19/09 (CAMBIOS 1.1 · Tienda 2) — las zonas que existen DE VERDAD en la
+   * empresa: las de sus colaboradores activos, con cuánta gente hay en cada una.
+   *
+   * Alim pidió que al elegir zonas para un beneficio aparezcan «únicamente las
+   * zonas con colaboradores activos para así evitar confusiones», y tenía razón
+   * por una razón que va más allá de la confusión: una zona sin gente no es una
+   * opción rara, es una opción que garantiza que nadie pueda canjear ese
+   * beneficio. Ofrecerla es ofrecer una forma de equivocarse.
+   *
+   * Sale de `memberships`, no de una tabla de zonas, porque no existe tal tabla:
+   * la zona es un texto por membresía que fija RRHH. Eso significa que
+   * «Maracaibo» y «maracaibo» son dos zonas distintas — lo agrupo por el texto
+   * tal cual, sin normalizar, porque normalizar acá escondería un problema de
+   * datos en vez de mostrarlo.
+   */
+  @Get('zonas')
+  async zonas(@CurrentMembership() m: Membership) {
+    return this.ds.query(
+      `SELECT zona, count(*)::int AS personas
+         FROM memberships
+        WHERE "tenantId" = $1 AND activo AND zona IS NOT NULL AND zona <> ''
+     GROUP BY zona
+     ORDER BY personas DESC, zona ASC`,
+      [m.tenantId],
+    );
+  }
+
+  /**
+   * 19/09 — en qué zonas se puede canjear un ítem. Lista vacía = todas.
+   *
+   * No valido que las zonas existan contra la lista de arriba, y es a
+   * propósito: una empresa puede querer dejar preparado un beneficio para una
+   * sucursal que abre el mes que viene. Lo que sí hace la pantalla es ofrecer
+   * solo las que tienen gente, que es donde se evita el error real.
+   */
+  @Put('catalog/:id/zonas')
+  async cambiarZonas(
+    @CurrentMembership() m: Membership,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ActualizarZonasDto,
+  ) {
+    const repo = this.ds.getRepository(BenefitCatalogItem);
+    const item = await repo.findOne({ where: { id, tenantId: m.tenantId } });
+    if (!item) throw new NotFoundException('Ítem no encontrado');
+    item.zonas = [...new Set(dto.zonas.map((z) => z.trim()).filter(Boolean))];
+    return repo.save(item);
+  }
+
+  /**
+   * 19/09 — el plazo para usar un canje confirmado. Ver la migración
+   * `VencimientoDeCanjes` sobre por qué este concepto no existía y qué reglas
+   * trae. `0` apaga el vencimiento sin borrar el mecanismo.
+   *
+   * Escribe sobre la configuración VIGENTE en vez de crear una versión nueva.
+   * `economy_config` está versionada para los números que afectan cuánto valió
+   * el Oro que alguien ya ganó (multiplicadores, precios), donde reescribir la
+   * historia sería falsear un saldo. Este plazo no es de esos: no cambia nada
+   * de lo ya ganado, solo desde cuándo cuenta el reloj de aquí en adelante.
+   */
+  @Put('config/canjes')
+  async configCanjes(@CurrentMembership() m: Membership, @Body() dto: ActualizarConfigCanjesDto) {
+    const r = await this.ds.query(
+      `UPDATE economy_config SET "diasParaUsarCanje" = $2
+        WHERE "tenantId" = $1 AND "vigenteHasta" IS NULL
+       RETURNING "diasParaUsarCanje"`,
+      [m.tenantId, dto.diasParaUsarCanje],
+    );
+    if (!r?.length) throw new NotFoundException('Esta empresa todavía no tiene configuración económica');
+    return { diasParaUsarCanje: r[0].diasParaUsarCanje };
+  }
+
+  @Get('config/canjes')
+  async verConfigCanjes(@CurrentMembership() m: Membership) {
+    const r = await this.ds.query(
+      `SELECT "diasParaUsarCanje" FROM economy_config
+        WHERE "tenantId" = $1 AND "vigenteHasta" IS NULL
+     ORDER BY "vigenteDesde" DESC LIMIT 1`,
+      [m.tenantId],
+    );
+    return { diasParaUsarCanje: r?.[0]?.diasParaUsarCanje ?? 30 };
   }
 
   /** 17/09: ofertas de aliados de Levelop disponibles para activar, con marca de cuáles ya están en el catálogo. */

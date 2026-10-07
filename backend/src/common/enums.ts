@@ -179,6 +179,8 @@ export enum TipoNotificacion {
   MENCION = 'MENCION',
   /** 19/09/26 — te sumaron como colaborador de una mision. */
   COLABORADOR_AGREGADO = 'COLABORADOR_AGREGADO',
+  /** 19/09/26 — ganaste una medalla. El aviso lleva el nombre, nunca la clave. */
+  MEDALLA_GANADA = 'MEDALLA_GANADA',
 }
 
 // --- Perfiles de conexion (R-07 estructural) ---------------------------------

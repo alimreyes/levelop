@@ -201,6 +201,27 @@ export class EconomyConfig {
   @Column({ type: 'int', default: 90 })
   decayDias!: number;
 
+  /**
+   * 19/09/26 — dias para USAR un canje ya confirmado. 0 = sin vencimiento.
+   *
+   * Ojo con no confundirlo con `decayDias`: aquel es cuanto dura el ORO sin
+   * gastar; este es cuanto dura el BENEFICIO ya comprado sin usar. Son dos
+   * relojes distintos sobre dos cosas distintas, y mezclarlos seria cobrarle
+   * dos veces la misma demora a la misma persona.
+   */
+  @Column({ type: 'int', default: 30 })
+  diasParaUsarCanje!: number;
+
+  /**
+   * 07/10/26 — dias de bloqueo para volver a cambiar de personaje. 0 = libre.
+   *
+   * El documento de Alim dice «cada 30 dias» y «esperar 15 dias» en el mismo
+   * parrafo; se lo pregunte (LVL-064 §8.1). Mientras no responda, el default es
+   * 30 y cambiarlo cuesta un UPDATE.
+   */
+  @Column({ type: 'int', default: 30 })
+  diasBloqueoPersonaje!: number;
+
   @Column({ type: 'timestamptz' })
   vigenteDesde!: Date;
 

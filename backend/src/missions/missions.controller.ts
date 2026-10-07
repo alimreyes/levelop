@@ -21,9 +21,17 @@ import { EstadoMision, PerfilConexion, TipoNotificacion } from '../common/enums'
 import { EconomyService, EventoRechazado } from '../economy/economy.service';
 import { Area, Membership } from '../identity/identity.entities';
 import { NotificationsService } from '../notifications/notifications.service';
+import { BadgesService } from '../badges/badges.service';
+import { CATALOGO_PUBLICO } from '../badges/badges.catalogo';
 import { IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 import { Mission, MissionCollaborator, MissionThreadMessage } from './missions.entities';
 import { CerrarMisionDto, CrearMisionDto } from './missions.dto';
+
+/** Para el texto del aviso: la clave no se le muestra a nadie. */
+function nombreMedalla(clave: string): string {
+  const m = CATALOGO_PUBLICO.personales.find((x) => x.clave === clave);
+  return m ? m.nombre : clave;
+}
 
 class MensajeHiloDto {
   @IsString() @MinLength(1) @MaxLength(2000) cuerpo!: string;
@@ -49,6 +57,7 @@ export class MissionsController {
     @InjectDataSource(PerfilConexion.APP) private readonly ds: DataSource,
     private readonly economy: EconomyService,
     private readonly notificaciones: NotificationsService,
+    private readonly badges: BadgesService,
   ) {}
 
   /**
@@ -84,9 +93,32 @@ export class MissionsController {
     // una estimación honesta: el Oro real al cerrar depende además de que la
     // haya aceptado otra persona (anti-cheat §3.3) y del juego encendido.
     const cfg = await this.economy.configDe(m.tenantId);
+
+    // 24/09 — «Quién más está en cada misión», visible desde la TARJETA y no
+    // solo al abrir el detalle. Una consulta para todo el listado (no una por
+    // misión): solo los ids, porque el nombre y el área ya los tiene la app en
+    // la lista de compañeros. Es la misma información que `GET :id/colaboradores`
+    // ya le da a cualquiera de la empresa; no se abre nada nuevo.
+    const ids = filas.map((f) => f.id);
+    const cols: Array<{ missionId: string; ids: string[] }> = ids.length
+      ? await this.ds.query(
+          `SELECT "missionId", array_agg("membershipId"::text ORDER BY "createdAt") AS ids
+             FROM mission_collaborators
+            WHERE "tenantId" = $1 AND "missionId" = ANY($2::uuid[])
+            GROUP BY "missionId"`,
+          [m.tenantId, ids],
+        )
+      : [];
+    const colsPorMision = new Map(cols.map((c) => [c.missionId, c.ids]));
+
     return filas.map((mi) => {
       const r = this.economy.calcular(cfg, mi.urgencia, mi.importancia, mi.esfuerzo);
-      return { ...mi, xpEstimada: r.xp, oroEstimado: r.oro };
+      return {
+        ...mi,
+        xpEstimada: r.xp,
+        oroEstimado: r.oro,
+        colaboradores: colsPorMision.get(mi.id) ?? [],
+      };
     });
   }
 
@@ -218,6 +250,29 @@ export class MissionsController {
           });
         } catch (e) { /* best-effort */ }
       }
+
+      /* 19/09 — medallas. Mejor esfuerzo y DESPUÉS de que el cierre ya está
+         guardado: si la evaluación falla, la misión igual se cerró y el Oro
+         igual se pagó. Una medalla que no salió, sale en la próxima
+         evaluación; tumbar un cierre por una medalla sería invertir las
+         prioridades.
+
+         Las metas se cierran ANTES de evaluar: tres medallas (trimestre,
+         medio año, año) leen `cumplidaAt`, y al revés la racha iría siempre
+         un mes atrasada. */
+      try {
+        await this.badges.cerrarMetasCumplidas(m.tenantId);
+        const nuevas = await this.badges.evaluar(m.tenantId);
+        for (const g of nuevas.personales) {
+          await this.notificaciones.emitir(this.notificaciones.manager, {
+            tenantId: m.tenantId,
+            membershipId: g.membershipId,
+            tipo: TipoNotificacion.MEDALLA_GANADA,
+            mensaje: `Ganaste una medalla nueva: ${nombreMedalla(g.clave)}`,
+            refTipo: 'badge',
+          });
+        }
+      } catch (e) { /* best-effort */ }
 
       return resultado;
     } catch (e) {

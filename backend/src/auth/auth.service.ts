@@ -103,6 +103,7 @@ export class AuthService {
               ax.idx          AS "areaIndice",
               m.zona          AS "zona",
               m."optInJuego"  AS "optInJuego",
+              m.personaje     AS "personaje",
               u.nombre        AS "usuarioNombre",
               u.email         AS "email"
          FROM memberships m
