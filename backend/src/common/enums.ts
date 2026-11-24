@@ -91,6 +91,14 @@ export enum MotivoRechazo {
    * "desde nivel 3, te faltan 120 XP" en vez de un 409 mudo.
    */
   NIVEL_INSUFICIENTE = 'NIVEL_INSUFICIENTE',
+  /**
+   * 13/10/26 — cerrar una mision no comprobaba quien la cerraba. Cualquiera de
+   * la empresa podia cerrar la mision de cualquier otro, y el pago se iba a
+   * quien cerraba. Ahora cierra quien la trabaja, su lider de area o gerencia;
+   * el resto recibe esto. Es `text` en la base, no un enum de Postgres, asi que
+   * agregarlo no necesita migracion.
+   */
+  CIERRE_NO_AUTORIZADO = 'CIERRE_NO_AUTORIZADO',
 }
 
 // --- Beneficios y canje ------------------------------------------------------

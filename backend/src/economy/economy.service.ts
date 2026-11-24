@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, EntityManager, LessThan } from 'typeorm';
 import { v5 as uuidv5 } from 'uuid';
 import {
+  EstadoMision,
   MotivoEvento,
   MotivoRechazo,
   NivelEsfuerzo,
@@ -119,14 +120,52 @@ export class EconomyService {
    *
    * Reglas que se aplican aqui y no en la UI, porque una regla economica que vive
    * en el frontend no es una regla: es una sugerencia.
+   *
+   * ===========================================================================
+   * 13/10/26 — `beneficiario` NO ES «QUIEN CIERRA». ESA ERA LA FALLA.
+   * ===========================================================================
+   *
+   * Hasta hoy este metodo recibia a quien pulsaba «Cerrarla» y le pagaba a esa
+   * persona. Combinado con que el controlador no comprobaba quien cerraba, salia
+   * esto: si A monta una mision y B la trabaja, A podia cerrarla y cobrarse el XP
+   * y el Oro del trabajo de B. Cualquier tercero de la empresa, tambien.
+   *
+   * Ahora el parametro se llama por lo que es y quien lo resuelve es el
+   * controlador: paga a quien HIZO el trabajo, no a quien pulso el boton. Los
+   * dos pueden ser la misma persona, y en el caso normal lo son; lo que ya no
+   * pueden es ser distintos sin que se note.
+   *
+   * Vale la pena el nombre nuevo y no solo el arreglo: `membership` no decia
+   * nada, y un parametro que no dice que significa es como se cuela otra vez el
+   * mismo error dentro de seis meses.
+   *
+   * El opt-in del juego tambien se mira sobre el beneficiario y no sobre quien
+   * cierra: si el lider cierra la mision de alguien que apago el juego, ese
+   * alguien sigue sin ganar Oro — y el lider no gana nada, que es el punto.
    */
   async registrarMisionCerrada(
     mision: Mission,
-    membership: Membership,
+    beneficiario: Membership,
     clientOccurredAt?: Date,
   ): Promise<{ xp: number; oro: number; oroOtorgado: number }> {
     return this.ds.transaction(async (m) => {
       await m.query(`SELECT set_config('app.tenant_id', $1, true)`, [mision.tenantId]);
+
+      /* 13/10/26 — BLOQUEO DE LA FILA, ANTES DE PAGAR.
+         Antes esto se leia, se pagaba y se guardaba por separado. Con dos
+         cierres simultaneos de dos personas distintas, la llave de
+         idempotencia no los frena: incluye el `membershipId`, asi que dos
+         personas distintas son dos llaves distintas y la mision se pagaba dos
+         veces. El `FOR UPDATE` serializa los dos intentos y el segundo
+         encuentra la mision ya cerrada. */
+      const fila: Array<{ estado: string }> = await m.query(
+        `SELECT estado FROM missions WHERE id = $1 AND "tenantId" = $2 FOR UPDATE`,
+        [mision.id, mision.tenantId],
+      );
+      if (!fila.length) throw new NotFoundException('Misión no encontrada');
+      if (fila[0].estado === EstadoMision.CERRADA) {
+        throw new BadRequestException('La misión ya está cerrada');
+      }
 
       const cfg = await this.configVigente(m, mision.tenantId);
       const { xp, oro } = this.calcular(cfg, mision.urgencia, mision.importancia, mision.esfuerzo);
@@ -148,7 +187,7 @@ export class EconomyService {
       // --- El XP siempre se otorga -----------------------------------------
       await this.emitir(m, {
         tenantId: mision.tenantId,
-        membershipId: membership.id,
+        membershipId: beneficiario.id,
         tipo: TipoEventoEconomia.XP_GANADA,
         xpDelta: xp,
         oroDelta: 0,
@@ -156,7 +195,7 @@ export class EconomyService {
         refTipo: 'mission',
         refId: mision.id,
         clientOccurredAt,
-        membership,
+        membership: beneficiario,
       });
 
       // --- El Oro tiene tres condiciones ------------------------------------
@@ -166,7 +205,7 @@ export class EconomyService {
       //     juego, deja de ganar Oro. El XP de arriba tampoco le sirve de nada
       //     porque no ve niveles, pero el evento queda para que reactivar no
       //     lo deje en cero.
-      const puedeGanar = membership.optInJuego;
+      const puedeGanar = beneficiario.optInJuego;
 
       // (2) Una mision propia no da Oro hasta que otro la acepte (Maestro §3.3).
       //     Es el anti-cheat mas barato que existe: no requiere criptografia,
@@ -186,7 +225,7 @@ export class EconomyService {
         //     económico del Maestro §3.3, y el CFO puede querer usarla si CH-5
         //     muestra inflación). 0 = sin tope.
         if (cfg.capOroDiario > 0) {
-          const ganadoHoy = await this.oroGanadoHoy(m, membership.id);
+          const ganadoHoy = await this.oroGanadoHoy(m, beneficiario.id);
           const espacio = Math.max(0, cfg.capOroDiario - ganadoHoy);
           oroOtorgado = Math.min(oro, espacio);
         } else {
@@ -196,7 +235,7 @@ export class EconomyService {
         if (oroOtorgado > 0) {
           await this.emitir(m, {
             tenantId: mision.tenantId,
-            membershipId: membership.id,
+            membershipId: beneficiario.id,
             tipo: TipoEventoEconomia.ORO_GANADO,
             xpDelta: 0,
             oroDelta: oroOtorgado,
@@ -204,12 +243,12 @@ export class EconomyService {
             refTipo: 'mission',
             refId: mision.id,
             clientOccurredAt,
-            membership,
+            membership: beneficiario,
           });
         }
       }
 
-      await this.refrescarSaldo(m, membership.id);
+      await this.refrescarSaldo(m, beneficiario.id);
       return { xp, oro, oroOtorgado };
     });
   }
