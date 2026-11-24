@@ -1,605 +1,284 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-VE">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<title>Levelop! — Beneficios por desempeño</title>
-<meta name="description" content="Tus beneficios ya existen. Levelop decide quién se los gana. Sistema de beneficios por desempeño para PyMEs venezolanas de 10 a 100 colaboradores.">
+<title>Levelop · Beneficios por desempeño para PyMEs en Venezuela</title>
+<meta name="description" content="Tu equipo cumple misiones, gana puntos y los canjea por beneficios reales. Tú repartes con criterio y ves dónde se atasca el trabajo. Para PyMEs de 10 a 100.">
+<link rel="canonical" href="https://levelop-pi.vercel.app/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_VE">
+<meta property="og:site_name" content="Levelop">
+<meta property="og:title" content="Levelop · Beneficios por desempeño para PyMEs en Venezuela">
+<meta property="og:description" content="Tu equipo cumple misiones, gana puntos y los canjea por beneficios reales. Tú repartes con criterio y ves dónde se atasca el trabajo. Para PyMEs de 10 a 100.">
+<meta property="og:url" content="https://levelop-pi.vercel.app/">
+<meta property="og:image" content="https://levelop-pi.vercel.app/assets/og-levelop.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap">
-<style>
-:root{
-  --ground:#08080A; --surface:#121215; --surface-2:#1A1A1E; --surface-3:#26262C;
-  --line:#2A2A31; --line-strong:#43434E;
-  --ink:#EDEDE7; --ink-2:#9B9B95; --ink-3:#6A6A66;
-  --grid:rgba(237,237,231,.045);
-  --gold:#C3F03A; --gold-ink:#D6F871; --gold-bg:#2A3607; --gold-line:#4A5F0D;
-  --ok:#4FD8E8; --ok-bg:#0A2C33; --ok-line:#18505C;
-  --risk:#FF6A52; --risk-bg:#331310; --risk-line:#57241D;
-  --sync:#A79AFF; --sync-bg:#1D1846; --sync-line:#332B70;
-  --display:'Silkscreen','Courier New',monospace;
-  --body:'Archivo','Helvetica Neue',Arial,sans-serif;
-  --mono:'Space Mono','SFMono-Regular',Consolas,monospace;
-  --max:1180px;
-  --notch:polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Quantico:wght@400;700&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+<script>try{document.documentElement.setAttribute("data-theme",localStorage.getItem("lvl-tema")||"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Organization",
+   "@id": "https://levelop-pi.vercel.app/#org",
+   "name": "Levelop",
+   "alternateName": "LVL UP!",
+   "url": "https://levelop-pi.vercel.app/",
+   "logo": "https://levelop-pi.vercel.app/assets/favicon.png",
+   "email": "hola@levelop.app",
+   "areaServed": {
+    "@type": "Country",
+    "name": "Venezuela"
+   },
+   "description": "Sistema de beneficios por desempeño con experiencia de juego para PyMEs venezolanas de 10 a 100 empleados."
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://levelop-pi.vercel.app/#web",
+   "url": "https://levelop-pi.vercel.app/",
+   "name": "Levelop",
+   "inLanguage": "es-VE",
+   "publisher": {
+    "@id": "https://levelop-pi.vercel.app/#org"
+   }
+  },
+  {
+   "@type": "SoftwareApplication",
+   "@id": "https://levelop-pi.vercel.app/#app",
+   "name": "Levelop",
+   "alternateName": "LVL UP!",
+   "applicationCategory": "BusinessApplication",
+   "operatingSystem": "Web",
+   "inLanguage": "es",
+   "areaServed": "VE",
+   "publisher": {
+    "@id": "https://levelop-pi.vercel.app/#org"
+   },
+   "description": "Sistema de beneficios por desempeño con experiencia de juego: misiones, XP, Oro y una tienda de beneficios con cupos reales, más BackOffice para gerencia y líderes de área.",
+   "offers": {
+    "@type": "Offer",
+    "price": "30",
+    "priceCurrency": "USD",
+    "description": "Plan base mensual con 10 asientos incluidos; $4 por asiento adicional.",
+    "url": "https://levelop-pi.vercel.app/precio.html"
+   }
+  }
+ ]
 }
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{
-  margin:0; background:var(--ground); color:var(--ink); font-family:var(--body);
-  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
-  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-  background-size:48px 48px;
-}
-h1,h2,h3,h4{margin:0;font-family:var(--display);text-transform:uppercase;line-height:1.02;text-wrap:balance;letter-spacing:0}
-p{margin:0}
-a{color:inherit}
-img,svg{display:block;max-width:100%}
-button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
-:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
-.wrap{max-width:var(--max);margin:0 auto;padding:0 22px}
-.mono{font-family:var(--mono)}
-.eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10.5px;
-  letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
-.eyebrow::before{content:"";width:22px;height:1px;background:var(--gold-line)}
-.lede{color:var(--ink-2);font-size:17px;max-width:62ch}
-
-/* ---------- BOTONES ---------- */
-.btn{display:inline-flex;align-items:center;gap:9px;padding:13px 22px;font-family:var(--mono);
-  font-size:12px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;
-  clip-path:var(--notch);transition:transform .12s ease, background .12s ease}
-.btn:hover{transform:translate(-2px,-2px)}
-.btn-p{background:var(--gold);color:#0B0B0C;font-weight:400}
-.btn-p:hover{background:var(--gold-ink)}
-.btn-s{background:var(--surface-2);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line-strong)}
-
-/* ---------- NAV ---------- */
-.nav{position:sticky;top:0;z-index:60;background:rgba(8,8,10,.86);backdrop-filter:blur(10px);
-  box-shadow:inset 0 -1px 0 var(--line)}
-.nav-in{max-width:var(--max);margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:18px}
-.brand{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:400;
-  font-size:21px;text-transform:uppercase;text-decoration:none;line-height:1}
-.brand em{font-style:normal;color:var(--gold)}
-.brand-mark{width:26px;height:26px;display:grid;place-items:center;font-size:13px;font-weight:400;
-  font-family:var(--display);color:var(--ground);background:var(--gold);
-  clip-path:polygon(0 25%,25% 25%,25% 0,75% 0,75% 25%,100% 25%,100% 75%,75% 75%,75% 100%,25% 100%,25% 75%,0 75%)}
-.nav-links{display:flex;gap:24px;margin-left:auto}
-.nav-links a{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--ink-2);text-decoration:none}
-.nav-links a:hover{color:var(--gold)}
-.nav .btn{margin-left:auto}
-.nav-links + .btn{margin-left:0}
-@media (max-width:860px){.nav-links{display:none}}
-
-/* ---------- HERO ---------- */
-.hero{padding:96px 0 74px;position:relative;overflow:hidden}
-.hero::after{content:"";position:absolute;inset:auto -20% -60% 40%;height:520px;
-  background:radial-gradient(closest-side,rgba(195,240,58,.13),transparent 70%);pointer-events:none}
-.hero h1{font-size:clamp(38px,6.4vw,74px);letter-spacing:-.01em}
-.hero h1 em{font-style:normal;color:var(--gold)}
-.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:52px;align-items:center}
-@media (max-width:940px){.hero-grid{grid-template-columns:1fr;gap:40px}.hero{padding:64px 0 52px}}
-.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
-.hero-note{margin-top:18px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;
-  text-transform:uppercase;color:var(--ink-3)}
-
-/* mock del producto */
-.mock{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line),12px 12px 0 rgba(0,0,0,.5);
-  clip-path:var(--notch);padding:16px;position:relative;z-index:2}
-.mock-bar{display:flex;align-items:center;gap:7px;padding-bottom:12px;margin-bottom:14px;
-  box-shadow:inset 0 -1px 0 var(--line)}
-.dot{width:8px;height:8px;background:var(--surface-3)}
-.mock-title{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);margin-left:6px}
-.stat{padding:12px 13px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line)}
-.stat .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
-.stat .v{font-family:var(--display);font-size:26px;margin-top:6px;line-height:1}
-.stat .v.g{color:var(--gold)}
-.mock-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.bars{display:flex;align-items:flex-end;gap:7px;height:78px;margin-top:12px}
-.bars i{flex:1;background:var(--surface-3);display:block}
-.bars i.on{background:var(--gold)}
-.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:9.5px;
-  letter-spacing:.14em;text-transform:uppercase;padding:4px 9px;clip-path:var(--notch)}
-.chip-ok{color:var(--ok);background:var(--ok-bg);box-shadow:inset 0 0 0 1px var(--ok-line)}
-.chip-g{color:var(--gold);background:var(--gold-bg);box-shadow:inset 0 0 0 1px var(--gold-line)}
-.chip-s{color:var(--sync);background:var(--sync-bg);box-shadow:inset 0 0 0 1px var(--sync-line)}
-.chip-r{color:var(--risk);background:var(--risk-bg);box-shadow:inset 0 0 0 1px var(--risk-line)}
-
-/* ---------- SECCIONES ---------- */
-section{padding:84px 0;position:relative}
-section + section{box-shadow:inset 0 1px 0 var(--line)}
-@media (max-width:860px){section{padding:60px 0}}
-.sec-head{max-width:760px;margin-bottom:44px}
-.sec-head h2{font-size:clamp(26px,3.8vw,40px);margin:16px 0 16px}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-@media (max-width:940px){.grid-3,.grid-4{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:620px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
-.card{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);padding:24px 22px;clip-path:var(--notch);
-  transition:box-shadow .15s ease,transform .15s ease}
-.card:hover{box-shadow:inset 0 0 0 1px var(--line-strong);transform:translateY(-3px)}
-.card h3{font-size:15px;margin:14px 0 9px;color:var(--ink)}
-.card p{color:var(--ink-2);font-size:14.5px}
-.num-badge{font-family:var(--display);font-size:13px;color:var(--gold);
-  display:inline-grid;place-items:center;width:30px;height:30px;background:var(--gold-bg);
-  box-shadow:inset 0 0 0 1px var(--gold-line)}
-.ico{width:30px;height:30px;color:var(--gold)}
-
-/* problema — cadena */
-.chain{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
-.chain .step{padding:26px 24px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
-.chain .step:nth-child(3){background:var(--gold-bg);box-shadow:inset 0 0 0 1px var(--gold-line)}
-.chain .step h3{font-size:15px;margin:12px 0 9px}
-.chain .step:nth-child(3) h3{color:var(--gold-ink)}
-.chain .step p{color:var(--ink-2);font-size:14.5px}
-@media (max-width:820px){.chain{grid-template-columns:1fr}}
-
-/* comparativa */
-.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media (max-width:760px){.split{grid-template-columns:1fr}}
-.panel{padding:26px 24px;clip-path:var(--notch)}
-.panel h3{font-size:14px;margin-bottom:16px}
-.panel ul{margin:0;padding:0;list-style:none;display:grid;gap:11px}
-.panel li{display:flex;gap:11px;font-size:14.5px;color:var(--ink-2);line-height:1.45}
-.panel li b{color:var(--ink);font-weight:600}
-.mk{font-family:var(--mono);font-size:13px;flex:none;line-height:1.35}
-.p-before{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
-.p-before .mk{color:var(--risk)}
-.p-after{background:var(--surface);box-shadow:inset 0 0 0 1px var(--gold-line)}
-.p-after .mk{color:var(--gold)}
-
-/* superficies */
-.surface-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-@media (max-width:940px){.surface-row{grid-template-columns:1fr}}
-.surf{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);clip-path:var(--notch);overflow:hidden}
-.surf-top{padding:20px 22px 18px}
-.surf-top h3{font-size:15px;margin:10px 0 8px}
-.surf-top p{color:var(--ink-2);font-size:14px}
-.surf-vis{padding:18px 22px 22px;background:var(--surface-2);box-shadow:inset 0 1px 0 var(--line)}
-.line-item{display:flex;align-items:center;gap:10px;padding:9px 0;box-shadow:inset 0 -1px 0 var(--line)}
-.line-item:last-child{box-shadow:none}
-.line-item .t{font-size:13px;color:var(--ink-2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.meter{height:7px;background:var(--surface-3);flex:1}
-.meter i{display:block;height:100%;background:var(--gold)}
-
-/* alianzas */
-.ally{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);padding:20px 20px;clip-path:var(--notch);
-  display:flex;flex-direction:column;gap:12px;min-height:150px}
-.ally:hover{box-shadow:inset 0 0 0 1px var(--gold-line)}
-.ally-logo{display:flex;align-items:center;gap:10px}
-.ally-mark{width:34px;height:34px;display:grid;place-items:center;font-family:var(--display);font-size:14px;
-  color:var(--ground);clip-path:polygon(0 20%,20% 20%,20% 0,80% 0,80% 20%,100% 20%,100% 80%,80% 80%,80% 100%,20% 100%,20% 80%,0 80%)}
-.ally-name{font-family:var(--display);font-size:14px;text-transform:uppercase}
-.ally p{font-size:13.5px;color:var(--ink-2)}
-.ally .cat{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
-.ally-foot{margin-top:auto}
-
-/* reglas */
-.rule{display:flex;gap:16px;padding:22px 0;box-shadow:inset 0 -1px 0 var(--line)}
-.rule:last-child{box-shadow:none}
-.rule .rid{font-family:var(--display);font-size:13px;color:var(--gold);flex:none;width:64px;padding-top:2px}
-.rule h3{font-size:15px;margin-bottom:7px}
-.rule p{color:var(--ink-2);font-size:14.5px}
-
-/* precio */
-.price-wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;align-items:stretch}
-@media (max-width:820px){.price-wrap{grid-template-columns:1fr}}
-.price{background:var(--surface);box-shadow:inset 0 0 0 1px var(--gold-line);padding:32px 30px;clip-path:var(--notch)}
-.price .amt{font-family:var(--display);font-size:56px;line-height:1;color:var(--gold);margin:14px 0 6px}
-.price .amt small{font-family:var(--mono);font-size:13px;color:var(--ink-2);letter-spacing:.06em}
-.price ul{margin:22px 0 0;padding:0;list-style:none;display:grid;gap:11px}
-.price li{display:flex;gap:11px;font-size:14.5px;color:var(--ink-2)}
-.price li .mk{color:var(--gold)}
-
-/* form */
-.form-card{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);padding:30px 28px;clip-path:var(--notch)}
-.field{display:grid;gap:7px;margin-bottom:16px}
-.field label{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
-.field input,.field select,.field textarea{
-  background:var(--surface-2);color:var(--ink);border:0;box-shadow:inset 0 0 0 1px var(--line);
-  padding:12px 13px;font-family:var(--body);font-size:15px;width:100%}
-.field input::placeholder,.field textarea::placeholder{color:var(--ink-3)}
-.field-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media (max-width:620px){.field-2{grid-template-columns:1fr}}
-.form-ok{display:none;padding:14px 15px;background:var(--gold-bg);box-shadow:inset 0 0 0 1px var(--gold-line);
-  color:var(--gold-ink);font-size:14px;margin-bottom:16px}
-.form-ok.on{display:block}
-
-/* cta band */
-.band{background:var(--gold);color:#0B0B0C;padding:60px 0}
-.band h2{font-size:clamp(26px,4vw,44px);max-width:20ch}
-.band p{color:rgba(11,11,12,.72);max-width:56ch;margin-top:14px;font-size:16px}
-.band .btn-dark{background:#0B0B0C;color:var(--gold);font-weight:400}
-.band-in{display:flex;gap:30px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-
-footer{padding:46px 0 60px;box-shadow:inset 0 1px 0 var(--line)}
-.foot-in{display:flex;gap:22px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
-footer p,footer a{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--ink-3);text-decoration:none}
-footer a:hover{color:var(--gold)}
-.foot-links{display:flex;gap:20px;flex-wrap:wrap}
-.disclaimer{margin-top:22px;font-size:10.5px;color:var(--ink-3);max-width:70ch;line-height:1.6}
-
-/* ---------- ACCESO (login unificado) ---------- */
-.nav-acc{display:flex;gap:10px;align-items:center;margin-left:auto}
-.nav-links + .nav-acc{margin-left:0}
-.btn-sm{padding:10px 16px;font-size:11px}
-@media (max-width:520px){.nav-acc .btn-p{display:none}}
-.acc{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:16px;
-  background:rgba(4,4,6,.78);backdrop-filter:blur(6px)}
-.acc.on{display:flex}
-.acc-card{width:100%;max-width:440px;max-height:calc(100vh - 32px);overflow:auto;background:var(--surface);
-  box-shadow:inset 0 0 0 1px var(--line-strong);clip-path:var(--notch);padding:28px 26px;position:relative}
-.acc-card h2{font-size:22px;margin:14px 0 8px}
-.acc-card .sub{color:var(--ink-2);font-size:14px}
-.acc-x{position:absolute;top:12px;right:14px;font-size:22px;color:var(--ink-3);line-height:1;padding:6px}
-.acc-x:hover{color:var(--ink)}
-.acc form{margin-top:20px}
-.acc .btn{width:100%;justify-content:center}
-.acc-msg{padding:13px 14px;font-size:14px;line-height:1.5;margin-top:16px}
-.acc-msg.err{background:var(--risk-bg);box-shadow:inset 0 0 0 1px var(--risk-line);color:#FFB3A6}
-.acc-msg.info{background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line-strong);color:var(--ink-2)}
-.acc-msg b{color:var(--ink)}
-.acc-demo{margin-top:18px;padding:16px;background:var(--gold-bg);box-shadow:inset 0 0 0 1px var(--gold-line)}
-.acc-demo p{color:var(--gold-ink);font-size:14px;margin-bottom:12px}
-.acc-pick{display:grid;gap:10px;margin-top:18px}
-.acc-pick button{display:flex;gap:12px;align-items:center;text-align:left;padding:14px 15px;background:var(--surface-2);
-  box-shadow:inset 0 0 0 1px var(--line)}
-.acc-pick button:hover{box-shadow:inset 0 0 0 1px var(--gold-line)}
-.acc-pick b{display:block;font-size:15px}
-.acc-pick small{display:block;color:var(--ink-3);font-size:12.5px;margin-top:2px}
-.acc-pick .arr{margin-left:auto;color:var(--gold);font-family:var(--mono)}
-.acc-foot{margin-top:18px;font-size:12.5px;color:var(--ink-3);line-height:1.5}
-.acc-foot a{color:var(--gold)}
-.hero-login{margin-top:14px;font-size:14px;color:var(--ink-2)}
-.hero-login a{color:var(--gold)}
-</style>
+</script>
 </head>
 <body>
-
-<nav class="nav">
+<a class="skip" href="#main">Saltar al contenido</a>
+<nav class="nav" aria-label="Principal">
   <div class="nav-in">
-    <a class="brand" href="#top"><span class="brand-mark">L</span><span>Levelop<em>!</em></span></a>
+    <a class="brand" href="index.html" aria-label="Levelop, inicio"><img class="logo logo-d" src="assets/imagotipo-claro.png" alt="Levelop" width="175" height="30"><img class="logo logo-l" src="assets/imagotipo-oscuro.png" alt="" width="175" height="30" aria-hidden="true"><img class="logo-iso" src="assets/isotipo.png" alt="" width="26" height="30" aria-hidden="true"></a>
     <div class="nav-links">
-      <a href="#problema">El problema</a>
-      <a href="#solucion">Qué resolvemos</a>
-      <a href="#producto">Producto</a>
-      <a href="#alianzas">Alianzas</a>
-      <a href="#precio">Precio</a>
+      <a href="index.html#solucion">Qué resolvemos</a>
+      <a href="index.html#equipo">Para tu equipo</a>
+      <a href="como-se-juega.html">Cómo se juega</a>
+      <a href="personajes.html">Personajes</a>
+      <a href="alianzas.html">Alianzas</a>
+      <a href="precio.html">Precio</a>
+      <a href="faq.html">FAQ</a>
     </div>
-    <div class="nav-acc">
-      <a class="btn btn-s btn-sm" href="#entrar" data-entrar>Iniciar sesión</a>
-      <a class="btn btn-p btn-sm" href="#demo">Agenda una demo</a>
-    </div>
+    <button class="iconbtn" id="themebtn" title="Cambiar tema" aria-label="Cambiar tema"><span class="ti"></span></button>
+    <a class="btn btn-s nav-acc-btn" href="index.html#entrar" data-entrar>Iniciar sesión</a>
+    <a class="btn btn-p" href="index.html#demo">Agendar demo</a>
+    <details class="menu">
+      <summary aria-label="Abrir menú">Menú</summary>
+      <div class="menu-panel">
+      <a href="index.html#solucion">Qué resolvemos</a>
+      <a href="index.html#equipo">Para tu equipo</a>
+      <a href="como-se-juega.html">Cómo se juega</a>
+      <a href="personajes.html">Personajes</a>
+      <a href="alianzas.html">Alianzas</a>
+      <a href="precio.html">Precio</a>
+      <a href="faq.html">FAQ</a>
+        <a class="btn btn-s" href="index.html#entrar" data-entrar>Iniciar sesión</a>
+        <a class="btn btn-p" href="index.html#demo">Agendar demo</a>
+      </div>
+    </details>
   </div>
 </nav>
+<main id="main">
 
-<!-- HERO -->
 <header class="hero" id="top">
   <div class="wrap hero-grid">
     <div>
-      <span class="eyebrow">Beneficios por desempeño · PyMEs de 10 a 100</span>
+      <span class="eyebrow">Beneficios por desempeño · con juego de por medio</span>
       <h1 style="margin-top:20px">Tus beneficios ya existen.<br><em>Levelop decide quién se los gana.</em></h1>
-      <p class="lede" style="margin-top:22px">No te pedimos un presupuesto nuevo. Te damos el criterio que hoy no tienes: un sistema transparente y auditable que conecta el trabajo que alguien hizo con el beneficio que se ganó.</p>
+      <p class="lede" style="margin-top:22px">Tu equipo cumple misiones, gana puntos y los canjea por beneficios reales. Tú ves dónde se atasca el trabajo y repartes con criterio, sin presupuesto nuevo y sin hacerlo a dedo.</p>
       <div class="hero-cta">
-        <a class="btn btn-p" href="#demo">Agenda una demo →</a>
-        <a class="btn btn-s" href="#solucion">Ver qué resolvemos</a>
+        <a class="btn btn-p" href="#demo">Agendar demo →</a>
+        <a class="btn btn-s" href="como-se-juega.html">Ver cómo funciona</a>
       </div>
       <p class="hero-note">Demo de 20 minutos · Sin instalar nada · Programa Fundadores abierto</p>
-      <p class="hero-login">¿Tu empresa ya usa Levelop!? <a href="#entrar" data-entrar>Inicia sesión →</a></p>
+      <p class="hero-login">¿Tu empresa ya usa Levelop? <a href="index.html#entrar" data-entrar>Inicia sesión →</a></p>
     </div>
-
-    <div class="mock" aria-hidden="true">
-      <div class="mock-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        <span class="mock-title">BackOffice · Gerencia</span></div>
-      <div class="mock-row">
-        <div class="stat"><div class="k">Cupos usados</div><div class="v g">78%</div></div>
-        <div class="stat"><div class="k">Canjes confirmados</div><div class="v">94%</div></div>
-      </div>
-      <div class="stat" style="margin-top:10px">
-        <div class="k">Distribución de carga · sin nombres</div>
-        <div class="bars"><i style="height:38%"></i><i style="height:62%"></i><i class="on" style="height:96%"></i><i style="height:54%"></i><i style="height:71%"></i><i style="height:33%"></i><i class="on" style="height:88%"></i><i style="height:47%"></i></div>
-      </div>
-      <div class="stat" style="margin-top:10px">
-        <div class="k" style="margin-bottom:9px">Estado de la operación</div>
-        <div style="display:flex;gap:7px;flex-wrap:wrap">
-          <span class="chip chip-g">3 intrarrecompensas activas</span>
-          <span class="chip chip-ok">Gate cumplido</span>
-          <span class="chip chip-s">Sincronizado</span>
-          <span class="chip chip-r">1 cupo agotado</span>
+    <div class="mock-wrap">
+      <div class="mock" aria-hidden="true">
+        <div class="mock-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="mock-title">Investigación · Desenganche laboral</span></div>
+        <div class="stat"><div class="k">De tu semana, en tareas repetitivas sin criterio</div><div class="v g" style="margin-top:6px">41<span class="pct">%</span></div><div class="meter" style="margin-top:10px"><i style="width:41%"></i></div></div>
+        <div class="mock-row" style="margin-top:10px">
+          <div class="stat"><div class="k">Usa hoy sus beneficios tradicionales</div><div class="v" style="margin-top:6px">20<span class="pct">%</span></div></div>
+          <div class="stat"><div class="k">Más participación con buen diseño de juego</div><div class="v g" style="margin-top:6px">+20–50<span class="pct">%</span></div></div>
         </div>
+        <p class="mono" style="font-size:9.5px;color:var(--ink-3);margin-top:14px;line-height:1.5;letter-spacing:.03em">Fuente: investigación interna del Lead Researcher · cifra pendiente de firma final (R-01) antes de publicar</p>
       </div>
+      <div class="float" aria-hidden="true"><img class="av px" src="assets/caballero-avatar.png" alt="" width="48" height="48"><div><b>Misión aprobada</b><span>+120 Oro · +120 XP</span></div></div>
     </div>
   </div>
 </header>
 
-<!-- PROBLEMA -->
-<section id="problema">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">El problema</span>
-      <h2>El dolor no es el presupuesto.<br>Es el criterio.</h2>
-      <p class="lede">En Venezuela la compensación real dejó de pagarse vía salario: se entrega en bonos, beneficios en especie y flexibilidad. De ahí salen tres hechos encadenados, y el tercero es el que nadie está resolviendo.</p>
-    </div>
-    <div class="chain">
-      <div class="step">
-        <span class="num-badge">01</span>
-        <h3>Ya gastas esa plata</h3>
-        <p>Días libres, salidas anticipadas, bonos, descuentos, comida. El presupuesto de beneficios existe y se ejecuta todos los meses.</p>
-      </div>
-      <div class="step">
-        <span class="num-badge">02</span>
-        <h3>Se reparte a dedo</h3>
-        <p>Le llega igual al que empuja y al que no. Sin registro, sin criterio, y con el costo político de decidir cayendo sobre el jefe cada vez.</p>
-      </div>
-      <div class="step">
-        <span class="num-badge">03</span>
-        <h3>Ese criterio es el producto</h3>
-        <p>Levelop es la infraestructura de asignación: qué trabajo se hizo, cuánto valió, qué beneficio desbloqueó y quién lo canjeó. Auditable de punta a punta.</p>
-      </div>
-    </div>
-  </div>
-</section>
+<div class="parade">
+  <img class="px" src="assets/desfile-personajes.gif" alt="Los ocho personajes de Levelop caminando: caballero, elfo, sirena, duende guerrero, mago, dragón, bárbaro y bardo" width="924" height="192">
+  <div class="parade-cap"><p>Cada quien elige <em>su personaje.</em> Empieza su misión.</p><a class="btn btn-s" href="personajes.html">Conoce a los personajes →</a></div>
+</div>
 
-<!-- SOLUCION -->
 <section id="solucion">
   <div class="wrap">
     <div class="sec-head">
       <span class="eyebrow">Qué resolvemos</span>
-      <h2>Cinco cosas que hoy te cuestan plata, tiempo o gente</h2>
-      <p class="lede">Cada tarjeta es un problema concreto de una PyME de 10 a 100 personas — y el mecanismo exacto con el que Levelop lo cierra.</p>
+      <h2>El dolor no es el presupuesto. Es el criterio.</h2>
+      <p class="lede">En Venezuela la compensación real se entrega en bonos, beneficios en especie y flexibilidad. Las empresas ya gastan esa plata, pero la reparten igual al que empuja y al que no.</p>
     </div>
+    <div class="peek-host">
+    <div class="peek-a" data-live aria-hidden="true"><img class="px" src="assets/barbaro-full.png" alt="" width="116" height="139" loading="lazy"></div>
     <div class="grid-3">
-      <article class="card">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v18M5 8h14M5 16h14"/></svg>
-        <h3>Repartes beneficios sin criterio</h3>
-        <p>Cada misión tiene urgencia, importancia y esfuerzo declarados antes de empezar. La recompensa sale de una fórmula publicada en pantalla, no de una conversación de pasillo.</p>
-      </article>
-      <article class="card">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-        <h3>No sabes dónde se atasca el trabajo</h3>
-        <p>El BackOffice muestra la carga por área, los cuellos de botella y qué quedó sin dueño. Muestra el trabajo, nunca a la persona.</p>
-      </article>
-      <article class="card">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7h18v12H3z"/><path d="M3 11h18M9 7V4h6v3"/></svg>
-        <h3>Pagas beneficios que nadie usa</h3>
-        <p>Cupos usados contra cupos contratados, por familia de beneficio. La primera métrica que te devuelve plata: dejas de comprar lo que no se canjea.</p>
-      </article>
-      <article class="card">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.5-7 10-7 10z"/></svg>
-        <h3>La gente buena se va sin avisar</h3>
-        <p>El esfuerzo deja rastro: se reconoce en el momento, no en la evaluación de diciembre. Y el líder ve dónde hace falta una mano antes de que el problema se vuelva renuncia.</p>
-      </article>
-      <article class="card">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>
-        <h3>No puedes probar que funcionó</h3>
-        <p>Medimos la línea base <b>antes</b> de instalar. A los 90 días tienes un caso con números, no anécdotas: qué beneficio movió qué comportamiento, por rol.</p>
-      </article>
-      <article class="card">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 10V7a6 6 0 1112 0v3"/><rect x="4" y="10" width="16" height="10"/></svg>
-        <h3>Temes que se vuelva vigilancia</h3>
-        <p>La participación es opt-in de verdad y ninguna pantalla de gerencia muestra un dato cuyo único uso posible sea señalar a alguien. Está escrito en nuestras reglas permanentes.</p>
-      </article>
+      <article class="card"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 3v18M5 8h14M5 16h14"/></svg>
+        <h3>Reparto con regla, no a dedo</h3><p>Cada beneficio sale de una fórmula publicada. Quien no negocia con el jefe también recibe lo que se ganó.</p></article>
+      <article class="card"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <h3>Ves dónde se atasca el trabajo</h3><p>El BackOffice muestra la carga por área y los cuellos de botella antes de que exploten. Muestra el trabajo, nunca a la persona.</p></article>
+      <article class="card"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 7h18v12H3z"/><path d="M3 11h18M9 7V4h6v3"/></svg>
+        <h3>Dejas de pagar lo que nadie usa</h3><p>Cupos usados contra cupos contratados, por tipo de beneficio. Compras lo que tu gente sí canjea.</p></article>
+    </div>
     </div>
   </div>
 </section>
 
-<!-- POR QUE MEJORA DESEMPEÑO -->
-<section id="desempeno">
+<section id="equipo">
   <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">Por qué mejora el desempeño</span>
-      <h2>Porque el incentivo deja de ser una promesa y pasa a ser una regla</h2>
-      <p class="lede">Un beneficio discrecional no cambia comportamiento: cambia la relación con el jefe. Un beneficio con regla publicada sí cambia comportamiento, porque cualquiera puede calcular de antemano qué gana si empuja.</p>
-    </div>
-    <div class="split">
-      <div class="panel p-before">
-        <h3>Sin Levelop</h3>
-        <ul>
-          <li><span class="mk">✕</span><span>El esfuerzo extra se reconoce <b>cuando el jefe se acuerda</b>.</span></li>
-          <li><span class="mk">✕</span><span>Nadie sabe cuánto vale una tarea hasta que ya está hecha.</span></li>
-          <li><span class="mk">✕</span><span>El beneficio se pide, se negocia y se otorga por confianza.</span></li>
-          <li><span class="mk">✕</span><span>La carga se reparte por quien levanta la mano, no por capacidad.</span></li>
-          <li><span class="mk">✕</span><span>El gasto en beneficios no se puede auditar ni defender.</span></li>
-        </ul>
+    <div class="team-grid">
+      <div class="phone" aria-label="Ejemplo de la app del empleado">
+        <div class="ph-top">
+          <img class="av px" src="assets/caballero-avatar.png" alt="" width="44" height="44">
+          <div class="lv"><b>Nivel 7 · Caballero</b><div class="xp"><i style="width:62%"></i></div></div>
+          <span class="chip chip-g">Racha 5</span>
+        </div>
+        <div class="tiles">
+          <div class="tile"><div class="k">Oro</div><div class="v g">1.240</div><div class="n">Puntaje de juego. No es dinero.</div></div>
+          <div class="tile"><div class="k">XP semana</div><div class="v">+380</div><div class="n">Sube tu nivel.</div></div>
+        </div>
+        <div class="mi"><h4>Cerrar conciliación de mayo</h4>
+          <div class="row"><span class="chip chip-s">En revisión</span><span class="chip chip-g">+120 apartado</span></div></div>
+        <div class="goal"><span class="k">Tu objetivo</span><b>Día libre</b><div class="xp"><i style="width:64%"></i></div>
+          <p>A tu ritmo actual lo alcanzas en unas 5 semanas.</p></div>
+        <div class="ph-nav"><span class="on">Inicio</span><span>Misiones</span><span>Tienda</span><span>Ranking</span><span>Perfil</span></div>
+        <p class="disclaimer" style="margin:4px 0 0;font-size:9.5px">Pantalla de ejemplo con datos ilustrativos.</p>
       </div>
-      <div class="panel p-after">
-        <h3>Con Levelop</h3>
-        <ul>
-          <li><span class="mk">✓</span><span>La recompensa se aparta <b>al enviar a revisión</b> y se acredita al aprobar.</span></li>
-          <li><span class="mk">✓</span><span>La fórmula está publicada: urgencia × importancia × esfuerzo, con tope diario.</span></li>
-          <li><span class="mk">✓</span><span>El beneficio se desbloquea solo, contra cupo real y zona.</span></li>
-          <li><span class="mk">✓</span><span>«Pedir ayuda» reparte la recompensa 60/40 entre quienes empujaron.</span></li>
-          <li><span class="mk">✓</span><span>Cada canje deja registro: emitido, apartado, confirmado.</span></li>
-        </ul>
+      <div>
+        <span class="eyebrow">Para tu equipo</span>
+        <h2 class="h2">Lo que tu gente gana cuando trabaja con Levelop</h2>
+        <div class="rule"><span class="rid">01</span><div><h3>Reconocimiento en el momento</h3><p>Al enviar una misión a revisión, la recompensa queda apartada. Al aprobarse, se acredita.</p></div></div>
+        <div class="rule"><span class="rid">02</span><div><h3>Beneficios que se piden, no se mendigan</h3><p>Días libres, salidas anticipadas y descuentos con aliados, con cupos visibles.</p></div></div>
+        <div class="rule"><span class="rid">03</span><div><h3>Jugar es opcional</h3><p>Quien no quiere el juego lo apaga y sigue trabajando igual. Nadie en gerencia ve quién lo apagó.</p></div></div>
       </div>
     </div>
-
-    <div class="grid-4" style="margin-top:16px">
-      <div class="card"><div class="stat" style="background:none;box-shadow:none;padding:0">
-        <div class="v g">3 min</div><div class="k" style="margin-top:8px">Lo que le toma a un colaborador resolver su día. Si tarda menos, mejor.</div></div></div>
-      <div class="card"><div class="stat" style="background:none;box-shadow:none;padding:0">
-        <div class="v g">$0</div><div class="k" style="margin-top:8px">Presupuesto nuevo requerido. Empiezas con beneficios de tiempo, que no cuestan caja.</div></div></div>
-      <div class="card"><div class="stat" style="background:none;box-shadow:none;padding:0">
-        <div class="v g">90 días</div><div class="k" style="margin-top:8px">Para tener el primer corte medible contra tu línea base.</div></div></div>
-      <div class="card"><div class="stat" style="background:none;box-shadow:none;padding:0">
-        <div class="v g">100%</div><div class="k" style="margin-top:8px">Opt-in. Quien no quiere jugar sigue trabajando igual, sin castigo.</div></div></div>
-    </div>
   </div>
 </section>
 
-<!-- PRODUCTO -->
-<section id="producto">
+<section id="juego">
   <div class="wrap">
     <div class="sec-head">
-      <span class="eyebrow">El producto</span>
-      <h2>Tres superficies. Cada quien ve lo que le sirve.</h2>
-      <p class="lede">Lo que un líder necesita para <b>ayudar</b> y lo que la gerencia necesita para <b>decidir</b> no son el mismo dato. Por eso no viven en la misma pantalla.</p>
+      <span class="eyebrow">Cómo se juega</span>
+      <h2>Trabajo de verdad, con la mecánica de un videojuego</h2>
+      <p class="lede">Misiones, niveles, rachas y una tienda. La experiencia es lúdica; el reparto de beneficios que hay debajo es serio y auditable.</p>
     </div>
-    <div class="surface-row">
-      <article class="surf">
-        <div class="surf-top">
-          <span class="chip chip-g">Gerencia</span>
-          <h3>BackOffice de gerencia</h3>
-          <p>¿Dónde se atasca el trabajo y qué beneficios de verdad se usan?</p>
-        </div>
-        <div class="surf-vis">
-          <div class="line-item"><span class="t">Cupos usados / contratados</span><span class="meter"><i style="width:78%"></i></span></div>
-          <div class="line-item"><span class="t">Canjes confirmados</span><span class="meter"><i style="width:94%"></i></span></div>
-          <div class="line-item"><span class="t">Concentración de carga</span><span class="meter"><i style="width:41%"></i></span></div>
-          <div class="line-item"><span class="t">Gate de lanzamiento</span><span class="chip chip-ok">Cumplido</span></div>
-        </div>
-      </article>
-      <article class="surf">
-        <div class="surf-top">
-          <span class="chip chip-s">Líder de área</span>
-          <h3>Panel del líder</h3>
-          <p>¿Dónde hace falta una mano, quién trabaja con quién, quién no va a estar?</p>
-        </div>
-        <div class="surf-vis">
-          <div class="line-item"><span class="t">Patrón · revisiones lentas</span><span class="chip chip-r">3 semanas</span></div>
-          <div class="line-item"><span class="t">Patrón · carga sobre un área</span><span class="chip chip-r">2 semanas</span></div>
-          <div class="line-item"><span class="t">Ausencias declaradas</span><span class="chip chip-s">4 esta semana</span></div>
-          <div class="line-item"><span class="t">Lista de patrones, no de personas</span></div>
-        </div>
-      </article>
-      <article class="surf">
-        <div class="surf-top">
-          <span class="chip chip-g">Equipo</span>
-          <h3>App del colaborador</h3>
-          <p>¿Qué gané, qué me falta, y qué me puedo pedir con eso?</p>
-        </div>
-        <div class="surf-vis">
-          <div class="line-item"><span class="t">Misión · Cerrar cierre de mes</span><span class="chip chip-g">+120</span></div>
-          <div class="line-item"><span class="t">Objetivo · Día libre</span><span class="meter"><i style="width:64%"></i></span></div>
-          <div class="line-item"><span class="t">Tienda · Salida anticipada</span><span class="chip chip-ok">2 cupos</span></div>
-          <div class="line-item"><span class="t">Ranking ±3 · meta colectiva</span></div>
-        </div>
-      </article>
-    </div>
+    <ol class="loop" data-live>
+      <li class="lstep" style="--i:0"><span class="num-badge">01</span><h3>Toma una misión</h3><p>Cada tarea se declara con su urgencia, su importancia y su esfuerzo. El valor sale de ahí, no de una negociación.</p></li>
+      <li class="lstep" style="--i:1"><span class="num-badge">02</span><h3>Envíala a revisión</h3><p>No se «marca como lista». Se envía, la recompensa queda apartada y se abre un hilo con quien revisa.</p></li>
+      <li class="lstep" style="--i:2"><span class="num-badge">03</span><h3>Gana XP y Oro</h3><p>El XP sube tu nivel y desbloquea catálogo. El Oro es tu puntaje para canjear en la Tienda.</p></li>
+      <li class="lstep" style="--i:3"><span class="num-badge">04</span><h3>Canjea un beneficio</h3><p>Se descuenta de un cupo real. Si el cupo se agota, la app lo dice con claridad y no te deja en el aire.</p></li>
+    </ol>
+    <p class="more"><a class="btn btn-s" href="como-se-juega.html">Ver la mecánica completa →</a></p>
   </div>
 </section>
 
-<!-- ALIANZAS -->
 <section id="alianzas">
   <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">Alianzas</span>
-      <h2>El catálogo no lo llenas tú solo</h2>
-      <p class="lede">Además de tus beneficios internos —los que no cuestan caja— tu equipo canjea con nuestra red de aliados. Cupos negociados por Levelop, precio dentro de banda, sin que tú tengas que salir a buscar convenios.</p>
+    <div class="ally-stage" data-live>
+      <div>
+        <span class="eyebrow">Alianzas</span>
+        <h2>El catálogo no lo llenas tú solo</h2>
+        <p class="lede">Además de tus beneficios internos, tu equipo canjea su Oro con una red de aliados en diez categorías. Cupos negociados por Levelop, sin que tengas que salir a buscar convenios.</p>
+        <div class="ally-tiles">
+          <div><b>10</b><span>categorías abiertas</span></div>
+          <div><b>0</b><span>convenios que negocias tú</span></div>
+          <div><b>$0</b><span>pool de comercio al arrancar</span></div>
+        </div>
+        <a class="btn btn-p" href="alianzas.html">Ver cómo funcionan las alianzas →</a>
+      </div>
+      <div class="ally-art" aria-hidden="true">
+        <div class="chest-glow"></div>
+        <div class="chest " aria-hidden="true"><div class="c-base"><svg class="pxs " viewBox="0 0 20 9" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="0" y="0" width="1" height="1" fill="#1A1208"/><rect x="1" y="0" width="2" height="1" fill="#8B5A2B"/><rect x="3" y="0" width="2" height="1" fill="#F5C518"/><rect x="5" y="0" width="4" height="1" fill="#8B5A2B"/><rect x="9" y="0" width="2" height="1" fill="#F5C518"/><rect x="11" y="0" width="4" height="1" fill="#8B5A2B"/><rect x="15" y="0" width="2" height="1" fill="#F5C518"/><rect x="17" y="0" width="2" height="1" fill="#8B5A2B"/><rect x="19" y="0" width="1" height="1" fill="#1A1208"/><rect x="0" y="1" width="1" height="1" fill="#1A1208"/><rect x="1" y="1" width="1" height="1" fill="#8B5A2B"/><rect x="2" y="1" width="1" height="1" fill="#B87333"/><rect x="3" y="1" width="2" height="1" fill="#F5C518"/><rect x="5" y="1" width="4" height="1" fill="#B87333"/><rect x="9" y="1" width="2" height="1" fill="#F5C518"/><rect x="11" y="1" width="4" height="1" fill="#B87333"/><rect x="15" y="1" width="2" height="1" fill="#F5C518"/><rect x="17" y="1" width="1" height="1" fill="#B87333"/><rect x="18" y="1" width="1" height="1" fill="#8B5A2B"/><rect x="19" y="1" width="1" height="1" fill="#1A1208"/><rect x="0" y="2" width="1" height="1" fill="#1A1208"/><rect x="1" y="2" width="1" height="1" fill="#8B5A2B"/><rect x="2" y="2" width="1" height="1" fill="#B87333"/><rect x="3" y="2" width="2" height="1" fill="#F5C518"/><rect x="5" y="2" width="4" height="1" fill="#B87333"/><rect x="9" y="2" width="1" height="1" fill="#1A1208"/><rect x="10" y="2" width="1" height="1" fill="#F5C518"/><rect x="11" y="2" width="4" height="1" fill="#B87333"/><rect x="15" y="2" width="2" height="1" fill="#F5C518"/><rect x="17" y="2" width="1" height="1" fill="#B87333"/><rect x="18" y="2" width="1" height="1" fill="#8B5A2B"/><rect x="19" y="2" width="1" height="1" fill="#1A1208"/><rect x="0" y="3" width="1" height="1" fill="#1A1208"/><rect x="1" y="3" width="2" height="1" fill="#8B5A2B"/><rect x="3" y="3" width="2" height="1" fill="#F5C518"/><rect x="5" y="3" width="4" height="1" fill="#8B5A2B"/><rect x="9" y="3" width="2" height="1" fill="#F5C518"/><rect x="11" y="3" width="4" height="1" fill="#8B5A2B"/><rect x="15" y="3" width="2" height="1" fill="#F5C518"/><rect x="17" y="3" width="2" height="1" fill="#8B5A2B"/><rect x="19" y="3" width="1" height="1" fill="#1A1208"/><rect x="0" y="4" width="1" height="1" fill="#1A1208"/><rect x="1" y="4" width="1" height="1" fill="#8B5A2B"/><rect x="2" y="4" width="1" height="1" fill="#B87333"/><rect x="3" y="4" width="2" height="1" fill="#F5C518"/><rect x="5" y="4" width="10" height="1" fill="#B87333"/><rect x="15" y="4" width="2" height="1" fill="#F5C518"/><rect x="17" y="4" width="1" height="1" fill="#B87333"/><rect x="18" y="4" width="1" height="1" fill="#8B5A2B"/><rect x="19" y="4" width="1" height="1" fill="#1A1208"/><rect x="0" y="5" width="1" height="1" fill="#1A1208"/><rect x="1" y="5" width="1" height="1" fill="#8B5A2B"/><rect x="2" y="5" width="1" height="1" fill="#B87333"/><rect x="3" y="5" width="2" height="1" fill="#F5C518"/><rect x="5" y="5" width="10" height="1" fill="#B87333"/><rect x="15" y="5" width="2" height="1" fill="#F5C518"/><rect x="17" y="5" width="1" height="1" fill="#B87333"/><rect x="18" y="5" width="1" height="1" fill="#8B5A2B"/><rect x="19" y="5" width="1" height="1" fill="#1A1208"/><rect x="0" y="6" width="1" height="1" fill="#1A1208"/><rect x="1" y="6" width="2" height="1" fill="#8B5A2B"/><rect x="3" y="6" width="2" height="1" fill="#F5C518"/><rect x="5" y="6" width="10" height="1" fill="#8B5A2B"/><rect x="15" y="6" width="2" height="1" fill="#F5C518"/><rect x="17" y="6" width="2" height="1" fill="#8B5A2B"/><rect x="19" y="6" width="1" height="1" fill="#1A1208"/><rect x="0" y="7" width="1" height="1" fill="#1A1208"/><rect x="1" y="7" width="18" height="1" fill="#5C3A1A"/><rect x="19" y="7" width="1" height="1" fill="#1A1208"/><rect x="0" y="8" width="20" height="1" fill="#1A1208"/></svg></div><div class="c-heap"><svg class="pxs " viewBox="0 0 20 4" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="6" y="0" width="4" height="1" fill="#1A1208"/><rect x="11" y="0" width="4" height="1" fill="#1A1208"/><rect x="3" y="1" width="2" height="1" fill="#1A1208"/><rect x="5" y="1" width="1" height="1" fill="#F5C518"/><rect x="6" y="1" width="2" height="1" fill="#FFE66B"/><rect x="8" y="1" width="2" height="1" fill="#F5C518"/><rect x="10" y="1" width="1" height="1" fill="#1A1208"/><rect x="11" y="1" width="1" height="1" fill="#F5C518"/><rect x="12" y="1" width="1" height="1" fill="#FFE66B"/><rect x="13" y="1" width="2" height="1" fill="#F5C518"/><rect x="15" y="1" width="2" height="1" fill="#1A1208"/><rect x="2" y="2" width="1" height="1" fill="#1A1208"/><rect x="3" y="2" width="1" height="1" fill="#F5C518"/><rect x="4" y="2" width="1" height="1" fill="#FFE66B"/><rect x="5" y="2" width="12" height="1" fill="#F5C518"/><rect x="17" y="2" width="1" height="1" fill="#1A1208"/><rect x="0" y="3" width="1" height="1" fill="#1A1208"/><rect x="1" y="3" width="2" height="1" fill="#F5C518"/><rect x="3" y="3" width="1" height="1" fill="#FFE66B"/><rect x="4" y="3" width="2" height="1" fill="#F5C518"/><rect x="6" y="3" width="1" height="1" fill="#B8860B"/><rect x="7" y="3" width="3" height="1" fill="#F5C518"/><rect x="10" y="3" width="1" height="1" fill="#FFE66B"/><rect x="11" y="3" width="4" height="1" fill="#F5C518"/><rect x="15" y="3" width="1" height="1" fill="#B8860B"/><rect x="16" y="3" width="3" height="1" fill="#F5C518"/><rect x="19" y="3" width="1" height="1" fill="#1A1208"/></svg></div><div class="c-lid"><svg class="pxs " viewBox="0 0 20 6" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="2" y="0" width="16" height="1" fill="#1A1208"/><rect x="1" y="1" width="1" height="1" fill="#1A1208"/><rect x="2" y="1" width="1" height="1" fill="#8B5A2B"/><rect x="3" y="1" width="2" height="1" fill="#F5C518"/><rect x="5" y="1" width="10" height="1" fill="#8B5A2B"/><rect x="15" y="1" width="2" height="1" fill="#F5C518"/><rect x="17" y="1" width="1" height="1" fill="#8B5A2B"/><rect x="18" y="1" width="1" height="1" fill="#1A1208"/><rect x="0" y="2" width="1" height="1" fill="#1A1208"/><rect x="1" y="2" width="2" height="1" fill="#8B5A2B"/><rect x="3" y="2" width="2" height="1" fill="#F5C518"/><rect x="5" y="2" width="10" height="1" fill="#B87333"/><rect x="15" y="2" width="2" height="1" fill="#F5C518"/><rect x="17" y="2" width="2" height="1" fill="#8B5A2B"/><rect x="19" y="2" width="1" height="1" fill="#1A1208"/><rect x="0" y="3" width="1" height="1" fill="#1A1208"/><rect x="1" y="3" width="1" height="1" fill="#8B5A2B"/><rect x="2" y="3" width="1" height="1" fill="#B87333"/><rect x="3" y="3" width="2" height="1" fill="#F5C518"/><rect x="5" y="3" width="10" height="1" fill="#B87333"/><rect x="15" y="3" width="2" height="1" fill="#F5C518"/><rect x="17" y="3" width="1" height="1" fill="#B87333"/><rect x="18" y="3" width="1" height="1" fill="#8B5A2B"/><rect x="19" y="3" width="1" height="1" fill="#1A1208"/><rect x="0" y="4" width="1" height="1" fill="#1A1208"/><rect x="1" y="4" width="2" height="1" fill="#8B5A2B"/><rect x="3" y="4" width="2" height="1" fill="#F5C518"/><rect x="5" y="4" width="10" height="1" fill="#8B5A2B"/><rect x="15" y="4" width="2" height="1" fill="#F5C518"/><rect x="17" y="4" width="2" height="1" fill="#8B5A2B"/><rect x="19" y="4" width="1" height="1" fill="#1A1208"/><rect x="0" y="5" width="20" height="1" fill="#1A1208"/></svg></div></div>
+        <span class="fc " style="--x:-70px;--y:120px;--d:0s"><svg class="pxs " viewBox="0 0 14 14" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="5" y="0" width="4" height="1" fill="#1A1208"/><rect x="3" y="1" width="2" height="1" fill="#1A1208"/><rect x="5" y="1" width="3" height="1" fill="#FFE66B"/><rect x="8" y="1" width="1" height="1" fill="#F5C518"/><rect x="9" y="1" width="2" height="1" fill="#1A1208"/><rect x="2" y="2" width="1" height="1" fill="#1A1208"/><rect x="3" y="2" width="4" height="1" fill="#FFE66B"/><rect x="7" y="2" width="4" height="1" fill="#F5C518"/><rect x="11" y="2" width="1" height="1" fill="#1A1208"/><rect x="1" y="3" width="1" height="1" fill="#1A1208"/><rect x="2" y="3" width="4" height="1" fill="#FFE66B"/><rect x="6" y="3" width="6" height="1" fill="#F5C518"/><rect x="12" y="3" width="1" height="1" fill="#1A1208"/><rect x="1" y="4" width="1" height="1" fill="#1A1208"/><rect x="2" y="4" width="3" height="1" fill="#FFE66B"/><rect x="5" y="4" width="1" height="1" fill="#7A5806"/><rect x="6" y="4" width="6" height="1" fill="#F5C518"/><rect x="12" y="4" width="1" height="1" fill="#1A1208"/><rect x="0" y="5" width="1" height="1" fill="#1A1208"/><rect x="1" y="5" width="3" height="1" fill="#FFE66B"/><rect x="4" y="5" width="1" height="1" fill="#F5C518"/><rect x="5" y="5" width="1" height="1" fill="#7A5806"/><rect x="6" y="5" width="6" height="1" fill="#F5C518"/><rect x="12" y="5" width="1" height="1" fill="#B8860B"/><rect x="13" y="5" width="1" height="1" fill="#1A1208"/><rect x="0" y="6" width="1" height="1" fill="#1A1208"/><rect x="1" y="6" width="2" height="1" fill="#FFE66B"/><rect x="3" y="6" width="2" height="1" fill="#F5C518"/><rect x="5" y="6" width="1" height="1" fill="#7A5806"/><rect x="6" y="6" width="5" height="1" fill="#F5C518"/><rect x="11" y="6" width="2" height="1" fill="#B8860B"/><rect x="13" y="6" width="1" height="1" fill="#1A1208"/><rect x="0" y="7" width="1" height="1" fill="#1A1208"/><rect x="1" y="7" width="1" height="1" fill="#FFE66B"/><rect x="2" y="7" width="3" height="1" fill="#F5C518"/><rect x="5" y="7" width="1" height="1" fill="#7A5806"/><rect x="6" y="7" width="4" height="1" fill="#F5C518"/><rect x="10" y="7" width="3" height="1" fill="#B8860B"/><rect x="13" y="7" width="1" height="1" fill="#1A1208"/><rect x="0" y="8" width="1" height="1" fill="#1A1208"/><rect x="1" y="8" width="4" height="1" fill="#F5C518"/><rect x="5" y="8" width="1" height="1" fill="#7A5806"/><rect x="6" y="8" width="3" height="1" fill="#F5C518"/><rect x="9" y="8" width="4" height="1" fill="#B8860B"/><rect x="13" y="8" width="1" height="1" fill="#1A1208"/><rect x="1" y="9" width="1" height="1" fill="#1A1208"/><rect x="2" y="9" width="3" height="1" fill="#F5C518"/><rect x="5" y="9" width="4" height="1" fill="#7A5806"/><rect x="9" y="9" width="3" height="1" fill="#B8860B"/><rect x="12" y="9" width="1" height="1" fill="#1A1208"/><rect x="1" y="10" width="1" height="1" fill="#1A1208"/><rect x="2" y="10" width="5" height="1" fill="#F5C518"/><rect x="7" y="10" width="5" height="1" fill="#B8860B"/><rect x="12" y="10" width="1" height="1" fill="#1A1208"/><rect x="2" y="11" width="1" height="1" fill="#1A1208"/><rect x="3" y="11" width="3" height="1" fill="#F5C518"/><rect x="6" y="11" width="5" height="1" fill="#B8860B"/><rect x="11" y="11" width="1" height="1" fill="#1A1208"/><rect x="3" y="12" width="2" height="1" fill="#1A1208"/><rect x="5" y="12" width="4" height="1" fill="#B8860B"/><rect x="9" y="12" width="2" height="1" fill="#1A1208"/><rect x="5" y="13" width="4" height="1" fill="#1A1208"/></svg></span><span class="fc " style="--x:20px;--y:150px;--d:0.25s"><svg class="pxs " viewBox="0 0 14 14" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="5" y="0" width="4" height="1" fill="#1A1208"/><rect x="3" y="1" width="2" height="1" fill="#1A1208"/><rect x="5" y="1" width="3" height="1" fill="#FFE66B"/><rect x="8" y="1" width="1" height="1" fill="#F5C518"/><rect x="9" y="1" width="2" height="1" fill="#1A1208"/><rect x="2" y="2" width="1" height="1" fill="#1A1208"/><rect x="3" y="2" width="4" height="1" fill="#FFE66B"/><rect x="7" y="2" width="4" height="1" fill="#F5C518"/><rect x="11" y="2" width="1" height="1" fill="#1A1208"/><rect x="1" y="3" width="1" height="1" fill="#1A1208"/><rect x="2" y="3" width="4" height="1" fill="#FFE66B"/><rect x="6" y="3" width="6" height="1" fill="#F5C518"/><rect x="12" y="3" width="1" height="1" fill="#1A1208"/><rect x="1" y="4" width="1" height="1" fill="#1A1208"/><rect x="2" y="4" width="3" height="1" fill="#FFE66B"/><rect x="5" y="4" width="1" height="1" fill="#7A5806"/><rect x="6" y="4" width="6" height="1" fill="#F5C518"/><rect x="12" y="4" width="1" height="1" fill="#1A1208"/><rect x="0" y="5" width="1" height="1" fill="#1A1208"/><rect x="1" y="5" width="3" height="1" fill="#FFE66B"/><rect x="4" y="5" width="1" height="1" fill="#F5C518"/><rect x="5" y="5" width="1" height="1" fill="#7A5806"/><rect x="6" y="5" width="6" height="1" fill="#F5C518"/><rect x="12" y="5" width="1" height="1" fill="#B8860B"/><rect x="13" y="5" width="1" height="1" fill="#1A1208"/><rect x="0" y="6" width="1" height="1" fill="#1A1208"/><rect x="1" y="6" width="2" height="1" fill="#FFE66B"/><rect x="3" y="6" width="2" height="1" fill="#F5C518"/><rect x="5" y="6" width="1" height="1" fill="#7A5806"/><rect x="6" y="6" width="5" height="1" fill="#F5C518"/><rect x="11" y="6" width="2" height="1" fill="#B8860B"/><rect x="13" y="6" width="1" height="1" fill="#1A1208"/><rect x="0" y="7" width="1" height="1" fill="#1A1208"/><rect x="1" y="7" width="1" height="1" fill="#FFE66B"/><rect x="2" y="7" width="3" height="1" fill="#F5C518"/><rect x="5" y="7" width="1" height="1" fill="#7A5806"/><rect x="6" y="7" width="4" height="1" fill="#F5C518"/><rect x="10" y="7" width="3" height="1" fill="#B8860B"/><rect x="13" y="7" width="1" height="1" fill="#1A1208"/><rect x="0" y="8" width="1" height="1" fill="#1A1208"/><rect x="1" y="8" width="4" height="1" fill="#F5C518"/><rect x="5" y="8" width="1" height="1" fill="#7A5806"/><rect x="6" y="8" width="3" height="1" fill="#F5C518"/><rect x="9" y="8" width="4" height="1" fill="#B8860B"/><rect x="13" y="8" width="1" height="1" fill="#1A1208"/><rect x="1" y="9" width="1" height="1" fill="#1A1208"/><rect x="2" y="9" width="3" height="1" fill="#F5C518"/><rect x="5" y="9" width="4" height="1" fill="#7A5806"/><rect x="9" y="9" width="3" height="1" fill="#B8860B"/><rect x="12" y="9" width="1" height="1" fill="#1A1208"/><rect x="1" y="10" width="1" height="1" fill="#1A1208"/><rect x="2" y="10" width="5" height="1" fill="#F5C518"/><rect x="7" y="10" width="5" height="1" fill="#B8860B"/><rect x="12" y="10" width="1" height="1" fill="#1A1208"/><rect x="2" y="11" width="1" height="1" fill="#1A1208"/><rect x="3" y="11" width="3" height="1" fill="#F5C518"/><rect x="6" y="11" width="5" height="1" fill="#B8860B"/><rect x="11" y="11" width="1" height="1" fill="#1A1208"/><rect x="3" y="12" width="2" height="1" fill="#1A1208"/><rect x="5" y="12" width="4" height="1" fill="#B8860B"/><rect x="9" y="12" width="2" height="1" fill="#1A1208"/><rect x="5" y="13" width="4" height="1" fill="#1A1208"/></svg></span><span class="fc " style="--x:90px;--y:115px;--d:0.5s"><svg class="pxs " viewBox="0 0 14 14" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="5" y="0" width="4" height="1" fill="#1A1208"/><rect x="3" y="1" width="2" height="1" fill="#1A1208"/><rect x="5" y="1" width="3" height="1" fill="#FFE66B"/><rect x="8" y="1" width="1" height="1" fill="#F5C518"/><rect x="9" y="1" width="2" height="1" fill="#1A1208"/><rect x="2" y="2" width="1" height="1" fill="#1A1208"/><rect x="3" y="2" width="4" height="1" fill="#FFE66B"/><rect x="7" y="2" width="4" height="1" fill="#F5C518"/><rect x="11" y="2" width="1" height="1" fill="#1A1208"/><rect x="1" y="3" width="1" height="1" fill="#1A1208"/><rect x="2" y="3" width="4" height="1" fill="#FFE66B"/><rect x="6" y="3" width="6" height="1" fill="#F5C518"/><rect x="12" y="3" width="1" height="1" fill="#1A1208"/><rect x="1" y="4" width="1" height="1" fill="#1A1208"/><rect x="2" y="4" width="3" height="1" fill="#FFE66B"/><rect x="5" y="4" width="1" height="1" fill="#7A5806"/><rect x="6" y="4" width="6" height="1" fill="#F5C518"/><rect x="12" y="4" width="1" height="1" fill="#1A1208"/><rect x="0" y="5" width="1" height="1" fill="#1A1208"/><rect x="1" y="5" width="3" height="1" fill="#FFE66B"/><rect x="4" y="5" width="1" height="1" fill="#F5C518"/><rect x="5" y="5" width="1" height="1" fill="#7A5806"/><rect x="6" y="5" width="6" height="1" fill="#F5C518"/><rect x="12" y="5" width="1" height="1" fill="#B8860B"/><rect x="13" y="5" width="1" height="1" fill="#1A1208"/><rect x="0" y="6" width="1" height="1" fill="#1A1208"/><rect x="1" y="6" width="2" height="1" fill="#FFE66B"/><rect x="3" y="6" width="2" height="1" fill="#F5C518"/><rect x="5" y="6" width="1" height="1" fill="#7A5806"/><rect x="6" y="6" width="5" height="1" fill="#F5C518"/><rect x="11" y="6" width="2" height="1" fill="#B8860B"/><rect x="13" y="6" width="1" height="1" fill="#1A1208"/><rect x="0" y="7" width="1" height="1" fill="#1A1208"/><rect x="1" y="7" width="1" height="1" fill="#FFE66B"/><rect x="2" y="7" width="3" height="1" fill="#F5C518"/><rect x="5" y="7" width="1" height="1" fill="#7A5806"/><rect x="6" y="7" width="4" height="1" fill="#F5C518"/><rect x="10" y="7" width="3" height="1" fill="#B8860B"/><rect x="13" y="7" width="1" height="1" fill="#1A1208"/><rect x="0" y="8" width="1" height="1" fill="#1A1208"/><rect x="1" y="8" width="4" height="1" fill="#F5C518"/><rect x="5" y="8" width="1" height="1" fill="#7A5806"/><rect x="6" y="8" width="3" height="1" fill="#F5C518"/><rect x="9" y="8" width="4" height="1" fill="#B8860B"/><rect x="13" y="8" width="1" height="1" fill="#1A1208"/><rect x="1" y="9" width="1" height="1" fill="#1A1208"/><rect x="2" y="9" width="3" height="1" fill="#F5C518"/><rect x="5" y="9" width="4" height="1" fill="#7A5806"/><rect x="9" y="9" width="3" height="1" fill="#B8860B"/><rect x="12" y="9" width="1" height="1" fill="#1A1208"/><rect x="1" y="10" width="1" height="1" fill="#1A1208"/><rect x="2" y="10" width="5" height="1" fill="#F5C518"/><rect x="7" y="10" width="5" height="1" fill="#B8860B"/><rect x="12" y="10" width="1" height="1" fill="#1A1208"/><rect x="2" y="11" width="1" height="1" fill="#1A1208"/><rect x="3" y="11" width="3" height="1" fill="#F5C518"/><rect x="6" y="11" width="5" height="1" fill="#B8860B"/><rect x="11" y="11" width="1" height="1" fill="#1A1208"/><rect x="3" y="12" width="2" height="1" fill="#1A1208"/><rect x="5" y="12" width="4" height="1" fill="#B8860B"/><rect x="9" y="12" width="2" height="1" fill="#1A1208"/><rect x="5" y="13" width="4" height="1" fill="#1A1208"/></svg></span><span class="fc " style="--x:-30px;--y:90px;--d:0.75s"><svg class="pxs " viewBox="0 0 14 14" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="5" y="0" width="4" height="1" fill="#1A1208"/><rect x="3" y="1" width="2" height="1" fill="#1A1208"/><rect x="5" y="1" width="3" height="1" fill="#FFE66B"/><rect x="8" y="1" width="1" height="1" fill="#F5C518"/><rect x="9" y="1" width="2" height="1" fill="#1A1208"/><rect x="2" y="2" width="1" height="1" fill="#1A1208"/><rect x="3" y="2" width="4" height="1" fill="#FFE66B"/><rect x="7" y="2" width="4" height="1" fill="#F5C518"/><rect x="11" y="2" width="1" height="1" fill="#1A1208"/><rect x="1" y="3" width="1" height="1" fill="#1A1208"/><rect x="2" y="3" width="4" height="1" fill="#FFE66B"/><rect x="6" y="3" width="6" height="1" fill="#F5C518"/><rect x="12" y="3" width="1" height="1" fill="#1A1208"/><rect x="1" y="4" width="1" height="1" fill="#1A1208"/><rect x="2" y="4" width="3" height="1" fill="#FFE66B"/><rect x="5" y="4" width="1" height="1" fill="#7A5806"/><rect x="6" y="4" width="6" height="1" fill="#F5C518"/><rect x="12" y="4" width="1" height="1" fill="#1A1208"/><rect x="0" y="5" width="1" height="1" fill="#1A1208"/><rect x="1" y="5" width="3" height="1" fill="#FFE66B"/><rect x="4" y="5" width="1" height="1" fill="#F5C518"/><rect x="5" y="5" width="1" height="1" fill="#7A5806"/><rect x="6" y="5" width="6" height="1" fill="#F5C518"/><rect x="12" y="5" width="1" height="1" fill="#B8860B"/><rect x="13" y="5" width="1" height="1" fill="#1A1208"/><rect x="0" y="6" width="1" height="1" fill="#1A1208"/><rect x="1" y="6" width="2" height="1" fill="#FFE66B"/><rect x="3" y="6" width="2" height="1" fill="#F5C518"/><rect x="5" y="6" width="1" height="1" fill="#7A5806"/><rect x="6" y="6" width="5" height="1" fill="#F5C518"/><rect x="11" y="6" width="2" height="1" fill="#B8860B"/><rect x="13" y="6" width="1" height="1" fill="#1A1208"/><rect x="0" y="7" width="1" height="1" fill="#1A1208"/><rect x="1" y="7" width="1" height="1" fill="#FFE66B"/><rect x="2" y="7" width="3" height="1" fill="#F5C518"/><rect x="5" y="7" width="1" height="1" fill="#7A5806"/><rect x="6" y="7" width="4" height="1" fill="#F5C518"/><rect x="10" y="7" width="3" height="1" fill="#B8860B"/><rect x="13" y="7" width="1" height="1" fill="#1A1208"/><rect x="0" y="8" width="1" height="1" fill="#1A1208"/><rect x="1" y="8" width="4" height="1" fill="#F5C518"/><rect x="5" y="8" width="1" height="1" fill="#7A5806"/><rect x="6" y="8" width="3" height="1" fill="#F5C518"/><rect x="9" y="8" width="4" height="1" fill="#B8860B"/><rect x="13" y="8" width="1" height="1" fill="#1A1208"/><rect x="1" y="9" width="1" height="1" fill="#1A1208"/><rect x="2" y="9" width="3" height="1" fill="#F5C518"/><rect x="5" y="9" width="4" height="1" fill="#7A5806"/><rect x="9" y="9" width="3" height="1" fill="#B8860B"/><rect x="12" y="9" width="1" height="1" fill="#1A1208"/><rect x="1" y="10" width="1" height="1" fill="#1A1208"/><rect x="2" y="10" width="5" height="1" fill="#F5C518"/><rect x="7" y="10" width="5" height="1" fill="#B8860B"/><rect x="12" y="10" width="1" height="1" fill="#1A1208"/><rect x="2" y="11" width="1" height="1" fill="#1A1208"/><rect x="3" y="11" width="3" height="1" fill="#F5C518"/><rect x="6" y="11" width="5" height="1" fill="#B8860B"/><rect x="11" y="11" width="1" height="1" fill="#1A1208"/><rect x="3" y="12" width="2" height="1" fill="#1A1208"/><rect x="5" y="12" width="4" height="1" fill="#B8860B"/><rect x="9" y="12" width="2" height="1" fill="#1A1208"/><rect x="5" y="13" width="4" height="1" fill="#1A1208"/></svg></span><span class="fc " style="--x:60px;--y:100px;--d:1s"><svg class="pxs " viewBox="0 0 14 14" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="5" y="0" width="4" height="1" fill="#1A1208"/><rect x="3" y="1" width="2" height="1" fill="#1A1208"/><rect x="5" y="1" width="3" height="1" fill="#FFE66B"/><rect x="8" y="1" width="1" height="1" fill="#F5C518"/><rect x="9" y="1" width="2" height="1" fill="#1A1208"/><rect x="2" y="2" width="1" height="1" fill="#1A1208"/><rect x="3" y="2" width="4" height="1" fill="#FFE66B"/><rect x="7" y="2" width="4" height="1" fill="#F5C518"/><rect x="11" y="2" width="1" height="1" fill="#1A1208"/><rect x="1" y="3" width="1" height="1" fill="#1A1208"/><rect x="2" y="3" width="4" height="1" fill="#FFE66B"/><rect x="6" y="3" width="6" height="1" fill="#F5C518"/><rect x="12" y="3" width="1" height="1" fill="#1A1208"/><rect x="1" y="4" width="1" height="1" fill="#1A1208"/><rect x="2" y="4" width="3" height="1" fill="#FFE66B"/><rect x="5" y="4" width="1" height="1" fill="#7A5806"/><rect x="6" y="4" width="6" height="1" fill="#F5C518"/><rect x="12" y="4" width="1" height="1" fill="#1A1208"/><rect x="0" y="5" width="1" height="1" fill="#1A1208"/><rect x="1" y="5" width="3" height="1" fill="#FFE66B"/><rect x="4" y="5" width="1" height="1" fill="#F5C518"/><rect x="5" y="5" width="1" height="1" fill="#7A5806"/><rect x="6" y="5" width="6" height="1" fill="#F5C518"/><rect x="12" y="5" width="1" height="1" fill="#B8860B"/><rect x="13" y="5" width="1" height="1" fill="#1A1208"/><rect x="0" y="6" width="1" height="1" fill="#1A1208"/><rect x="1" y="6" width="2" height="1" fill="#FFE66B"/><rect x="3" y="6" width="2" height="1" fill="#F5C518"/><rect x="5" y="6" width="1" height="1" fill="#7A5806"/><rect x="6" y="6" width="5" height="1" fill="#F5C518"/><rect x="11" y="6" width="2" height="1" fill="#B8860B"/><rect x="13" y="6" width="1" height="1" fill="#1A1208"/><rect x="0" y="7" width="1" height="1" fill="#1A1208"/><rect x="1" y="7" width="1" height="1" fill="#FFE66B"/><rect x="2" y="7" width="3" height="1" fill="#F5C518"/><rect x="5" y="7" width="1" height="1" fill="#7A5806"/><rect x="6" y="7" width="4" height="1" fill="#F5C518"/><rect x="10" y="7" width="3" height="1" fill="#B8860B"/><rect x="13" y="7" width="1" height="1" fill="#1A1208"/><rect x="0" y="8" width="1" height="1" fill="#1A1208"/><rect x="1" y="8" width="4" height="1" fill="#F5C518"/><rect x="5" y="8" width="1" height="1" fill="#7A5806"/><rect x="6" y="8" width="3" height="1" fill="#F5C518"/><rect x="9" y="8" width="4" height="1" fill="#B8860B"/><rect x="13" y="8" width="1" height="1" fill="#1A1208"/><rect x="1" y="9" width="1" height="1" fill="#1A1208"/><rect x="2" y="9" width="3" height="1" fill="#F5C518"/><rect x="5" y="9" width="4" height="1" fill="#7A5806"/><rect x="9" y="9" width="3" height="1" fill="#B8860B"/><rect x="12" y="9" width="1" height="1" fill="#1A1208"/><rect x="1" y="10" width="1" height="1" fill="#1A1208"/><rect x="2" y="10" width="5" height="1" fill="#F5C518"/><rect x="7" y="10" width="5" height="1" fill="#B8860B"/><rect x="12" y="10" width="1" height="1" fill="#1A1208"/><rect x="2" y="11" width="1" height="1" fill="#1A1208"/><rect x="3" y="11" width="3" height="1" fill="#F5C518"/><rect x="6" y="11" width="5" height="1" fill="#B8860B"/><rect x="11" y="11" width="1" height="1" fill="#1A1208"/><rect x="3" y="12" width="2" height="1" fill="#1A1208"/><rect x="5" y="12" width="4" height="1" fill="#B8860B"/><rect x="9" y="12" width="2" height="1" fill="#1A1208"/><rect x="5" y="13" width="4" height="1" fill="#1A1208"/></svg></span>
+        <span class="fc ic" style="--x:-110px;--y:105px;--d:0.15s"><svg class="pxs " viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="0" y="1" width="2" height="1" fill="#1A1208"/><rect x="1" y="2" width="2" height="1" fill="#1A1208"/><rect x="2" y="3" width="13" height="1" fill="#1A1208"/><rect x="2" y="4" width="1" height="1" fill="#1A1208"/><rect x="3" y="4" width="11" height="1" fill="#9A9AA6"/><rect x="14" y="4" width="1" height="1" fill="#1A1208"/><rect x="2" y="5" width="1" height="1" fill="#1A1208"/><rect x="3" y="5" width="1" height="1" fill="#9A9AA6"/><rect x="4" y="5" width="1" height="1" fill="#4A4A55"/><rect x="5" y="5" width="1" height="1" fill="#9A9AA6"/><rect x="6" y="5" width="1" height="1" fill="#4A4A55"/><rect x="7" y="5" width="1" height="1" fill="#9A9AA6"/><rect x="8" y="5" width="1" height="1" fill="#4A4A55"/><rect x="9" y="5" width="1" height="1" fill="#9A9AA6"/><rect x="10" y="5" width="1" height="1" fill="#4A4A55"/><rect x="11" y="5" width="1" height="1" fill="#9A9AA6"/><rect x="12" y="5" width="1" height="1" fill="#4A4A55"/><rect x="13" y="5" width="1" height="1" fill="#9A9AA6"/><rect x="14" y="5" width="1" height="1" fill="#1A1208"/><rect x="3" y="6" width="1" height="1" fill="#1A1208"/><rect x="4" y="6" width="9" height="1" fill="#9A9AA6"/><rect x="13" y="6" width="1" height="1" fill="#1A1208"/><rect x="3" y="7" width="1" height="1" fill="#1A1208"/><rect x="4" y="7" width="1" height="1" fill="#9A9AA6"/><rect x="5" y="7" width="1" height="1" fill="#4A4A55"/><rect x="6" y="7" width="1" height="1" fill="#9A9AA6"/><rect x="7" y="7" width="1" height="1" fill="#4A4A55"/><rect x="8" y="7" width="1" height="1" fill="#9A9AA6"/><rect x="9" y="7" width="1" height="1" fill="#4A4A55"/><rect x="10" y="7" width="1" height="1" fill="#9A9AA6"/><rect x="11" y="7" width="1" height="1" fill="#4A4A55"/><rect x="12" y="7" width="1" height="1" fill="#9A9AA6"/><rect x="13" y="7" width="1" height="1" fill="#1A1208"/><rect x="4" y="8" width="1" height="1" fill="#1A1208"/><rect x="5" y="8" width="8" height="1" fill="#9A9AA6"/><rect x="13" y="8" width="1" height="1" fill="#1A1208"/><rect x="4" y="9" width="9" height="1" fill="#1A1208"/><rect x="5" y="10" width="1" height="1" fill="#1A1208"/><rect x="6" y="10" width="1" height="1" fill="#9A9AA6"/><rect x="7" y="10" width="1" height="1" fill="#1A1208"/><rect x="10" y="10" width="1" height="1" fill="#1A1208"/><rect x="11" y="10" width="1" height="1" fill="#9A9AA6"/><rect x="12" y="10" width="1" height="1" fill="#1A1208"/><rect x="4" y="11" width="1" height="1" fill="#1A1208"/><rect x="5" y="11" width="2" height="1" fill="#9A9AA6"/><rect x="7" y="11" width="1" height="1" fill="#1A1208"/><rect x="9" y="11" width="1" height="1" fill="#1A1208"/><rect x="10" y="11" width="2" height="1" fill="#9A9AA6"/><rect x="12" y="11" width="1" height="1" fill="#1A1208"/><rect x="4" y="12" width="4" height="1" fill="#1A1208"/><rect x="9" y="12" width="4" height="1" fill="#1A1208"/></svg></span><span class="fc ic" style="--x:110px;--y:135px;--d:0.4s"><svg class="pxs " viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="6" y="1" width="4" height="1" fill="#1A1208"/><rect x="5" y="2" width="1" height="1" fill="#1A1208"/><rect x="6" y="2" width="4" height="1" fill="#F4F4EE"/><rect x="10" y="2" width="1" height="1" fill="#1A1208"/><rect x="4" y="3" width="2" height="1" fill="#1A1208"/><rect x="6" y="3" width="4" height="1" fill="#F4F4EE"/><rect x="10" y="3" width="2" height="1" fill="#1A1208"/><rect x="4" y="4" width="1" height="1" fill="#1A1208"/><rect x="5" y="4" width="6" height="1" fill="#F4F4EE"/><rect x="11" y="4" width="1" height="1" fill="#1A1208"/><rect x="4" y="5" width="1" height="1" fill="#1A1208"/><rect x="5" y="5" width="6" height="1" fill="#E04646"/><rect x="11" y="5" width="1" height="1" fill="#1A1208"/><rect x="3" y="6" width="2" height="1" fill="#1A1208"/><rect x="5" y="6" width="6" height="1" fill="#E04646"/><rect x="11" y="6" width="2" height="1" fill="#1A1208"/><rect x="3" y="7" width="1" height="1" fill="#1A1208"/><rect x="4" y="7" width="2" height="1" fill="#E04646"/><rect x="6" y="7" width="1" height="1" fill="#FFE66B"/><rect x="7" y="7" width="5" height="1" fill="#E04646"/><rect x="12" y="7" width="1" height="1" fill="#1A1208"/><rect x="3" y="8" width="1" height="1" fill="#1A1208"/><rect x="4" y="8" width="2" height="1" fill="#E04646"/><rect x="6" y="8" width="1" height="1" fill="#FFE66B"/><rect x="7" y="8" width="5" height="1" fill="#E04646"/><rect x="12" y="8" width="1" height="1" fill="#1A1208"/><rect x="3" y="9" width="1" height="1" fill="#1A1208"/><rect x="4" y="9" width="8" height="1" fill="#F4F4EE"/><rect x="12" y="9" width="1" height="1" fill="#1A1208"/><rect x="3" y="10" width="1" height="1" fill="#1A1208"/><rect x="4" y="10" width="2" height="1" fill="#F4F4EE"/><rect x="6" y="10" width="1" height="1" fill="#FFFFFF"/><rect x="7" y="10" width="5" height="1" fill="#F4F4EE"/><rect x="12" y="10" width="1" height="1" fill="#1A1208"/><rect x="3" y="11" width="1" height="1" fill="#1A1208"/><rect x="4" y="11" width="2" height="1" fill="#F4F4EE"/><rect x="6" y="11" width="1" height="1" fill="#FFFFFF"/><rect x="7" y="11" width="5" height="1" fill="#F4F4EE"/><rect x="12" y="11" width="1" height="1" fill="#1A1208"/><rect x="3" y="12" width="1" height="1" fill="#1A1208"/><rect x="4" y="12" width="8" height="1" fill="#F4F4EE"/><rect x="12" y="12" width="1" height="1" fill="#1A1208"/><rect x="4" y="13" width="8" height="1" fill="#1A1208"/></svg></span><span class="fc ic" style="--x:0px;--y:160px;--d:0.65s"><svg class="pxs " viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="4" y="2" width="10" height="1" fill="#1A1208"/><rect x="4" y="3" width="1" height="1" fill="#1A1208"/><rect x="5" y="3" width="8" height="1" fill="#4C8DFF"/><rect x="13" y="3" width="1" height="1" fill="#1A1208"/><rect x="4" y="4" width="1" height="1" fill="#1A1208"/><rect x="5" y="4" width="1" height="1" fill="#4C8DFF"/><rect x="6" y="4" width="1" height="1" fill="#2A56B0"/><rect x="7" y="4" width="3" height="1" fill="#FFFFFF"/><rect x="10" y="4" width="1" height="1" fill="#2A56B0"/><rect x="11" y="4" width="2" height="1" fill="#4C8DFF"/><rect x="13" y="4" width="1" height="1" fill="#1A1208"/><rect x="4" y="5" width="1" height="1" fill="#1A1208"/><rect x="5" y="5" width="8" height="1" fill="#4C8DFF"/><rect x="13" y="5" width="1" height="1" fill="#1A1208"/><rect x="2" y="6" width="12" height="1" fill="#1A1208"/><rect x="2" y="7" width="1" height="1" fill="#1A1208"/><rect x="3" y="7" width="10" height="1" fill="#E04646"/><rect x="13" y="7" width="1" height="1" fill="#1A1208"/><rect x="2" y="8" width="1" height="1" fill="#1A1208"/><rect x="3" y="8" width="1" height="1" fill="#E04646"/><rect x="4" y="8" width="1" height="1" fill="#A82828"/><rect x="5" y="8" width="4" height="1" fill="#FFFFFF"/><rect x="9" y="8" width="1" height="1" fill="#A82828"/><rect x="10" y="8" width="3" height="1" fill="#E04646"/><rect x="13" y="8" width="1" height="1" fill="#1A1208"/><rect x="2" y="9" width="1" height="1" fill="#1A1208"/><rect x="3" y="9" width="10" height="1" fill="#E04646"/><rect x="13" y="9" width="1" height="1" fill="#1A1208"/><rect x="0" y="10" width="14" height="1" fill="#1A1208"/><rect x="0" y="11" width="1" height="1" fill="#1A1208"/><rect x="1" y="11" width="11" height="1" fill="#C3F03A"/><rect x="12" y="11" width="1" height="1" fill="#1A1208"/><rect x="0" y="12" width="1" height="1" fill="#1A1208"/><rect x="1" y="12" width="1" height="1" fill="#C3F03A"/><rect x="2" y="12" width="1" height="1" fill="#7E9E10"/><rect x="3" y="12" width="4" height="1" fill="#FFFFFF"/><rect x="7" y="12" width="1" height="1" fill="#7E9E10"/><rect x="8" y="12" width="4" height="1" fill="#C3F03A"/><rect x="12" y="12" width="1" height="1" fill="#1A1208"/><rect x="0" y="13" width="1" height="1" fill="#1A1208"/><rect x="1" y="13" width="11" height="1" fill="#C3F03A"/><rect x="12" y="13" width="1" height="1" fill="#1A1208"/><rect x="0" y="14" width="14" height="1" fill="#1A1208"/></svg></span>
+      </div>
     </div>
-    <div class="grid-4">
-      <article class="ally">
-        <div class="ally-logo"><span class="ally-mark" style="background:#C3F03A">MC</span><span class="ally-name">Mercado&nbsp;Cerca</span></div>
-        <span class="cat">Alimentación</span>
-        <p>Descuento directo en compra de despensa en más de 40 puntos de Caracas y Valencia.</p>
-        <span class="chip chip-g ally-foot">Cupo mensual</span>
-      </article>
-      <article class="ally">
-        <div class="ally-logo"><span class="ally-mark" style="background:#4FD8E8">RV</span><span class="ally-name">RutaViva</span></div>
-        <span class="cat">Movilidad</span>
-        <p>Viajes urbanos y traslado corporativo con tarifa preferencial para el equipo.</p>
-        <span class="chip chip-g ally-foot">Cupo semanal</span>
-      </article>
-      <article class="ally">
-        <div class="ally-logo"><span class="ally-mark" style="background:#A79AFF">SL</span><span class="ally-name">Salutia</span></div>
-        <span class="cat">Salud y bienestar</span>
-        <p>Consultas, laboratorio y jornadas de bienestar en sede del cliente.</p>
-        <span class="chip chip-g ally-foot">Por evento</span>
-      </article>
-      <article class="ally">
-        <div class="ally-logo"><span class="ally-mark" style="background:#FF6A52">FC</span><span class="ally-name">FitClub&nbsp;VE</span></div>
-        <span class="cat">Deporte</span>
-        <p>Acceso a gimnasios y clases en red nacional, sin membresía anual.</p>
-        <span class="chip chip-g ally-foot">Pase mensual</span>
-      </article>
-      <article class="ally">
-        <div class="ally-logo"><span class="ally-mark" style="background:#7FA30E">AC</span><span class="ally-name">Academia&nbsp;Cordillera</span></div>
-        <span class="cat">Formación</span>
-        <p>Cursos cortos de oficio y herramientas digitales, con certificado.</p>
-        <span class="chip chip-g ally-foot">Becas por cupo</span>
-      </article>
-      <article class="ally">
-        <div class="ally-logo"><span class="ally-mark" style="background:#CB5694">CB</span><span class="ally-name">Café&nbsp;Boulevard</span></div>
-        <span class="cat">Comercio local</span>
-        <p>Red de cafés y restaurantes aliados con canje directo desde la app.</p>
-        <span class="chip chip-g ally-foot">Canje diario</span>
-      </article>
-      <article class="ally">
-        <div class="ally-logo"><span class="ally-mark" style="background:#3390D6">PP</span><span class="ally-name">PagoPana</span></div>
-        <span class="cat">Pagos</span>
-        <p>Liquidación de canjes con comercio, conciliada contra tu cupo contratado.</p>
-        <span class="chip chip-g ally-foot">Integración</span>
-      </article>
-      <article class="ally" style="background:var(--gold-bg);box-shadow:inset 0 0 0 1px var(--gold-line)">
-        <div class="ally-logo"><span class="ally-mark" style="background:#EDEDE7">+</span><span class="ally-name" style="color:var(--gold-ink)">Tu marca aquí</span></div>
-        <span class="cat" style="color:var(--gold-ink)">Programa de aliados</span>
-        <p style="color:var(--gold-ink)">Abrimos convenios nuevos cada mes. Si quieres entrar a la red, hablemos.</p>
-        <a href="#demo" class="chip chip-g ally-foot" style="text-decoration:none">Postular →</a>
-      </article>
-    </div>
-    <p class="disclaimer">Nota de diseño: los aliados mostrados son ilustrativos para este primer acercamiento de marca. Se reemplazan por convenios reales antes de publicar.</p>
+    <div class="cat-slider" aria-hidden="true"><div class="cat-track"><span class="cat-pill chip-g" style="display:inline-flex">Alimentación</span><span class="cat-pill chip-ok" style="display:inline-flex">Movilidad</span><span class="cat-pill chip-s" style="display:inline-flex">Salud y bienestar</span><span class="cat-pill chip-r" style="display:inline-flex">Deporte</span><span class="cat-pill chip-g" style="display:inline-flex">Formación</span><span class="cat-pill chip-ok" style="display:inline-flex">Comercio local</span><span class="cat-pill chip-s" style="display:inline-flex">Pagos y liquidación</span><span class="cat-pill chip-r" style="display:inline-flex">Seguros</span><span class="cat-pill chip-g" style="display:inline-flex">Telefonía</span><span class="cat-pill chip-ok" style="display:inline-flex">Cuidado infantil</span><span class="cat-pill chip-g" style="display:inline-flex">Alimentación</span><span class="cat-pill chip-ok" style="display:inline-flex">Movilidad</span><span class="cat-pill chip-s" style="display:inline-flex">Salud y bienestar</span><span class="cat-pill chip-r" style="display:inline-flex">Deporte</span><span class="cat-pill chip-g" style="display:inline-flex">Formación</span><span class="cat-pill chip-ok" style="display:inline-flex">Comercio local</span><span class="cat-pill chip-s" style="display:inline-flex">Pagos y liquidación</span><span class="cat-pill chip-r" style="display:inline-flex">Seguros</span><span class="cat-pill chip-g" style="display:inline-flex">Telefonía</span><span class="cat-pill chip-ok" style="display:inline-flex">Cuidado infantil</span></div></div>
   </div>
 </section>
 
-<!-- REGLAS -->
-<section id="reglas">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">Las líneas que no cruzamos</span>
-      <h2>Lo que Levelop no va a hacer nunca, aunque se lo pidas</h2>
-      <p class="lede">Son reglas permanentes del producto, no configuración. Existen porque un sistema de incentivos mal diseñado se convierte en un instrumento de poder, y eso destruye el equipo que dice mejorar.</p>
-    </div>
-    <div style="max-width:900px">
-      <div class="rule"><span class="rid">R-03</span><div>
-        <h3>La participación es siempre opt-in</h3>
-        <p>Quien apaga el juego deja de ver puntaje, niveles, rachas, trofeos y tablas — y su app baja de cinco pestañas a tres. Sigue trabajando igual y no pierde nada por apagarlo.</p></div></div>
-      <div class="rule"><span class="rid">R-07</span><div>
-        <h3>Ninguna pantalla de gerencia señala a una persona</h3>
-        <p>No hay tabla de personas ordenable, no hay ranking individual como KPI, no se ve quién apagó el juego ni qué pidió cada quien. La gerencia ve distribuciones; el líder ve patrones.</p></div></div>
-      <div class="rule"><span class="rid">R-04</span><div>
-        <h3>El puntaje no es dinero</h3>
-        <p>El Oro no se convierte a dólares ni a nada. Es puntaje de juego. La contención real vive en el cupo del beneficio, que es un pasivo controlado y auditable.</p></div></div>
-      <div class="rule"><span class="rid">R-01</span><div>
-        <h3>No optimizamos tiempo dentro de la app</h3>
-        <p>No medimos DAU ni sesiones. Si tu equipo resuelve su día en tres minutos y cierra la app, el producto ganó.</p></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- PRECIO -->
 <section id="precio">
   <div class="wrap">
     <div class="sec-head">
       <span class="eyebrow">Precio</span>
-      <h2>Un precio, sin sorpresas</h2>
+      <h2>$30 al mes. Diez personas incluidas.</h2>
+      <p class="lede">$4 por cada persona adicional. Los beneficios de tiempo no cuestan caja y el pool de comercio arranca en $0.</p>
     </div>
     <div class="price-wrap">
-      <div class="price">
+      <div class="price price--knight" tabindex="0">
         <span class="chip chip-g">Plan base</span>
-        <div class="amt">$50<small> /mes</small></div>
+        <div class="amt">$30<small> /mes</small></div>
         <p class="lede" style="font-size:15px">10 asientos incluidos · $4 por asiento adicional.</p>
-        <ul>
-          <li><span class="mk">✓</span><span>Las tres superficies incluidas</span></li>
-          <li><span class="mk">✓</span><span>Onboarding con línea base medida antes de instalar</span></li>
-          <li><span class="mk">✓</span><span>Beneficios internos ilimitados (los que no cuestan caja)</span></li>
-          <li><span class="mk">✓</span><span>Pool de beneficios de comercio: línea aparte, arranca en $0</span></li>
-        </ul>
-        <a class="btn btn-p" href="#demo" style="margin-top:26px">Agendar demo →</a>
+        <a class="btn btn-p" href="precio.html" style="margin-top:22px">Calcula tu precio →</a>
+        <img class="px kn-peek" src="assets/caballero-full.png" alt="" width="168" height="202" loading="lazy" aria-hidden="true">
       </div>
-      <div class="card" style="display:flex;flex-direction:column;justify-content:center">
+      <div class="card fund" style="display:flex;flex-direction:column">
         <span class="chip chip-ok">Programa Fundadores</span>
-        <h3 style="font-size:20px;margin:16px 0 12px">$100 por 3 meses</h3>
-        <p style="font-size:15px">Cinco empresas. Acompañamiento directo del equipo, catálogo diseñado con tu gente y tu caso medido contra línea base al cierre del trimestre. A cambio te pedimos que nos digas la verdad.</p>
-        <p class="disclaimer" style="margin-top:18px">Cupos limitados. Quedan plazas para el trimestre en curso.</p>
+        <h3 style="font-size:20px;margin:16px 0 12px">$60 por 3 meses</h3>
+        <p style="font-size:15px">Cinco empresas, acompañamiento directo y tu caso medido contra línea base al cierre del trimestre.</p>
+        <div class="hop-row" aria-hidden="true"><span class="hc"><img class="px" src="assets/sirena-full.png" alt="" width="44" height="53" loading="lazy"></span><span class="hc"><img class="px" src="assets/mago-full.png" alt="" width="44" height="53" loading="lazy"></span><span class="hc"><img class="px" src="assets/elfo-full.png" alt="" width="44" height="53" loading="lazy"></span><span class="hc"><img class="px" src="assets/duende-full.png" alt="" width="44" height="53" loading="lazy"></span><span class="hc"><img class="px" src="assets/dragon-full.png" alt="" width="44" height="53" loading="lazy"></span><span class="hc"><img class="px" src="assets/bardo-full.png" alt="" width="44" height="53" loading="lazy"></span><span class="hc"><img class="px" src="assets/barbaro-full.png" alt="" width="44" height="53" loading="lazy"></span></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- DEMO -->
+<section id="faq">
+  <div class="wrap sec-lane">
+    <div class="sec-head">
+      <span class="eyebrow">Preguntas frecuentes</span>
+      <h2>Lo que más nos preguntan</h2>
+    </div>
+    <div class="lane mago lane-r" data-live aria-hidden="true"><div class="w" style="--d:0s"><img class="px g" src="assets/mago-camina.gif" alt="" width="96" height="115" loading="lazy"><img class="px i" src="assets/mago-idle.png" alt="" width="96" height="115" loading="lazy"><span class="orb"></span></div></div>
+    <div class="faq-short">
+      <details class="faq-item" open><summary>¿Qué es Levelop?</summary><p>Levelop es un sistema de beneficios por desempeño para PyMEs venezolanas de 10 a 100 empleados. Conecta el trabajo que cada persona hizo con los beneficios que la empresa ya da —días libres, salidas anticipadas, descuentos— usando reglas publicadas, misiones y una experiencia de juego opcional.</p></details>
+<details class="faq-item"><summary>¿Necesito presupuesto nuevo para arrancar?</summary><p>No para los beneficios. Empiezas con beneficios de tiempo que ya das, que no cuestan caja. El pool de beneficios de comercio es una línea aparte y opcional que arranca en $0. La suscripción a Levelop sí tiene costo: ver <a href="precio.html">Precio</a>.</p></details>
+<details class="faq-item"><summary>¿Puedo ver quién rinde menos en mi empresa?</summary><p>No, y es una regla permanente del producto: ninguna pantalla de gerencia muestra un dato cuyo único uso posible sea señalar a una persona. La gerencia ve distribuciones y patrones, nunca un ranking individual.</p></details>
+<details class="faq-item"><summary>¿Estoy obligado a jugar?</summary><p>No. La participación en el juego es siempre opcional. Quien lo apaga deja de ver puntaje, niveles, rachas y trofeos, sigue trabajando igual y no pierde nada por apagarlo.</p></details>
+<details class="faq-item"><summary>¿El puntaje se convierte en dinero?</summary><p>No. El Oro no se convierte a dólares ni a ninguna moneda. Es puntaje de juego. Lo real es el beneficio que se canjea con él, y su costo vive en el cupo, que es controlado y auditable.</p></details>
+    </div>
+    <p class="more"><a class="btn btn-s" href="faq.html">Ver todas las preguntas →</a></p>
+  </div>
+</section>
+
 <section id="demo">
   <div class="wrap">
     <div class="sec-head">
@@ -608,246 +287,81 @@ footer a:hover{color:var(--gold)}
       <p class="lede">Empezamos por lo que tú vas a ver todos los días: dónde se atasca el trabajo y qué beneficios se están usando. Si después de eso no te sirve, te lo decimos nosotros.</p>
     </div>
     <div class="grid-2">
-      <form class="form-card" id="demoForm" novalidate>
-        <div class="form-ok" id="formOk">Listo. Te escribimos en menos de 24 horas hábiles para cuadrar el horario.</div>
+      <div class="glow"><form class="form-card" id="demoForm" novalidate>
+        <div class="form-ok" id="formOk" role="status">Listo. Te escribimos en menos de 24 horas hábiles para cuadrar el horario.</div>
         <div class="field-2">
-          <div class="field"><label for="n">Nombre y apellido</label><input id="n" name="n" required placeholder="Alim Reyes"></div>
-          <div class="field"><label for="e">Correo corporativo</label><input id="e" name="e" type="email" required placeholder="nombre@empresa.com"></div>
+          <div class="field"><label for="n">Nombre y apellido</label><input id="n" name="n" required autocomplete="name" placeholder="Tu nombre"></div>
+          <div class="field"><label for="e">Correo corporativo</label><input id="e" name="e" type="email" required autocomplete="email" placeholder="nombre@empresa.com"></div>
         </div>
         <div class="field-2">
-          <div class="field"><label for="c">Empresa</label><input id="c" name="c" required placeholder="Nombre de la empresa"></div>
+          <div class="field"><label for="c">Empresa</label><input id="c" name="c" required autocomplete="organization" placeholder="Nombre de la empresa"></div>
           <div class="field"><label for="s">Tamaño del equipo</label>
-            <select id="s" name="s">
-              <option>Menos de 10</option><option selected>10 – 30</option><option>31 – 60</option><option>61 – 100</option><option>Más de 100</option>
-            </select></div>
+            <select id="s" name="s"><option>Menos de 10</option><option selected>10 – 30</option><option>31 – 60</option><option>61 – 100</option><option>Más de 100</option></select></div>
         </div>
         <div class="field"><label for="m">¿Qué beneficios das hoy? (opcional)</label>
           <textarea id="m" name="m" rows="3" placeholder="Días libres, salidas anticipadas, bonos, comida…"></textarea></div>
         <button class="btn btn-p" type="submit">Agendar demo →</button>
         <p class="disclaimer">Usamos tus datos solo para contactarte por esta demo. Nada más.</p>
-      </form>
-
+      </form></div>
       <div class="card" style="display:flex;flex-direction:column;gap:18px;justify-content:center">
         <h3 style="font-size:16px">Cómo es la demo</h3>
         <div class="rule" style="padding:14px 0"><span class="rid">01</span><div><h3>Tu operación</h3><p>Diez minutos de preguntas sobre cómo repartes beneficios hoy.</p></div></div>
         <div class="rule" style="padding:14px 0"><span class="rid">02</span><div><h3>El BackOffice</h3><p>Te enseñamos las pantallas con datos parecidos a los tuyos.</p></div></div>
-        <div class="rule" style="padding:14px 0"><span class="rid">03</span><div><h3>El gate</h3><p>Definimos las 3 intrarrecompensas con las que arrancarías.</p></div></div>
+        <div class="rule" style="padding:14px 0"><span class="rid">03</span><div><h3>El arranque</h3><p>Definimos las 3 intrarrecompensas con las que empezarías.</p></div></div>
         <p class="disclaimer" style="margin:0">¿Prefieres escribir? <a href="mailto:hola@levelop.app" style="color:var(--gold)">hola@levelop.app</a></p>
+        <div class="lane drag card-lane" data-live aria-hidden="true"><div class="w" style="--d:0s"><img class="px g" src="assets/dragon-camina.gif" alt="" width="96" height="115" loading="lazy"><img class="px i" src="assets/dragon-idle.png" alt="" width="96" height="115" loading="lazy"></div></div>
       </div>
     </div>
   </div>
 </section>
+</main>
 
-<!-- BAND -->
 <div class="band">
   <div class="wrap band-in">
-    <div>
+    <div class="band-txt">
       <h2>Deja de repartir a dedo.</h2>
       <p>Cinco empresas Fundadoras arrancan este trimestre. La demo dura menos que tu próxima reunión de coordinación.</p>
+      <a class="btn btn-dark" href="index.html#demo">Agendar demo →</a>
     </div>
-    <a class="btn btn-dark" href="#demo">Agendar demo →</a>
   </div>
+  <div class="portraits" data-live aria-hidden="true"><img class="pt px" style="--d:0s" src="assets/caballero-full.png" alt="" width="300" height="360" loading="lazy"><img class="pt px" style="--d:3s" src="assets/elfo-full.png" alt="" width="300" height="360" loading="lazy"><img class="pt px" style="--d:6s" src="assets/sirena-full.png" alt="" width="300" height="360" loading="lazy"><img class="pt px" style="--d:9s" src="assets/duende-full.png" alt="" width="300" height="360" loading="lazy"><img class="pt px" style="--d:12s" src="assets/mago-full.png" alt="" width="300" height="360" loading="lazy"><img class="pt px" style="--d:15s" src="assets/dragon-full.png" alt="" width="300" height="360" loading="lazy"><img class="pt px" style="--d:18s" src="assets/barbaro-full.png" alt="" width="300" height="360" loading="lazy"><img class="pt px" style="--d:21s" src="assets/bardo-full.png" alt="" width="300" height="360" loading="lazy"></div>
 </div>
 
 <footer>
-  <div class="wrap foot-in">
-    <div>
-      <a class="brand" href="#top"><span class="brand-mark">L</span><span>Levelop<em>!</em></span></a>
-      <p style="margin-top:12px">Sistema de beneficios por desempeño · Venezuela</p>
+  <div class="wrap foot-grid">
+    <div class="foot-col">
+      <a class="brand" href="index.html" aria-label="Levelop, inicio"><img class="logo logo-d" src="assets/imagotipo-claro.png" alt="Levelop" width="175" height="30"><img class="logo logo-l" src="assets/imagotipo-oscuro.png" alt="" width="175" height="30" aria-hidden="true"><img class="logo-iso" src="assets/isotipo.png" alt="" width="26" height="30" aria-hidden="true"></a>
+      <p class="foot-tagline">Sistema de beneficios por desempeño con experiencia de juego, para PyMEs venezolanas de 10 a 100 personas.</p>
     </div>
-    <div class="foot-links">
-      <a href="#problema">El problema</a>
-      <a href="#solucion">Qué resolvemos</a>
-      <a href="#producto">Producto</a>
-      <a href="#alianzas">Alianzas</a>
-      <a href="#reglas">Nuestras reglas</a>
-      <a href="#demo">Agendar demo</a>
-      <a href="#entrar" data-entrar>Iniciar sesión</a>
+    <div class="foot-col">
+      <h4>Producto</h4>
+      <a href="index.html#solucion">Qué resolvemos</a>
+      <a href="index.html#equipo">Para tu equipo</a>
+      <a href="como-se-juega.html">Cómo se juega</a>
+      <a href="personajes.html">Personajes</a>
+    </div>
+    <div class="foot-col">
+      <h4>Empresa</h4>
+      <a href="alianzas.html">Alianzas</a>
+      <a href="precio.html">Precio</a>
+      <a href="faq.html">Preguntas frecuentes</a>
+      <a href="index.html#demo">Agendar demo</a>
+      <a href="index.html#entrar" data-entrar>Iniciar sesión</a>
+    </div>
+    <div class="foot-col">
+      <h4>Contacto</h4>
+      <a href="mailto:hola@levelop.app">hola@levelop.app</a>
+      <p>Venezuela</p>
     </div>
   </div>
-  <div class="wrap"><p class="disclaimer">© 2026 Levelop. Sitio comercial v0.2 — contenido de marca en revisión. Las alianzas mostradas son ilustrativas. El Oro es puntaje de juego y no es convertible a moneda.</p></div>
+  <div class="wrap foot-bottom"><p class="disclaimer" style="margin:0">© 2026 Levelop. Prototipo de sitio comercial v0.5 — contenido de marca en revisión. El Oro es puntaje de juego y no es convertible a moneda.</p></div>
 </footer>
-
-<!-- ACCESO — login unificado. Enruta según el rol de la membresía:
-     empleado → /app · líder de área → /lider · gerencia/admin → /gerencia.
-     La vista interna de Levelop NO se enlaza desde aquí: vive en /levelop-interno/. -->
 <div class="acc" id="acc" role="dialog" aria-modal="true" aria-labelledby="accTitulo">
   <div class="acc-card" id="accCard"></div>
 </div>
-
 <script src="levelop-config.js"></script>
 <script src="levelop-api.js"></script>
-<script>
-/* ---------- Formulario de demo ----------
-   No hay backend de leads todavía: se arma un correo listo para enviar a
-   hola@levelop.app con los datos. Honesto > simular un "enviado". */
-var DEMO_EMAIL = 'hola@levelop.app';
-document.getElementById('demoForm').addEventListener('submit', function(ev){
-  ev.preventDefault();
-  var f = ev.target;
-  var req = ['n','e','c'];
-  for (var i=0;i<req.length;i++){
-    var el = f.elements[req[i]];
-    if(!el.value.trim() || (req[i]==='e' && !/.+@.+\..+/.test(el.value))){ el.focus(); el.style.boxShadow='inset 0 0 0 1px var(--risk)'; return; }
-    el.style.boxShadow='inset 0 0 0 1px var(--line)';
-  }
-  var val = function(k){ var e=f.elements[k]; return e ? String(e.value||'').trim() : ''; };
-  var cuerpo = 'Nombre: '+val('n')+'\nCorreo: '+val('e')+'\nEmpresa: '+val('c')+
-    (val('s') ? '\nTamaño: '+val('s') : '') + (val('m') ? '\nCómo reparten beneficios hoy: '+val('m') : '');
-  location.href = 'mailto:'+DEMO_EMAIL+'?subject='+encodeURIComponent('Demo Levelop! — '+val('c'))+'&body='+encodeURIComponent(cuerpo);
-  var ok = document.getElementById('formOk');
-  ok.textContent = 'Se abrió tu correo con la solicitud lista. Si no se abrió, escríbenos a '+DEMO_EMAIL+'.';
-  ok.classList.add('on');
-  ok.scrollIntoView({block:'center'});
-});
-
-/* ---------- Acceso ---------- */
-(function(){
-  'use strict';
-  var acc = document.getElementById('acc');
-  var card = document.getElementById('accCard');
-  var ultimoFoco = null;
-
-  var ROLES = {
-    empleado:     { nombre:'Colaborador',     destino:'/app',      panel:null },
-    lider_area:   { nombre:'Líder de área',   destino:'/lider',    panel:'Panel de líder de área' },
-    gerencia:     { nombre:'Gerencia',        destino:'/gerencia', panel:'BackOffice de gerencia' },
-    admin_tenant: { nombre:'Administrador',   destino:'/gerencia', panel:'BackOffice de gerencia' }
-  };
-
-  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-  function servido(){ return /^https?:$/.test(location.protocol); }
-  /* En Vercel las rutas limpias existen; abierto como archivo local, se usan los .html. */
-  function ruta(r){
-    if(servido()) return r;
-    return { '/app':'levelop-mvp.html', '/lider':'levelop-lider.html', '/gerencia':'levelop-backoffice.html' }[r] || r;
-  }
-
-  var X = '<button class="acc-x" type="button" data-cerrar aria-label="Cerrar">×</button>';
-  var DEMO = '<div class="acc-demo"><p><b>¿Quieres Levelop! en tu empresa?</b> Te mostramos cómo repartir los beneficios que ya das, con criterio y sin planillas.</p>' +
-             '<a class="btn btn-p" href="#demo" data-cerrar>Agenda una demo →</a></div>';
-
-  function abrir(){
-    ultimoFoco = document.activeElement;
-    acc.classList.add('on');
-    document.body.style.overflow = 'hidden';
-    if(LevelopAPI.sesion.haySesion() && LevelopAPI.sesion.getTipoSesion() === 'usuario') return reanudar();
-    pintarLogin();
-  }
-  function cerrar(){
-    acc.classList.remove('on');
-    document.body.style.overflow = '';
-    if(location.hash === '#entrar') history.replaceState(null, '', location.pathname + location.search);
-    if(ultimoFoco && ultimoFoco.focus) ultimoFoco.focus();
-  }
-
-  function pintarLogin(msg, sinCuenta){
-    card.innerHTML = X +
-      '<a class="brand" href="#top" data-cerrar><span class="brand-mark">L</span><span>Levelop<em>!</em></span></a>' +
-      '<h2 id="accTitulo">Inicia sesión</h2>' +
-      '<p class="sub">Entra con el correo que te dio de alta tu empresa. Te llevamos directo a tu área: colaborador, líder de área o gerencia.</p>' +
-      '<form id="accForm" novalidate>' +
-        '<div class="field"><label for="accEmail">Correo</label><input id="accEmail" type="email" autocomplete="username" required placeholder="nombre@empresa.com"></div>' +
-        '<div class="field"><label for="accPass">Contraseña</label><input id="accPass" type="password" autocomplete="current-password" required minlength="8"></div>' +
-        '<button class="btn btn-p" id="accBtn" type="submit">Entrar →</button>' +
-      '</form>' +
-      (msg ? '<div class="acc-msg ' + (sinCuenta ? 'info' : 'err') + '" role="alert">' + msg + '</div>' : '') +
-      (sinCuenta ? DEMO : '') +
-      '<p class="acc-foot">¿No tienes cuenta? En Levelop! no hay registro abierto: <b>tu empleador te envía una invitación</b> y con ese enlace creas tu contraseña. ¿Olvidaste la tuya? Pídele ayuda a RRHH o a la gerencia de tu empresa.</p>' +
-      (sinCuenta ? '' : '<p class="acc-foot">¿Tu empresa aún no usa Levelop!? <a href="#demo" data-cerrar>Agenda una demo</a>.</p>');
-
-    var em = document.getElementById('accEmail');
-    em.focus();
-    document.getElementById('accForm').addEventListener('submit', enviar);
-  }
-
-  var SIN_CUENTA =
-    '<b>No encontramos una cuenta con ese correo y contraseña.</b><br>' +
-    'Si trabajas en una empresa que usa Levelop!, <b>contacta a tu empleador</b> (RRHH o gerencia) para que te cree el usuario: te llegará un enlace de invitación. ' +
-    'Si ya tienes cuenta, revisa que la contraseña esté bien escrita.';
-
-  async function enviar(ev){
-    ev.preventDefault();
-    var email = document.getElementById('accEmail').value.trim().toLowerCase();
-    var pass = document.getElementById('accPass').value;
-    if(!/.+@.+\..+/.test(email)) return pintarLogin('Escribe un correo válido.');
-    if(pass.length < 8) return pintarLogin('La contraseña tiene al menos 8 caracteres.');
-    var btn = document.getElementById('accBtn');
-    btn.disabled = true; btn.textContent = 'Entrando…';
-    try{
-      var r = await LevelopAPI.login(email, pass);
-      resolver(r.membresias);
-    }catch(err){
-      LevelopAPI.logout();
-      if(err && (err.status === 401 || err.status === 400)) return pintarLogin(SIN_CUENTA, true);
-      pintarLogin(err && err.status ? 'No se pudo entrar: ' + esc(err.message) : 'No pudimos conectar con el servidor. Intenta de nuevo en unos minutos.');
-    }
-  }
-
-  async function reanudar(){
-    card.innerHTML = X + '<h2 id="accTitulo">Un momento…</h2><p class="sub">Recuperando tu sesión.</p>';
-    try{ resolver(await LevelopAPI.misMembresias()); }
-    catch(e){ LevelopAPI.logout(); pintarLogin(); }
-  }
-
-  function resolver(ms){
-    if(!Array.isArray(ms)){ LevelopAPI.logout(); return pintarLogin('El servidor no respondió a qué empresa perteneces. Intenta de nuevo.'); }
-    if(ms.length === 0){
-      LevelopAPI.logout();
-      return pintarLogin('<b>Tu cuenta existe, pero no está activa en ninguna empresa.</b><br>Contacta a tu empleador para que te vuelva a dar acceso.', true);
-    }
-    if(ms.length === 1) return elegirArea(ms[0], false);
-    card.innerHTML = X + '<h2 id="accTitulo">¿A qué empresa entras?</h2><p class="sub">Tu cuenta está activa en más de una.</p>' +
-      '<div class="acc-pick">' + ms.map(function(m, i){
-        var r = ROLES[m.rol] || ROLES.empleado;
-        return '<button type="button" data-emp="' + i + '"><span><b>' + esc(m.tenantNombre) + '</b><small>' + esc(r.nombre) + (m.areaNombre ? ' · ' + esc(m.areaNombre) : '') + '</small></span><span class="arr">→</span></button>';
-      }).join('') + '</div>' + salirBtn();
-    card.querySelectorAll('[data-emp]').forEach(function(b){
-      b.addEventListener('click', function(){ elegirArea(ms[+b.dataset.emp], true); });
-    });
-  }
-
-  /* Colaborador: directo a la app. Líder y gerencia: su panel es lo primero,
-     pero también participan en misiones, así que se les ofrece la app. */
-  function elegirArea(m, varias){
-    LevelopAPI.fijarTenant(m.tenantId);
-    var r = ROLES[m.rol] || ROLES.empleado;
-    if(!r.panel) return ir(r.destino);
-    var hola = m.usuarioNombre ? 'Hola, ' + esc(String(m.usuarioNombre).split(' ')[0]) : 'Hola';
-    card.innerHTML = X + '<h2 id="accTitulo">' + hola + '</h2>' +
-      '<p class="sub">' + esc(m.tenantNombre) + ' · ' + esc(r.nombre) + (m.areaNombre ? ' · ' + esc(m.areaNombre) : '') + '</p>' +
-      '<div class="acc-pick">' +
-        '<button type="button" data-ir="' + r.destino + '"><span><b>' + r.panel + '</b><small>Tu área asignada</small></span><span class="arr">→</span></button>' +
-        '<button type="button" data-ir="/app"><span><b>App de misiones</b><small>Crear, aceptar y cerrar misiones · tienda · ranking</small></span><span class="arr">→</span></button>' +
-      '</div>' + salirBtn();
-    card.querySelectorAll('[data-ir]').forEach(function(b){
-      b.addEventListener('click', function(){ ir(b.dataset.ir); });
-    });
-    card.querySelector('[data-ir]').focus();
-  }
-
-  function salirBtn(){ return '<p class="acc-foot"><a href="#" data-salir>No soy yo · cerrar sesión</a></p>'; }
-  function ir(destino){
-    card.innerHTML = '<h2 id="accTitulo">Entrando…</h2>';
-    location.href = ruta(destino);
-  }
-
-  document.addEventListener('click', function(ev){
-    var t = ev.target.closest('[data-entrar],[data-cerrar],[data-salir]');
-    if(!t) return;
-    if(t.hasAttribute('data-entrar')){ ev.preventDefault(); abrir(); }
-    else if(t.hasAttribute('data-salir')){ ev.preventDefault(); LevelopAPI.logout(); pintarLogin(); }
-    else { cerrar(); }
-  });
-  acc.addEventListener('click', function(ev){ if(ev.target === acc) cerrar(); });
-  document.addEventListener('keydown', function(ev){ if(ev.key === 'Escape' && acc.classList.contains('on')) cerrar(); });
-
-  /* /#entrar abre el acceso directo (útil para compartir). Las superficies
-     mandan aquí al cerrar sesión con ?entrar=1. */
-  var q = new URLSearchParams(location.search);
-  if(q.get('invitacion')){ location.replace(ruta('/app') + '?invitacion=' + encodeURIComponent(q.get('invitacion'))); return; }
-  if(location.hash === '#entrar' || q.get('entrar') === '1') abrir();
-})();
-</script>
+<script src="app.js" defer></script>
+<script src="acceso.js" defer></script>
 </body>
 </html>
