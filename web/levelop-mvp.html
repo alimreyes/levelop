@@ -204,10 +204,13 @@ button.hud:hover{border-color:var(--gold-solid)}
 .eyebrow::after{content:""; width:22px; height:4px;
   background-image:linear-gradient(90deg,var(--line-strong) 0 4px,transparent 4px 8px); background-size:8px 4px}
 
-/* 13/10: las pantallas internas ya no llevan encabezado propio («Tablón / Misiones»
-   etc.): el nombre de la sección viene en el letrero de la imagen de arriba y el
-   <h1> quedó como .sr-only para lectores de pantalla. El tono de cada sección lo
-   sigue marcando la barra de navegación. */
+/* El encabezado de cada pantalla lleva el tono de su sección: una línea
+   arriba y el texto de arriba en color. Sutil a propósito — la señal fuerte
+   es la barra de navegación, esto solo confirma dónde estás. */
+.page-h{display:flex; align-items:flex-end; justify-content:space-between; gap:14px; margin-bottom:18px;
+  padding-top:12px; border-top:3px solid var(--sec-activa, var(--line-strong))}
+.page-h .eyebrow{color:var(--sec-activa, var(--ink-3))}
+.page-h h1{font-size:40px; margin-top:4px}
 .sub{color:var(--ink-2); font-size:13px}
 .sec-h{display:flex; align-items:center; gap:12px; margin:28px 0 12px}
 .sec-h h2{font-size:19px; flex:none}
@@ -298,24 +301,10 @@ button.hud:hover{border-color:var(--gold-solid)}
 /* =========================================================
    INICIO · bento
    ========================================================= */
-/* ===== «Qué te toca» — 13/10/26 ====================================
-   Las seis tarjetas son el MISMO rectángulo. Antes cada fila medía lo que
-   midiera su tarjeta más alta, así que «Lo que se viene» estiraba a sus dos
-   vecinas y la meta del mes vivía aparte como una franja ancha y baja: tres
-   formas distintas para seis cosas del mismo rango.
-
-   `grid-auto-rows` fija el alto de la fila, no el contenido. Lo que no entra
-   se desplaza DENTRO de la tarjeta, que es mejor que empujar a las demás:
-   ninguna lista de este tablero está pensada para leerse entera de un golpe
-   —son un vistazo, y cada una tiene su pantalla completa a un toque. */
-.bento{display:grid; gap:10px; grid-template-columns:1fr; grid-auto-rows:252px}
+.bento{display:grid; gap:10px; grid-template-columns:1fr}
 @media (min-width:700px){.bento{grid-template-columns:repeat(2,1fr)}}
-@media (min-width:1080px){.bento{grid-template-columns:repeat(3,1fr); grid-auto-rows:264px}}
+@media (min-width:1080px){.bento{grid-template-columns:repeat(3,1fr)}}
 .bento>*{min-width:0}
-.bento>.w{height:100%; overflow:hidden; margin-bottom:0; position:relative}
-.bento>.w>.w-body{overflow-y:auto; overscroll-behavior:contain}
-.bento>.w.hay-mas::after{content:""; position:absolute; left:1px; right:1px; bottom:1px; height:22px;
-  pointer-events:none; background:linear-gradient(to bottom, transparent, var(--surface))}
 .w{display:flex; flex-direction:column; min-width:0; padding:14px 15px; background:var(--surface); border:1px solid var(--line)}
 .w-h{display:flex; align-items:center; gap:9px; margin-bottom:12px}
 .w-h .wi{width:16px; height:16px; color:var(--gold); flex:none}
@@ -379,13 +368,6 @@ button.hud:hover{border-color:var(--gold-solid)}
 .stat{background:var(--surface); padding:12px 13px; text-align:left; font:inherit; color:inherit;
   border:0; width:100%; cursor:pointer}
 .stat[aria-pressed="true"]{background:var(--surface-3); box-shadow:inset 3px 0 0 var(--gold-solid)}
-/* 13/10: «Nueva misión» vivía en el encabezado que se quitó; pasa a ser un cuarto
-   cuadro de la franja (misma altura, cero líneas extra). No es un filtro: no lleva aria-pressed. */
-.stat-strip.con-accion{grid-template-columns:repeat(3,1fr) minmax(62px,.62fr)}
-.stat.accion{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; padding:12px 8px;
-  background:var(--ink); color:var(--surface); font-family:var(--mono); font-size:9px; text-transform:uppercase; text-align:center}
-.stat.accion:hover{background:var(--ink-2)}
-.stat.accion svg{width:18px; height:18px}
 /* ===== Menú de arriba a la derecha (07/10 — Batch de Cambios) =============
    La regla de Alim: «si el cuadrado es 1x1, el rectángulo es 2x1», y los dos
    con la misma altura. `--hud-u` es la unidad; todo lo demás se deriva de ella,
@@ -462,174 +444,6 @@ button.hud:hover{border-color:var(--gold-solid)}
   .perfil-top > .pj-panel{grid-column:2; grid-row:1 / span 2; min-height:0}
   .perfil-top > .juego-card{grid-column:1; grid-row:2}
 }
-/* ===== ESCENARIOS ANIMADOS (08/10/26 — «Más cambios»; v4 13/10/26) =====
-   Cuatro pantallas (Inicio, Misiones, Tienda, Ranking) abren con una escena
-   pixel-art de 400×120 donde camina el personaje elegido. El motor está en
-   levelop-escenas.js; aquí solo el marco y lo que va encima del dibujo.
-
-   v4 (PDF «Cambios», 12/10): la escena ocupa TODO el ancho de las tarjetas de
-   abajo (antes se detenía en 960 px) y es más baja (400:120 en vez de 400:128).
-   Se estira SIEMPRE al ancho disponible y la altura sale de la proporción: la
-   escena se ve entera, nunca recortada. Con ancho que no es múltiplo de 400 los
-   píxeles quedan de 2 o 3 px alternados (sigue nítido, no borroso); es el precio
-   de no dejar márgenes vacíos.
-   Colores fijos a propósito: es un dibujo, no cambia con el tema. */
-.esc-wrap{margin:0 0 16px}
-.esc{position:relative; border:2px solid var(--ink); box-shadow:var(--shadow); background:#000}
-.esc-in{position:relative; width:100%; aspect-ratio:400/120; overflow:hidden; container-type:inline-size;
-  --px:calc(100cqw / 400)}
-.esc-cv{position:absolute; inset:0; width:100%; height:100%; display:block; image-rendering:pixelated;
-  user-select:none; -webkit-user-drag:none}
-/* El cartel de Inicio: el tablero ya viene pintado vacío en el fondo; el texto es
-   HTML encima de su «cara» [24,63 → 83,95] (60×33 px del lienzo, v4). */
-.esc-cartel{position:absolute; left:calc(24*var(--px)); top:calc(63*var(--px)); width:calc(60*var(--px)); height:calc(33*var(--px));
-  display:block; padding:0; margin:0; border:0; background:none; cursor:pointer; overflow:hidden;
-  font:400 calc(5*var(--px)*var(--fs,1))/1.25 var(--display); color:#121215; text-align:center; text-transform:uppercase;
-  letter-spacing:0; -webkit-tap-highlight-color:transparent}
-.esc-ct{position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center}
-.esc-l{display:block; white-space:nowrap}
-.esc-l.l1{font-weight:700}
-.esc-cartel:focus-visible{outline:calc(var(--px)*.8) dashed #121215; outline-offset:calc(var(--px)*-1.5)}
-/* Nombres bajo el podio de Ranking. */
-.esc-tags{position:absolute; inset:0; pointer-events:none}
-.esc-tag{position:absolute; transform:translateX(-50%); white-space:nowrap; max-width:calc(26*var(--px)); overflow:hidden;
-  font:700 clamp(7px,calc(var(--px)*3.2),15px)/1 var(--display); letter-spacing:.03em; text-transform:uppercase;
-  background:#121215; color:#EDEDE7; border:calc(var(--px)*.5) solid #EDEDE7; padding:.5em .5em .45em; box-shadow:var(--px) var(--px) 0 #000}
-/* Debajo de la escena. La leyenda es el texto real de lo que dice el dibujo
-   (mensaje del cartel, podio): en pantalla ancha solo la leen los lectores de
-   pantalla; en teléfono —donde el texto del dibujo queda diminuto— se ve. */
-.esc-pie{display:flex; justify-content:flex-end; align-items:center; gap:8px; margin-top:8px; flex-wrap:wrap}
-.esc-leyenda{position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;
-  font:400 12px/1.4 var(--mono); color:var(--ink-2)}
-.esc-leyenda b{font-weight:700; color:var(--ink)}
-.esc-btn{margin-left:auto; background:var(--surface-2); color:var(--ink); border:2px solid var(--ink); padding:6px 9px 5px;
-  font:700 10px/1 var(--mono); letter-spacing:.06em; text-transform:uppercase; cursor:pointer; box-shadow:2px 2px 0 #000}
-.esc-btn:hover{background:var(--gold-solid); color:#0B0B0C}
-.esc-btn:focus-visible{outline:3px solid var(--gold); outline-offset:2px}
-@media (max-width:640px){
-  .esc-leyenda{position:static; width:auto; height:auto; margin:0; overflow:visible; clip:auto; white-space:normal; flex:1 1 100%}
-  .esc-tags{display:none}
-  .esc-pie{justify-content:space-between}
-}
-.sr-only{position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
-/* Ranking: «Toda la empresa / Mi área» al centro de la fila (pedido de Alim). Tres
-   columnas: lo propio a la izquierda, el alcance en el medio, la comparación a la derecha. */
-.rk-ctl{display:grid; grid-template-columns:1fr auto 1fr; gap:10px 12px; align-items:center; margin-bottom:12px}
-.rk-ctl > .izq{display:flex; flex-wrap:wrap; gap:6px; justify-self:start}
-.rk-ctl > .cen{justify-self:center}
-.rk-ctl > .der{justify-self:end}
-@media (max-width:760px){
-  .rk-ctl{grid-template-columns:1fr; justify-items:center}
-  .rk-ctl > .izq, .rk-ctl > .cen, .rk-ctl > .der{justify-self:center; justify-content:center}
-  .rk-ctl > .cen{order:-1}
-}
-/* ===== PERFIL v2→v3: el campamento (08/10/26 paquete «Perfil / Héroe»; v3 13/10/26: lienzo 320×128,
-   nombres siempre visibles, rebote de 1–2 px y «Cambiar héroe» en el letrero) =====
-   La escena pixel-art ES la cabecera de la pantalla: un fondo limpio por hora
-   del día y, delante, cada objeto clickeable como PNG transparente dentro de un
-   <button> posicionado en % del fondo (así escala junto con él). El clic es del
-   botón, nunca del dibujo de fondo. Las posiciones son las de `hotspots.json`
-   del paquete y son idénticas en las cuatro horas.
-   Colores de la escena fijos a propósito: es un dibujo, no una superficie de la
-   app, y no cambia con el tema. */
-.camp-wrap{position:relative; margin-bottom:16px}
-.camp{position:relative; width:100%; aspect-ratio:320/128; overflow:hidden; container-type:inline-size;
-  border:2px solid var(--ink); box-shadow:var(--shadow); background:#000}
-.camp-fondo{position:absolute; inset:0; width:100%; height:100%; image-rendering:pixelated; display:block;
-  user-select:none; -webkit-user-drag:none}
-.camp-capas{position:absolute; inset:0; --px:calc(100cqw / 320)}
-.camp-hs{position:absolute; padding:0; border:0; background:none; cursor:pointer; touch-action:manipulation;
-  -webkit-tap-highlight-color:transparent; font:inherit; color:inherit}
-.camp-hs img{position:absolute; inset:0; width:100%; height:100%; image-rendering:pixelated; display:block;
-  pointer-events:none; -webkit-user-drag:none; transition:filter .1s steps(2);
-  animation:camp-hop 2.6s steps(1,end) infinite; animation-delay:var(--d,0s)}
-.camp-hs:hover img, .camp-hs:focus-visible img,
-.camp-hit:hover + img, .camp-hit:focus-visible + img{
-  filter:drop-shadow(var(--px) 0 0 var(--gold-solid)) drop-shadow(calc(-1*var(--px)) 0 0 var(--gold-solid))
-         drop-shadow(0 var(--px) 0 var(--gold-solid)) drop-shadow(0 calc(-1*var(--px)) 0 var(--gold-solid)) brightness(1.1)}
-/* Rebote sutil EN EL LUGAR (v3): sube 1–2 px del lienzo y vuelve cada 2,6 s, a saltos enteros.
-   Se anima la <img> (o el texto de «VER STATS»), no el <button>: el área clicable y la etiqueta no se
-   mueven. Cada objeto trae su desfase (--d) para que no salten todos a la vez. Con hover o foco el
-   rebote se acelera (1 px, 0,6 s). */
-.camp-hs:hover, .camp-hs:focus-visible{outline:none}
-.camp-hs:hover img, .camp-hs:focus-visible img, .camp-hit:hover + img, .camp-hit:focus-visible + img,
-.camp-stats:hover .camp-st-t, .camp-stats:focus-visible .camp-st-t{animation:camp-bob .6s steps(2) infinite}
-@keyframes camp-hop{0%,58%,100%{transform:translateY(0)}64%{transform:translateY(calc(-1*var(--px)))}72%{transform:translateY(calc(-2*var(--px)))}80%{transform:translateY(calc(-1*var(--px)))}88%{transform:translateY(0)}}
-@keyframes camp-bob{50%{transform:translateY(calc(-1*var(--px)))}}
-.camp-hs:focus-visible, .camp-hit:focus-visible{outline:calc(var(--px)) dashed var(--gold-solid); outline-offset:calc(var(--px)*2)}
-/* Objetos chicos: el área de toque sale un poco del dibujo. En teléfono, para todos. */
-.camp-hs.sm::after{content:""; position:absolute; inset:calc(var(--px)*-3) calc(var(--px)*-2) calc(var(--px)*-3) calc(var(--px)*-3)}
-@media (max-width:640px){ .camp-hs::after{content:""; position:absolute; inset:-7px} }
-/* Teléfono: las etiquetas quedan en 7 px y «ORO» y «VITRINA DE TROFEOS» (las dos van debajo) casi se tocan:
-   se aprietan un poco y se separan 6 px del lienzo cada una hacia su lado. */
-@media (max-width:640px){
-  .camp-tag{padding:.5em .55em .45em; letter-spacing:.03em}
-  .camp-hs[data-camp="oro"] .camp-tag{transform:translateX(calc(-50% + var(--px)*6))}
-  .camp-hs[data-camp="trofeos"] .camp-tag{transform:translateX(calc(-50% - var(--px)*6))}
-}
-/* Etiquetas con el nombre: SIEMPRE visibles (v3), encima o debajo del objeto según el paquete.
-   La del letrero HÉROES es distinta: «Cambiar héroe» solo sale con hover, foco o toque. */
-.camp-tag{position:absolute; left:50%; bottom:calc(100% + var(--px)*2); transform:translateX(-50%); white-space:nowrap;
-  pointer-events:none; font:700 clamp(7px,1.45cqw,13px)/1 var(--display); letter-spacing:.06em; background:#121215; color:#EDEDE7;
-  border:calc(var(--px)*.6) solid #EDEDE7; padding:.55em .8em .5em; box-shadow:var(--px) var(--px) 0 #000;
-  opacity:1; transition:opacity .1s steps(2); z-index:5}
-.camp-tag.abajo{bottom:auto; top:calc(100% + var(--px)*2)}
-.camp-tag b{color:var(--gold-solid); font-weight:700; margin-left:.6em}
-/* Con el tablón de héroes abierto, las demás etiquetas se esconden para no tapar las cabezas. */
-.camp:has(.camp-roster.open) .camp-hs:not(.camp-sign) .camp-tag{opacity:0}
-.camp-sign .camp-tag{left:auto; right:calc(100% + var(--px)*2); bottom:auto; top:72%; transform:translateY(-50%); opacity:0}
-.camp-sign:hover .camp-tag, .camp-sign:focus-within .camp-tag, .camp-hit:hover ~ .camp-tag, .camp-hit:focus-visible ~ .camp-tag,
-.camp:has(.camp-roster.open) .camp-sign .camp-tag{opacity:1}
-/* El letrero cuelga de cuerdas: solo la tabla (los 18 px de abajo de 32) es clicable. */
-.camp-hit{position:absolute; left:0; width:100%; top:43.75%; height:56.25%; pointer-events:auto; padding:0; border:0;
-  background:none; cursor:pointer}
-/* «VER STATS»: texto HTML flotante, sin PNG. */
-.camp-stats{position:absolute; padding:0; border:0; background:none; cursor:pointer; text-align:left;
-  font:700 clamp(10px,2.9cqw,30px)/1 var(--display); letter-spacing:.06em; color:#fff; display:flex; align-items:center; gap:.5em;
-  text-shadow:calc(var(--px)*.9) calc(var(--px)*.9) 0 #121215, calc(var(--px)*-.9) calc(var(--px)*.9) 0 #121215,
-              calc(var(--px)*.9) calc(var(--px)*-.9) 0 #121215, calc(var(--px)*-.9) calc(var(--px)*-.9) 0 #121215}
-.camp-stats::after{content:""; width:.5em; height:.5em; background:var(--gold-solid); clip-path:polygon(0 0,100% 50%,0 100%);
-  transition:transform .1s steps(2)}
-.camp-st-t{display:block; animation:camp-hop 2.6s steps(1,end) infinite; animation-delay:var(--d,0s)}
-.camp-stats:hover, .camp-stats:focus-visible{color:var(--gold-solid); outline:none}
-.camp-stats:hover::after, .camp-stats:focus-visible::after{transform:translateX(.25em)}
-.camp-stats:focus-visible{outline:calc(var(--px)) dashed var(--gold-solid); outline-offset:calc(var(--px)*2)}
-/* El tablón del elenco: aparece con hover, foco o toque en la flecha. */
-.camp-roster{position:absolute; z-index:6; visibility:hidden; opacity:0; transform:scale(.9); transform-origin:100% 0;
-  transition:transform .14s steps(4), opacity .14s steps(4), visibility 0s .14s}
-.camp-roster.open{visibility:visible; opacity:1; transform:none; transition:transform .14s steps(4), opacity .14s steps(4), visibility 0s}
-.camp-roster > img.camp-bg{position:absolute; inset:0; width:100%; height:100%; image-rendering:pixelated; pointer-events:none}
-.camp-head{position:absolute; padding:0; border:0; background:none; cursor:pointer}
-.camp-head img{position:absolute; inset:0; width:100%; height:100%; image-rendering:pixelated; pointer-events:none}
-.camp-head.cur::before{content:""; position:absolute; inset:calc(var(--px)*-1); border:calc(var(--px)*1.2) solid var(--gold-solid); pointer-events:none}
-.camp-head.lock img{filter:brightness(.72) saturate(.75)}
-.camp-head:hover img, .camp-head:focus-visible img{filter:brightness(1.12)}
-.camp-head:focus-visible{outline:calc(var(--px)) dashed var(--gold-solid); outline-offset:calc(var(--px)*1.5)}
-.camp-hname{position:absolute; left:50%; top:calc(100% + var(--px)); transform:translateX(-50%); white-space:nowrap; pointer-events:none;
-  font:700 clamp(6px,1.25cqw,11px)/1 var(--display); background:#121215; color:#EDEDE7; padding:.5em .7em;
-  border:calc(var(--px)*.5) solid #EDEDE7; opacity:0; z-index:2}
-.camp-head:hover .camp-hname, .camp-head:focus-visible .camp-hname{opacity:1}
-.camp-nota{position:absolute; right:0; top:calc(100% + var(--px)*2); white-space:nowrap; font:700 clamp(6px,1.25cqw,11px)/1 var(--mono);
-  letter-spacing:.04em; text-transform:uppercase; background:#121215; color:#EDEDE7; padding:.6em .8em; border:calc(var(--px)*.5) solid #EDEDE7}
-/* Los mismos seis accesos, en botones: para quien no pasa el mouse (teléfono, teclado) y para que
-   nadie tenga que adivinar qué es cada dibujo. */
-.camp-atajos{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:14px}
-.camp-atajos span{font:700 11px var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); margin-right:4px}
-.camp-atajos button{background:var(--surface); color:var(--ink); border:2px solid var(--ink); padding:7px 10px 6px; font:700 11px/1 var(--display); letter-spacing:.05em; text-transform:uppercase; cursor:pointer; box-shadow:2px 2px 0 #000}
-.camp-atajos button b{color:var(--gold); margin-left:6px; font:inherit}
-.camp-atajos button:hover{background:var(--gold-solid); color:#0B0B0C}
-.camp-atajos button:hover b{color:#0B0B0C}
-.camp-atajos button:focus-visible{outline:3px solid var(--gold); outline-offset:2px}
-@media (prefers-reduced-motion:reduce){
-  .camp-hs img, .camp-hs:hover img, .camp-hs:focus-visible img, .camp-hit:hover + img, .camp-hit:focus-visible + img,
-  .camp-st-t, .camp-stats:hover .camp-st-t, .camp-stats:focus-visible .camp-st-t{animation:none}
-  .camp-roster, .camp-roster.open, .camp-tag, .camp-hs img{transition:none}
-}
-/* Debajo del campamento: quién eres y el interruptor del juego. */
-.perfil-bajo{display:grid; gap:14px; margin-bottom:16px}
-.perfil-bajo > .hero, .perfil-bajo > .juego-card{margin-bottom:0}
-@media (min-width:880px){ .perfil-bajo{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)} }
-
 /* 19/09 — la tarjeta de «jugar o no jugar» destacada con el verde Levelop. */
 .juego-card{border-left:3px solid #4E9B26; background:color-mix(in srgb, #4E9B26 4%, var(--surface))}
 .juego-card .setting-b .t{display:flex; align-items:center; gap:8px}
@@ -839,11 +653,7 @@ button.hud:hover{border-color:var(--gold-solid)}
    pone `flex-basis:0` y, como no sobra alto que repartir, la caja se aplasta a
    los dos bordes. `min-height` es el piso que lo impide sin tocar el caso de la
    fila, donde el alto nunca fue el eje principal. */
-/* `flex:1` está para cuando la barra vive en una FILA y reparte ancho. En una
-   columna —y las tarjetas de «Qué te toca» lo son— ese mismo `flex:1` reparte
-   ALTO, y la barra de la meta del mes se comía la tarjeta entera. El tope la
-   deja crecer a lo ancho y nunca a lo alto. */
-.bar-track{display:block; position:relative; height:12px; max-height:12px; min-height:12px; max-height:12px; background:var(--surface-2); flex:1; min-width:0; border:1px solid var(--line)}
+.bar-track{display:block; position:relative; height:12px; min-height:12px; background:var(--surface-2); flex:1; min-width:0; border:1px solid var(--line)}
 /* El relleno se estira con `top/bottom` y no con `height:100%`. Un porcentaje
    de alto necesita que el padre tenga un alto DEFINIDO, y `.bar-track` es un
    item flexible: su alto sale de `min-height`, que para el navegador no cuenta
@@ -964,6 +774,7 @@ button.estado-row{cursor:pointer}
   .iconbtn .ti{width:16px; height:16px}
   .content{padding-left:12px; padding-right:12px}
   .scroller{margin:0 -12px; padding-left:12px; padding-right:12px}
+  .page-h h1{font-size:30px}
   .sheet-h h2{font-size:18px}
   .hero-n{font-size:21px}
   .drop{position:fixed; top:54px; left:8px; right:8px; width:auto}
@@ -1058,7 +869,6 @@ td.n, #tip .tr b, #tip .tr span, .pat-sig .sv, .plist .pr b, .fstep .fn,
 
 <script src="levelop-config.js"></script>
 <script src="levelop-api.js"></script>
-<script src="levelop-escenas.js"></script>
 <script>
 (function(){
 "use strict";
@@ -1168,8 +978,7 @@ const COPY_RECHAZO = {
   ZONA_NO_APLICA:     ["Este no aplica en tu ciudad", "Solo está disponible en otras zonas. Tu zona la fija RRHH de tu empresa, no se cambia desde aquí."],
   ITEM_INACTIVO:      ["Ese beneficio ya no está", "Lo sacaron del catálogo. No se te descontó nada."],
   OPT_OUT_ACTIVO:     ["Tienes el juego apagado", "Con el juego apagado no se piden beneficios. Lo prendes desde tu Perfil."],
-  NIVEL_INSUFICIENTE: ["Todavía no tienes el nivel", "Este beneficio se abre a partir de cierto nivel. La experiencia solo sube: cuando llegues, queda abierto para siempre."],
-  CIERRE_NO_AUTORIZADO: ["Esta no te toca cerrarla a ti", "Una misión la cierra quien la está trabajando, o el líder de su área. Quien la cerró no es quien cobra: el XP y el Oro son siempre de quien hizo el trabajo."]
+  NIVEL_INSUFICIENTE: ["Todavía no tienes el nivel", "Este beneficio se abre a partir de cierto nivel. La experiencia solo sube: cuando llegues, queda abierto para siempre."]
 };
 
 /* =========================================================
@@ -1277,49 +1086,22 @@ function avisarError(e, dondeFallo){
 }
 
 /* =========================================================
-   MARCADO DE «NO CONECTADO» — 13/10/26
+   MARCADO DE «NO CONECTADO»
    -------------------------------------------------------
-   La regla de Alim sigue entera: nada se finge. Lo que el
-   backend no soporta no se rellena con un número inventado
-   ni con un botón que no hace nada.
-
-   Lo que cambia hoy es QUIÉN lo lee. Estos bloques nombran
-   tickets internos —«LVL-045», «falta que Alim elija entre
-   racha diaria y semanal»— y eso es el backlog del equipo,
-   no información para quien usa la app. Una persona de una
-   PyME no tiene por qué leer nuestra lista de pendientes
-   para entender su propia pantalla.
-
-   Así que no se borran: se esconden detrás de `?dev=1`, el
-   mismo truco que `?hora=`. Con el parámetro se ven igual
-   que siempre; sin él, no se dibujan. Borrarlos de verdad
-   obligaría a reescribirlos desde cero el día que haya que
-   revisar qué falta, y ese inventario honesto es justo lo
-   que no quiero perder.
+   La regla de Alim en una función. Todo lo que el backend
+   no soporta pasa por aquí — nunca se oculta y nunca se
+   rellena con un número inventado.
    ========================================================= */
-const MODO_DEV = new URLSearchParams(location.search).get("dev") === "1";
 function ncBody(razon){
-  if(!MODO_DEV) return "";
   return `<div class="nc-body"><span class="chip nc-chip">${IC.enchufe} Sin conectar</span><p>${esc(razon)}</p></div>`;
 }
 function widgetNC(ico, titulo, razon, cls=""){
-  if(!MODO_DEV) return "";
   return `<section class="w nc ${cls}">
     <div class="w-h"><span class="wi">${IC[ico]}</span><h3>${esc(titulo)}</h3></div>
     <div class="w-body">${ncBody(razon)}</div>
   </section>`;
 }
-/* La sección COMPLETA — título, explicación y lista— en una sola función.
-   Si solo apagara `listaNC`, quedaría el encabezado «Todavía sin conectar»
-   flotando sobre nada, que es peor que dejarlo todo. */
-function seccionNC(sub, items, nota){
-  if(!MODO_DEV) return "";
-  return `<div class="sec-h"><h2>Todavía sin conectar</h2><span class="sub">${esc(sub)}</span></div>
-    ${nota ? `<div class="note" style="margin-bottom:12px">${nota}</div>` : ""}
-    ${listaNC(items)}`;
-}
 function listaNC(items){
-  if(!MODO_DEV) return "";
   return `<div class="nc-list">${items.map(([ico,n,r])=>`
     <div class="nc-item">
       <span class="nc-ico">${IC[ico]||IC.enchufe}</span>
@@ -1356,19 +1138,6 @@ const venceEn   = m => m.fechaLimite ? (new Date(m.fechaLimite).getTime() - Date
 const enRiesgo  = m => viva(m) && venceEn(m) !== null && venceEn(m) < 0;
 const esMia     = m => !!mid() && (m.creadorMembershipId===mid() || m.asignadoMembershipId===mid() || m.aceptadaPorMembershipId===mid());
 const puedeAceptar = m => !!mid() && m.estado==="abierta" && m.creadorMembershipId!==mid() && !m.aceptadaPorMembershipId;
-/* 13/10 — la misma regla que ahora aplica el servidor, repetida acá solo para
-   no ofrecer un botón que va a rechazar. Quien decide sigue siendo el servidor:
-   esto es cortesía, no seguridad. Un botón escondido no es una regla.
-
-   El líder y gerencia también pueden, pero eso se ve desde sus propias
-   pantallas; acá solo está la app del colaborador, así que alcanza con los dos
-   casos de la persona que trabaja. */
-const puedeCerrar = m => {
-  if(!mid() || !viva(m)) return false;
-  return m.aceptadaPorMembershipId
-    ? m.aceptadaPorMembershipId === mid()
-    : m.creadorMembershipId === mid();
-};
 
 /**
  * Una misión creada por uno mismo NO da Oro hasta que otra
@@ -1732,6 +1501,8 @@ function toggleAvisos(forzar){
    ========================================================= */
 function vistaInicio(){
   const hh = PERIODOS[state.periodo].h;
+  const hora = new Date().getHours();
+  const saludo = hora<12 ? "Buenos días" : hora<19 ? "Buenas tardes" : "Buenas noches";
 
   const proximas = D.misiones
     .filter(m => viva(m) && venceEn(m) !== null && venceEn(m) <= hh*H)
@@ -1808,13 +1579,24 @@ function vistaInicio(){
       </div>`;
 
   return `
-  <h1 class="sr-only">Inicio</h1>
-  <!-- 08/10 («Más cambios»): la cabecera de Inicio es la escena. El saludo, la fecha,
-       el área y la empresa pasaron al cartel del pueblo (rotan cada 7 s) y el Oro
-       ya no se repite acá porque está siempre arriba, en la barra. El personaje
-       dejó el panel de la derecha: ahora camina dentro de la escena. -->
-  ${escenaHTML("inicio")}
   ${!optIn()?`<div class="optout-banner">Tienes el juego apagado: no estás ganando Oro nuevo. Sigues viendo todo lo del trabajo.</div>`:""}
+
+  <!-- 07/10 (Batch de Cambios): el saludo se recorta para dejarle una columna
+       al personaje. El panel es el mismo que en Perfil, más chico. -->
+  <div class="inicio-top">
+    <div class="saludo">
+      <span class="pixels"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="eyebrow">${new Date().toLocaleDateString("es-VE",{weekday:"long", day:"numeric", month:"long"})}</span>
+      <h1 style="margin-top:6px">${esc(saludo)},<br>${esc((miNombre().split(" ")[0])||"")}</h1>
+      <div class="row wrap g8" style="margin-top:13px">
+        ${optIn()?`<button class="chip gold" data-info="oro">${fmt(D.saldo)} de Oro</button>`:""}
+        <button class="chip" data-info="zona">${IC.pin} ${esc(miZona())}</button>
+        ${miArea()?`<span class="chip">${esc(miArea())}</span>`:""}
+        <span class="chip">${esc(D.membresia ? D.membresia.tenantNombre : "")}</span>
+      </div>
+    </div>
+    ${panelPersonaje(78)}
+  </div>
 
   <div class="row wrap g8" style="justify-content:space-between; margin-bottom:14px">
     <span class="eyebrow">Qué te toca</span>
@@ -1828,15 +1610,17 @@ function vistaInicio(){
     ${optIn()?widget("ticket","Tus beneficios", activos.length, wActivos):""}
     ${optIn()?widget("diana","Tu objetivo", null, wObjetivo):""}
     ${optIn()?widget("reloj","Tu Oro y qué se vence", null, wLotes):""}
-    ${optIn()?widgetMeta():""}
   </div>
+  ${optIn()?widgetMeta():""}
 
-  ${seccionNC("Está en el prototipo, no en el backend", [
+  <div class="sec-h"><h2>Todavía sin conectar</h2><span class="sub">Está en el prototipo, no en el backend</span></div>
+  <div class="note" style="margin-bottom:12px">Esto no está escondido ni simulado: son funciones que el prototipo dibujaba con datos inventados y que <b>todavía no tienen backend</b>. Cada una dice qué le falta. El detalle completo está en el plan de conexión.</div>
+  ${listaNC([
     ["bandera","Desafío entre áreas","Es `LVL-045`: cotizado en 4,5 semanas-fundador, nunca construido. Necesita estado compartido entre dos áreas, votación y marcador."],
     ["carpeta","Proyectos","No aparece en el Documento Maestro. Hace falta que alguien defina qué es antes de construirlo."],
     ["llama","Racha de días","Definida a medias: falta que Alim elija entre racha diaria y racha semanal. La objeción a la diaria está escrita en LVL-062."],
     ["megafono","Noticias de la empresa y de Levelop","No hay tabla de anuncios ni endpoint."]
-  ], "Esto no está escondido ni simulado: son funciones que el prototipo dibujaba con datos inventados y que <b>todavía no tienen backend</b>. Cada una dice qué le falta. El detalle completo está en el plan de conexión.")}`;
+  ])}`;
 }
 function widget(ico, titulo, contador, cuerpo, cls=""){
   return `<section class="w ${cls}">
@@ -1992,15 +1776,16 @@ function vistaMisiones(){
   const vencidas = D.misiones.filter(enRiesgo).length;
 
   return `
-  ${escenaHTML("misiones")}
   ${!optIn()?`<div class="optout-banner">Tienes el juego apagado. Aquí sigues viendo todo lo del trabajo.</div>`:""}
-  <h1 class="sr-only">Misiones</h1>
+  <div class="page-h">
+    <div><span class="eyebrow">Tablón</span><h1>Misiones</h1></div>
+    <button class="btn sm" data-nueva>${IC.mas} Nueva</button>
+  </div>
 
-  <div class="stat-strip con-accion" style="margin-bottom:14px">
+  <div class="stat-strip" style="margin-bottom:14px">
     <button class="stat" data-filtro="todas" aria-pressed="${state.filtro==="todas"}"><div class="l">Abiertas</div><div class="v">${abiertas}</div></button>
     <button class="stat" data-filtro="mias" aria-pressed="${state.filtro==="mias"}"><div class="l">Mías</div><div class="v">${mias}</div></button>
     <button class="stat" data-filtro="riesgo" aria-pressed="${state.filtro==="riesgo"}"><div class="l">Vencidas</div><div class="v" style="color:${vencidas?"var(--risk)":"inherit"}">${vencidas}</div></button>
-    <button class="stat accion" data-nueva aria-label="Nueva misión">${IC.mas}<span>Nueva</span></button>
   </div>
 
   ${optIn()?widgetProgreso():""}
@@ -2206,7 +1991,7 @@ function detalleMision(m){
       <div class="sheet-f">
         <button class="btn" data-cerrar>Cerrar</button>
         ${puedeAceptar(m)?`<button class="btn primary" style="flex:1" data-aceptar="${esc(m.id)}">${IC.check} Aceptarla</button>`:""}
-        ${puedeCerrar(m)?`<button class="btn gold" style="flex:1" data-cerrarmision="${esc(m.id)}">${IC.check} Cerrarla</button>`:""}
+        ${viva(m)?`<button class="btn gold" style="flex:1" data-cerrarmision="${esc(m.id)}">${IC.check} Cerrarla</button>`:""}
       </div>
     </div>
   </div>`;
@@ -2310,12 +2095,18 @@ function vistaTienda(){
   const huerfanos = D.catalogo.filter(i=>!FAMILIAS[i.familia]);
 
   return `
-  ${escenaHTML("tienda")}
-  <h1 class="sr-only">Tienda</h1>
-  <!-- v4 (PDF «Cambios»): se quitaron el chip de Oro de la derecha del título y el aviso
-       «Esto no se compra: se gana». El Oro ya está siempre en la barra de arriba y
-       «Cómo funciona el Oro» sigue a un clic: el Oro de la barra abre esas reglas
-       directamente, y el saco de Oro del Perfil las trae en su hoja «Tu Oro». -->
+  <div class="page-h">
+    <div><span class="eyebrow">Cupos</span><h1>Tienda</h1></div>
+    <span class="hud is-gold" style="font-size:14px; padding:7px 13px"><span class="hud-l">Oro</span><span class="num">${fmt(D.saldo)}</span></span>
+  </div>
+
+  <div class="note gold" style="margin-bottom:14px">
+    <b>Esto no se compra: se gana.</b> Cada beneficio es un cupo que tu empresa contrató.
+    <div class="row wrap g8" style="margin-top:10px">
+      <button class="btn sm" data-reglas>Cómo funciona el Oro</button>
+      <span class="chip">${IC.pin} ${esc(miZona())}</span>
+    </div>
+  </div>
 
   ${D.catalogo.length===0 ? `<div class="card empty">Tu empresa todavía no tiene beneficios cargados en el catálogo.</div>` : `
   <div class="scroller" style="margin-bottom:14px">
@@ -2338,7 +2129,8 @@ function vistaTienda(){
     <div class="shop-grid">${huerfanos.map(tarjetaItem).join("")}</div>` : ""}
   `}
 
-  ${seccionNC("En la Tienda", [
+  <div class="sec-h"><h2>Todavía sin conectar</h2><span class="sub">En la Tienda</span></div>
+  ${listaNC([
     ["regalo","Regalar un beneficio a otra persona","Definido y aprobado el 17/09: se regala el beneficio, nunca el Oro, con un límite de 2 por mes. Falta construirlo y falta la revisión del CFO sobre el límite."],
     ["interro","Sugerir un beneficio","No hay tabla ni endpoint, y falta definir quién lee las sugerencias."],
     ["ranking","Los más pedidos","Sale de agregar canjes por item. La vista agregada existe para gerencia, pero no hay endpoint para la app del colaborador."]
@@ -2381,7 +2173,7 @@ function modalReglas(){
         </div>
         <div class="note ok"><b>Tu saldo no es un número que alguien pueda editar.</b> Es la suma de un registro que solo admite líneas nuevas: la base de datos rechaza cualquier intento de modificar o borrar un movimiento pasado, venga de donde venga.</div>
         <div class="note gold"><b>Por qué caduca:</b> para que el Oro se use, no se acumule. Un saldo dormido no le sirve a nadie — ni a ti, que no lo disfrutas, ni a la empresa, que tiene el cupo parado.</div>
-        ${MODO_DEV ? `<div class="note">${ncBody("El desglose por lote —cuánto Oro se te vence y cuándo— todavía no se puede mostrar: la caducidad sí corre en el servidor, pero no hay endpoint que devuelva el detalle.")}</div>` : ""}
+        <div class="note">${ncBody("El desglose por lote —cuánto Oro se te vence y cuándo— todavía no se puede mostrar: la caducidad sí corre en el servidor, pero no hay endpoint que devuelva el detalle.")}</div>
       </div>
       <div class="sheet-f"><button class="btn" data-cerrar>Entendido</button>
         <button class="btn primary" style="flex:1" data-tab="tienda">${IC.tienda} Ir a la Tienda</button></div>
@@ -2408,23 +2200,20 @@ function vistaRanking(){
      acá arriba como dos chips, discretos; el texto largo que explicaba cada uno
      no se pierde, pasa al `title` y al modal de ayuda. */
   const vr = state.rankingVariacion;
-  /* 08/10 («Más cambios»): arriba va la escena con el podio, y el botón «Toda la
-     empresa / Mi área» sube a una fila propia, al CENTRO: a la izquierda lo tuyo
-     (tabla completa, apareces) y a la derecha la comparación. */
-  const segAmbito = (D.membresia && D.membresia.areaId)
-    ? `<div class="seg"><button data-ranking-ambito="global" aria-pressed="${ambito==="global"}">Toda la empresa</button><button data-ranking-ambito="area" aria-pressed="${ambito==="area"}">Mi área</button></div>` : "";
-  const ctlIzq = R && R.participo ? `
-      <button class="chip ${prefs.verTabla?"ok":""}" data-ranking-pref="verTablaCompleta" data-valor="${!prefs.verTabla}"
-        title="Por defecto ves tu puesto y ±3. Una tabla entera de arriba a abajo desinfla al que va de último.">${prefs.verTabla?"✓ ":""}Tabla completa</button>
-      <button class="chip ok" data-ranking-pref="participaEnRanking" data-valor="false"
-        title="Si lo apagas sigues jugando y ganando Oro; solo no sales en la tabla de nadie ni ves la de nadie.">✓ Apareces</button>` : "";
-  const ctlDer = R && R.participo ? `<div class="seg">
-        ${[["",'Sin comparar'],["dia","Día"],["semana","Semana"],["mes","Mes"]].map(([k,n])=>
-          `<button data-ranking-var="${k}" aria-pressed="${(vr||"")===k}">${n}</button>`).join("")}
-      </div>` : "";
-  const cab = `${escenaHTML("ranking")}
-  <h1 class="sr-only">Ranking</h1>
-  ${(ctlIzq || segAmbito || ctlDer) ? `<div class="rk-ctl"><div class="izq">${ctlIzq}</div><div class="cen">${segAmbito}</div><div class="der">${ctlDer}</div></div>` : ""}`;
+  const cab = `<div class="page-h"><div><span class="eyebrow">Entre todos</span><h1>Ranking</h1></div>
+    ${(D.membresia && D.membresia.areaId) ? `<div class="seg"><button data-ranking-ambito="global" aria-pressed="${ambito==="global"}">Toda la empresa</button><button data-ranking-ambito="area" aria-pressed="${ambito==="area"}">Mi área</button></div>` : ""}
+  </div>
+  ${R && R.participo ? `<div class="row wrap g6" style="margin-bottom:12px">
+    <button class="chip ${prefs.verTabla?"ok":""}" data-ranking-pref="verTablaCompleta" data-valor="${!prefs.verTabla}"
+      title="Por defecto ves tu puesto y ±3. Una tabla entera de arriba a abajo desinfla al que va de último.">${prefs.verTabla?"✓ ":""}Tabla completa</button>
+    <button class="chip ok" data-ranking-pref="participaEnRanking" data-valor="false"
+      title="Si lo apagas sigues jugando y ganando Oro; solo no sales en la tabla de nadie ni ves la de nadie.">✓ Apareces</button>
+    <span style="flex:1"></span>
+    <div class="seg">
+      ${[["",'Sin comparar'],["dia","Día"],["semana","Semana"],["mes","Mes"]].map(([k,n])=>
+        `<button data-ranking-var="${k}" aria-pressed="${(vr||"")===k}">${n}</button>`).join("")}
+    </div>
+  </div>` : ""}`;
 
   if(!R) return cab + `<div class="card empty">El ranking no cargó. Reintenta en un momento.</div>`;
 
@@ -2498,20 +2287,20 @@ function vistaRanking(){
    ========================================================= */
 function vistaPerfil(){
   const M = D.membresia || {};
+  const activos = D.canjes.filter(c => c.estado==="RESERVADO" || c.estado==="CONFIRMADO");
 
-  /* 08/10 (paquete «Perfil / Héroe»): la pantalla ya no es una pila de tarjetas
-     sino un campamento. El Oro, las misiones, los beneficios, la vitrina, las
-     stats y el elenco son objetos de la escena y cada uno abre su ventana. Lo que
-     antes se repetía acá abajo (las tres cifras del héroe, los puestos, la lista
-     de beneficios, el selector de personaje) se movió a esas ventanas: dibujarlo
-     dos veces no agregaba nada. Se queda lo que no es un objeto del juego: quién
-     eres y el interruptor de jugar-o-no-jugar (R-03). */
+  const ESTADO_CANJE = ESTADO_CANJE_G;
+
   return `
-  <h1 class="sr-only">Perfil</h1>
+  <div class="page-h"><div><span class="eyebrow">Tu cuenta</span><h1>Perfil</h1></div>
+    ${optIn()?`<button class="btn sm gold" data-vitrina>${IC.trofeo} Vitrina de trofeos${D.vitrina?` · ${D.vitrina.totalGanadas}`:""}</button>`:""}
+  </div>
 
-  ${campamento()}
-
-  <div class="perfil-bajo">
+  <!-- 07/10 (Batch de Cambios): «ajustar el recorte de estas secciones para que
+       se ajuste al agregado del usuario». Los datos y la tarjeta de jugar-o-no
+       dejan de ocupar todo el ancho y comparten la fila con el personaje, que
+       ocupa la columna de la derecha completa. En teléfono vuelven a apilarse. -->
+  <div class="perfil-top">
   <div class="hero">
     <div class="hero-top">
       <span class="av-wrap">
@@ -2530,7 +2319,14 @@ function vistaPerfil(){
         </div>
       </div>
     </div>
+    ${optIn()?`
+    <div class="stat-strip" style="margin-top:15px">
+      <div class="stat"><div class="l">Oro</div><div class="v" style="color:var(--gold)">${fmt(D.saldo)}</div></div>
+      <div class="stat"><div class="l">Misiones tuyas</div><div class="v">${D.misiones.filter(esMia).length}</div></div>
+      <div class="stat"><div class="l">Beneficios</div><div class="v">${activos.length}</div></div>
+    </div>`:""}
   </div>
+  ${panelPersonaje(120)}
 
   <!-- 19/09 (Alim, CAMBIOS 1.1 · Perfil 2): el detalle largo se leía como una
        advertencia antes de que nadie hubiera decidido nada. Ahora arriba va una
@@ -2551,7 +2347,50 @@ function vistaPerfil(){
   </div>
   </div>
 
-  ${seccionNC("En tu perfil", [
+  ${seccionPersonaje()}
+
+  ${optIn() && D.progreso ? `<div class="stat-strip" style="margin-bottom:14px">
+    <div class="stat"><div class="l">Nivel</div><div class="v">${D.progreso.nivel}</div></div>
+    <div class="stat"><div class="l">Puesto general</div><div class="v">${miFicha && miFicha.juego && miFicha.juego.puestoGeneral ? `#${miFicha.juego.puestoGeneral}` : (D.ranking && D.ranking.participo && D.ranking.miPosicion ? `#${D.ranking.miPosicion}` : "—")}${indicadorPuesto("general")}</div></div>
+    <div class="stat"><div class="l">Puesto en tu área</div><div class="v">${miFicha && miFicha.juego && miFicha.juego.puestoArea ? `#${miFicha.juego.puestoArea}` : "—"}${indicadorPuesto("area")}</div></div>
+  </div>
+  <div class="row wrap g6" style="margin-bottom:14px">
+    <button class="btn sm" data-ficha="${esc(mid()||"")}">Ver tu ficha completa</button>
+  </div>`:""}
+
+  ${seccionPlegable("beneficios","Tus beneficios", `${activos.length} activos`, `
+    <div class="row wrap g6" style="margin-bottom:10px">
+      <div class="seg">${[["","Todos"],["pronto","Vencen pronto"],["lejos","Vencen después"]].map(([k,n])=>
+        `<button data-orden-canjes="${k}" aria-pressed="${(state.ordenCanjes||"")===k}">${n}</button>`).join("")}</div>
+      <span style="flex:1"></span>
+      <button class="btn sm" data-historial-pedidos>Historial de pedidos</button>
+    </div>
+    <div class="stack g8">
+    ${D.canjes.length ? canjesOrdenados(activosPrimero(D.canjes)).map(c=>{
+      const e = ESTADO_CANJE[c.estado] || {chip:"", txt:c.estado};
+      const v = chipVencimiento(c);
+      return `<div class="benefit ${c.estado==="INDETERMINADO"?"ind":""}">
+        <span class="item-ico">${IC.ticket}</span>
+        <div style="flex:1; min-width:0">
+          <div class="row wrap g8" style="justify-content:space-between; align-items:flex-start">
+            <h4 style="flex:1; min-width:0">${esc(nombreCanje(c))}</h4>
+            ${v}
+          </div>
+          <div class="area-tag" style="margin-top:3px">Pedido ${esc(fecha(new Date(c.createdAt)))} · ${fmt(c.precioOroAplicado)} de Oro</div>
+          <div class="row wrap g8" style="margin-top:8px">
+            <span class="chip ${e.chip}">${esc(e.txt)}</span>
+            ${c.motivoRechazo?`<span class="chip risk">${esc(c.motivoRechazo)}</span>`:""}
+          </div>
+          ${c.estado==="INDETERMINADO"?`<div class="note sync" style="margin-top:10px">
+            <b>No sabemos si el aliado registró tu canje.</b> No es culpa tuya y tampoco es un fallo confirmado. Este estado existe a propósito: un tiempo de espera agotado no es lo mismo que un error, y decirte «listo» sin saberlo sería mentirte.
+          </div>`:""}
+        </div>
+      </div>`;
+    }).join("") : `<div class="empty">No has pedido ningún beneficio.</div>`}
+    </div>`)}
+
+  <div class="sec-h"><h2>Todavía sin conectar</h2><span class="sub">En tu perfil</span></div>
+  ${listaNC([
     ["llama","Racha","Falta una decisión, no código: diaria o semanal. Ver LVL-062."],
     ["tuerca","Cambiar tu nombre o tu color","No hay endpoint para editar el perfil. Tu nombre sale de la base como lo cargó tu empresa."]
   ])}
@@ -2605,86 +2444,6 @@ function modalInfo(q){
    RENDER
    ========================================================= */
 const VIEWS = {inicio:vistaInicio, misiones:vistaMisiones, tienda:vistaTienda, ranking:vistaRanking, perfil:vistaPerfil};
-/* =========================================================
-   ESCENARIOS ANIMADOS — pegamento (08/10/26, «Más cambios»)
-   -------------------------------------------------------
-   El motor (levelop-escenas.js) solo dibuja. Aquí se decide QUÉ: qué personaje
-   camina, qué dicen los mensajes del cartel y quién está en el podio. Todo sale de
-   datos que la pantalla ya tiene; nada de esto es una pregunta nueva al servidor
-   (salvo `top3` en el ranking, ver más abajo).
-   ========================================================= */
-const saludoDelDia = () => { const h = new Date().getHours(); return h<12 ? "Buenos días" : h<19 ? "Buenas tardes" : "Buenas noches"; };
-
-/* Alcance que se está viendo en Ranking. Sin área asignada = toda la empresa. */
-function alcanceRanking(){ return (state.rankingAmbito==="area" && D.membresia && D.membresia.areaId) ? "area" : "global"; }
-
-/* El podio. `top3` lo manda el servidor (los tres primeros del alcance, que no
-   caben en la ventana de ±3 cuando estás lejos). Si el servidor todavía no lo manda
-   se usa la tabla SOLO si arranca en el #1; si no, se dibuja un podio sin ocupantes
-   conocidos en vez de uno que afirme algo falso. Nombres y personajes de los tres
-   primeros son lo mismo que cualquiera ve pidiendo la tabla completa (R-07). */
-function datosPodio(){
-  const R = D.ranking, alcance = alcanceRanking();
-  if(!R || !R.participo) return { alcance, top3:null, yo:null, puesto:null };
-  let top = Array.isArray(R.top3) ? R.top3 : null;
-  if(!top && R.tabla && R.tabla.length && R.tabla[0].posicion === 1) top = R.tabla.slice(0,3);
-  return {
-    alcance,
-    top3: top ? top.map(f=>({ membershipId:f.membershipId, personaje:f.personaje||null, nombre:f.nombre||"", posicion:f.posicion })) : null,
-    yo: mid(), puesto: R.miPosicion || null
-  };
-}
-
-function mensajesCartel(){
-  const M = D.membresia || {};
-  return Escenas.componerCartel({ nombre:(miNombre().split(" ")[0])||"", area:miArea(), empresa:M.tenantNombre });
-}
-
-/* El texto de lo que dice el dibujo, para quien no lo ve (lector de pantalla) y
-   para el teléfono, donde el texto del cartel queda demasiado chico. */
-function leyendaEscena(kind){
-  if(kind === "inicio"){
-    const f = new Date().toLocaleDateString("es-VE",{weekday:"long", day:"numeric", month:"long"});
-    return `<b>${esc(saludoDelDia())}, ${esc((miNombre().split(" ")[0])||"")}.</b> ${esc(f)}${miArea()?` · ${esc(miArea())}`:""}${D.membresia&&D.membresia.tenantNombre?` · ${esc(D.membresia.tenantNombre)}`:""}`;
-  }
-  if(kind === "ranking"){
-    const p = datosPodio(), R = D.ranking;
-    if(!R || !R.participo) return "Aquí se ve el podio de quienes participan en el ranking.";
-    const donde = p.alcance==="area" ? "tu área" : "toda la empresa";
-    if(!p.top3) return `Podio de ${donde}. Tu puesto: ${p.puesto?`#${p.puesto}`:"—"}.`;
-    const nom = f => esc(f.membershipId===p.yo ? "tú" : (f.nombre||"sin nombre"));
-    return `<b>Podio de ${donde}:</b> ${p.top3.length ? p.top3.map((f,i)=>`${i+1}.º ${nom(f)}`).join(" · ") : "todavía nadie"}. Tu puesto: ${p.puesto?`#${p.puesto}`:"—"}.`;
-  }
-  return "";
-}
-
-/* El marco vacío; `montarEscenas()` lo llena cuando la vista ya está en pantalla. */
-function escenaHTML(kind){
-  const ley = leyendaEscena(kind);
-  const c = miPersonaje();
-  /* v4 (PDF «Cambios»): el botón «<personaje> · ver stats» de Inicio se quitó («no es relevante»).
-     Sin personaje elegido sigue el atajo «Elige tu personaje». */
-  const boton = c ? "" : `<button class="esc-btn" data-tab="perfil" title="Todavía no eliges personaje">Elige tu personaje</button>`;
-  return `<div class="esc-wrap"><div class="esc" data-esc="${kind}"></div>
-    ${(ley||boton)?`<div class="esc-pie">${ley?`<p class="esc-leyenda">${ley}</p>`:""}${boton}</div>`:""}</div>`;
-}
-
-function montarEscenas(){
-  const host = document.querySelector("#view .esc[data-esc]");
-  if(!window.Escenas) { if(host) host.parentElement.style.display = "none"; return; }   // sin motor, sin escena (y sin hueco negro)
-  if(!host){ Escenas.desmontar(); return; }
-  try{
-    const kind = host.dataset.esc;
-    const cfg = { escena:kind, personaje:miPersonaje() };
-    if(kind === "inicio") cfg.mensajes = mensajesCartel();
-    if(kind === "ranking"){ const p = datosPodio(); cfg.ranking = { top3:p.top3, yo:p.yo, puesto:p.puesto }; }
-    Escenas.montar(host, cfg);
-  }catch(e){
-    console.warn("escenas", e);                          // una escena rota no tumba la pantalla
-    host.parentElement.style.display = "none";
-  }
-}
-
 function render(){
   if(!D.membresia) return;
   if(!tabsVisibles().some(t=>t.id===state.tab)) state.tab="inicio";
@@ -2701,22 +2460,8 @@ function render(){
     return;
   }
   v.innerHTML = VIEWS[state.tab]();
-  montarEscenas();
-  marcarTarjetasConMas();
   window.scrollTo({top:0, behavior:"instant"});
 }
-/* Con el alto de las tarjetas fijo, a algunas les sobra contenido y se
-   desplaza por dentro. El corte limpio en mitad de una línea parece un error,
-   no una señal, así que a las que de verdad tienen más abajo se les pone un
-   degradado al pie. Se marca con una clase y no con CSS a secas porque CSS no
-   sabe si algo desborda: la tarjeta que entra completa no lleva nada. */
-function marcarTarjetasConMas(){
-  document.querySelectorAll(".bento > .w").forEach(t=>{
-    const c = t.querySelector(".w-body");
-    if(c) t.classList.toggle("hay-mas", c.scrollHeight - c.clientHeight > 4);
-  });
-}
-addEventListener("resize", marcarTarjetasConMas);
 function abrirModal(h){ document.getElementById("modal").innerHTML=h; document.body.style.overflow="hidden"; toggleAvisos(false); }
 function cerrarModal(){ document.getElementById("modal").innerHTML=""; document.body.style.overflow=""; }
 
@@ -2954,6 +2699,59 @@ function modalVitrina(){
    un misterio: la persona necesita poder mirar lo que va a
    elegir dentro de tres semanas.
    ========================================================= */
+function seccionPersonaje(){
+  const P = D.personaje;             // { elenco, personaje, puedeCambiar, faltanDias, ... }
+  const actual = miPersonaje();
+  const p = D.progreso;
+
+  const barraXp = p ? (() => {
+    const span = Math.max(1, p.xpSiguienteNivel - p.xpInicioNivel);
+    const pct  = Math.max(0, Math.min(100, ((p.xp - p.xpInicioNivel) / span) * 100));
+    const falta = Math.max(0, p.xpSiguienteNivel - p.xp);
+    return `<div class="pj-xp">
+      <div class="row wrap g8" style="justify-content:space-between; align-items:baseline">
+        <b>Nivel ${p.nivel}</b>
+        <span class="sub">${falta>0?`Te faltan ${fmt(falta)} XP para el nivel ${p.nivel+1}`:"Nivel máximo con esta configuración"}</span>
+      </div>
+      <span class="bar-track rk-bar" style="margin-top:7px"><span class="bar-fill rk-tiene" style="width:${pct.toFixed(0)}%"></span></span>
+      <div class="sub" style="margin-top:6px">${fmt(p.xp)} XP acumulada · el nivel abre catálogo, no da Oro</div>
+    </div>`;
+  })() : "";
+
+  const estado = !P ? "" :
+    P.puedeCambiar
+      ? `<span class="chip ok">Puedes cambiar</span>`
+      : `<span class="chip">Puedes cambiar en ${P.faltanDias} día${P.faltanDias===1?"":"s"}</span>`;
+
+  const selector = `<div class="pj-grid">${ELENCO.map(x=>{
+    const esActual = x.clave === actual;
+    const bloq = P && !P.puedeCambiar && !esActual;
+    return `<button class="pj-op ${esActual?"es":""}" data-elegir-pj="${esc(x.clave)}" ${bloq?"disabled":""}
+      title="${esc(x.nombre)} — ${esc(x.d)}">
+      ${avatarPersonaje(x.clave, 44)}
+      <span class="pj-n">${esc(x.nombre)}</span>
+    </button>`;
+  }).join("")}</div>`;
+
+  /* 07/10 (tarde): el cuerpo entero salió de acá y subió al panel grande de
+     arriba. Dibujarlo dos veces en la misma pantalla no agregaba nada y le
+     quitaba sitio al elenco, que es para lo que existe esta sección. */
+  return `<section class="card pj-card" style="margin-bottom:14px">
+    <div class="pj-top">
+      <div style="flex:1; min-width:0">
+        <span class="eyebrow">Tu personaje</span>
+        <h2 style="font-size:22px; margin:4px 0 6px">${esc(nombrePersonaje(actual) || "Todavía no elegiste")}</h2>
+        <p class="sub" style="margin:0">${esc(actual ? (PJ[actual].d) : "Elige uno de los ocho. Es cómo te ven tus compañeros en el ranking y en tu ficha.")}</p>
+        <div class="row wrap g6" style="margin-top:10px">${estado}</div>
+        ${barraXp}
+      </div>
+    </div>
+    <div class="sec-h" style="margin-top:4px"><h2 style="font-size:15px">El elenco</h2>
+      <span class="sub">${P && !P.puedeCambiar ? `Cambiaste hace poco. El próximo cambio se habilita en ${P.faltanDias} día${P.faltanDias===1?"":"s"}.` : "Elegir es gratis. Después queda bloqueado un tiempo."}</span></div>
+    ${selector}
+  </section>`;
+}
+
 async function elegirPersonaje(clave){
   try{
     D.personaje = await LevelopAPI.equipo.elegirPersonaje(clave);
@@ -2970,310 +2768,11 @@ async function elegirPersonaje(clave){
   }
 }
 
-/* =========================================================
-   EL CAMPAMENTO (08/10/26 — paquete «Perfil / Héroe v2»)
-   -------------------------------------------------------
-   Posiciones: `hotspots.json` / `hotspots_elementos.json` del paquete, en
-   % del canvas de 320×128 (v3). No se recalculan acá: si el arte cambia, se
-   pegan los números nuevos y listo.
-
-   La hora sale del reloj de quien mira (mañana 5–10, tarde 11–16, atardecer
-   17–18, noche 19–4). Los cinco objetos cambian de tinte con la hora y las
-   posiciones son idénticas en las cuatro.
-
-   Con el juego APAGADO (R-03) el saco de Oro y la copa desaparecen del
-   campamento: son del juego, y quien lo apagó no gana ni mira Oro ni trofeos.
-   El fondo no los trae dibujados (cada objeto es su propio PNG), así que
-   quitarlos no deja ningún hueco.
-   ========================================================= */
-const CAMP = {
-  el: {
-    oro_saco:         {left_pct:79.688, top_pct:57.031, width_pct:9.688,  height_pct:28.125},
-    misiones_papiro:  {left_pct:75.0,   top_pct:52.344, width_pct:6.562,  height_pct:18.75},
-    beneficios_cofre: {left_pct:16.25,  top_pct:56.25,  width_pct:11.562, height_pct:26.562},
-    trofeos_copa:     {left_pct:54.688, top_pct:67.188, width_pct:6.25,   height_pct:15.625},
-    elenco_flecha:    {left_pct:76.875, top_pct:0.0,    width_pct:20.938, height_pct:25.0}     // letrero HÉROES (el texto ya viene en el PNG)
-  },
-  stats: {left_pct:2.5,  top_pct:6.25,   width_pct:21.25,  height_pct:17.188},
-  panel: {left_pct:52.5, top_pct:25.781, width_pct:45.312, height_pct:61.719},
-  casillas: [
-    {left_pct:6.207,  top_pct:11.392, width_pct:19.31, height_pct:35.443},
-    {left_pct:28.966, top_pct:11.392, width_pct:19.31, height_pct:35.443},
-    {left_pct:51.724, top_pct:11.392, width_pct:19.31, height_pct:35.443},
-    {left_pct:74.483, top_pct:11.392, width_pct:19.31, height_pct:35.443},
-    {left_pct:6.207,  top_pct:53.165, width_pct:19.31, height_pct:35.443},
-    {left_pct:28.966, top_pct:53.165, width_pct:19.31, height_pct:35.443},
-    {left_pct:51.724, top_pct:53.165, width_pct:19.31, height_pct:35.443},
-    {left_pct:74.483, top_pct:53.165, width_pct:19.31, height_pct:35.443}
-  ]
-};
-/* Desfase del rebote de cada objeto (hotspots.json, v3), para que no salten a la vez. */
-const CAMP_DESFASE = {oro_saco:"0s", misiones_papiro:"-0.7s", beneficios_cofre:"-1.3s", trofeos_copa:"-1.9s", elenco_flecha:"-0.4s", stats:"-2.2s"};
-const CAMP_ALT = {manana:"por la mañana", tarde:"de tarde", atardecer:"al atardecer", noche:"de noche"};
-const campPos = r => `left:${r.left_pct}%;top:${r.top_pct}%;width:${r.width_pct}%;height:${r.height_pct}%`;
-function campHora(){
-  const h = new Date().getHours();
-  if(h>=5  && h<=10) return "manana";
-  if(h>=11 && h<=16) return "tarde";
-  if(h>=17 && h<=18) return "atardecer";
-  return "noche";
-}
-const beneficiosActivos = () => (D.canjes||[]).filter(c => c.estado==="RESERVADO" || c.estado==="CONFIRMADO");
-
-function campZonas(){
-  const mias = (D.misiones||[]).filter(esMia).length;
-  const act  = beneficiosActivos().length;
-  const z = [];
-  if(optIn()) z.push({k:"oro", sprite:"oro_saco", tag:"ORO", val:fmt(D.saldo),
-    abajo:true, aria:`Oro: ${fmt(D.saldo)}. Ver tus lotes y cuándo vencen`, atajo:"Oro"});
-  z.push({k:"misiones", sprite:"misiones_papiro", tag:"MISIONES TUYAS", val:fmt(mias), sm:true,
-    aria:`Misiones tuyas: ${fmt(mias)}. Ver el detalle`, atajo:"Misiones tuyas"});
-  z.push({k:"beneficios", sprite:"beneficios_cofre", tag:"TUS BENEFICIOS ACTIVOS", val:fmt(act),
-    aria:`Tus beneficios activos: ${fmt(act)}. Ver la lista`, atajo:"Beneficios"});
-  if(optIn()) z.push({k:"trofeos", sprite:"trofeos_copa", tag:"VITRINA DE TROFEOS", sm:true, abajo:true,
-    val: D.vitrina ? fmt(D.vitrina.totalGanadas) : "",
-    aria:`Vitrina de trofeos${D.vitrina?`: ${fmt(D.vitrina.totalGanadas)}`:""}. Ver los trofeos`, atajo:"Trofeos"});
-  return z;
-}
-
-function campRoster(){
-  const P = D.personaje, actual = miPersonaje();
-  const bloq = !!(P && !P.puedeCambiar);
-  const cabezas = ELENCO.map((x,i)=>{
-    const esAct = x.clave === actual;
-    return `<button class="camp-head${esAct?" cur":""}${bloq && !esAct?" lock":""}" data-camp-cab="${esc(x.clave)}"
-      style="${campPos(CAMP.casillas[i])}" aria-label="${esc(x.nombre)}${esAct?" (tu personaje actual)":""}">
-      <img src="perfil/ui/cabezas/${esc(x.clave)}.png" alt="" draggable="false">
-      <span class="camp-hname">${esc(x.nombre.toUpperCase())}</span></button>`;
-  }).join("");
-  const nota = bloq
-    ? `Puedes cambiar en ${P.faltanDias} día${P.faltanDias===1?"":"s"}`
-    : (actual ? "Elige a tu nuevo personaje" : "Elige tu personaje");
-  return `<div class="camp-roster" id="campRoster" style="${campPos(CAMP.panel)}">
-    <img class="camp-bg" src="perfil/ui/tablon.png" alt="" draggable="false">${cabezas}<span class="camp-nota">${esc(nota)}</span></div>`;
-}
-
-function campamento(){
-  const h = campHora();
-  const zonas = campZonas();
-  return `<section class="camp-wrap" aria-label="Tu campamento">
-    <div class="camp" id="camp">
-      <img class="camp-fondo" src="perfil/fondo/${h}.png" draggable="false"
-        alt="Campamento junto a un lago ${CAMP_ALT[h]}: carpa, fogata, mástil con bandera y banderines">
-      <div class="camp-capas">
-        ${zonas.map(z=>`<button class="camp-hs${z.sm?" sm":""}" data-camp="${z.k}" aria-label="${esc(z.aria)}" style="${campPos(CAMP.el[z.sprite])}; --d:${CAMP_DESFASE[z.sprite]}">
-          <img src="perfil/elementos/${h}/${z.sprite}.png" alt="" draggable="false">
-          <span class="camp-tag${z.abajo?" abajo":""}">${esc(z.tag)}${z.val!==""?`<b>${esc(z.val)}</b>`:""}</span></button>`).join("")}
-        <button class="camp-stats" data-camp="stats" style="${campPos(CAMP.stats)}; --d:${CAMP_DESFASE.stats}" aria-label="Ver stats de tu personaje"><span class="camp-st-t">VER STATS</span></button>
-        <div class="camp-hs camp-sign" style="${campPos(CAMP.el.elenco_flecha)}; pointer-events:none; --d:${CAMP_DESFASE.elenco_flecha}">
-          <button class="camp-hit" data-camp-flecha aria-expanded="false" aria-controls="campRoster"
-            aria-label="Cambiar héroe. Pasa el mouse o toca el letrero HÉROES para ver los personajes"></button>
-          <img src="perfil/elementos/${h}/elenco_flecha.png" alt="" draggable="false">
-          <span class="camp-tag">CAMBIAR HÉROE</span>
-        </div>
-        ${campRoster()}
-      </div>
-    </div>
-    <nav class="camp-atajos" aria-label="Atajos a lo mismo que el campamento">
-      <span>Atajos</span>
-      ${zonas.map(z=>`<button data-camp="${z.k}">${esc(z.atajo)}${z.val!==""?`<b>${esc(z.val)}</b>`:""}</button>`).join("")}
-      <button data-camp="stats">Ver stats</button>
-      <button data-camp="elenco">Héroes</button>
-    </nav>
-  </section>`;
-}
-
-/* ---- El tablón del elenco: abrir y cerrar ----
-   Hover (solo mouse), foco de teclado o toque abren. Un clic en la flecha NUNCA
-   cierra: con mouse el hover y el foco ya lo abrieron, y un clic que lo cerrara
-   dejaría al usuario peleando contra su propio gesto. Se cierra con Esc, al tocar
-   fuera, o al sacar el mouse / el foco. */
-let campTimer = null;
-function campAbrir(){
-  clearTimeout(campTimer);
-  const r = document.getElementById("campRoster"); if(!r) return;
-  r.classList.add("open");
-  const b = document.querySelector("[data-camp-flecha]"); if(b) b.setAttribute("aria-expanded","true");
-}
-function campCerrar(ya){
-  clearTimeout(campTimer);
-  const f = ()=>{
-    const r = document.getElementById("campRoster"); if(r) r.classList.remove("open");
-    const b = document.querySelector("[data-camp-flecha]"); if(b) b.setAttribute("aria-expanded","false");
-  };
-  if(ya) f(); else campTimer = setTimeout(f, 180);
-}
-const CAMP_SEL = "[data-camp-flecha], #campRoster";
-document.addEventListener("pointerover", e=>{
-  if(e.pointerType !== "mouse") return;
-  if(e.target.closest && e.target.closest(CAMP_SEL)) campAbrir();
-});
-document.addEventListener("pointerout", e=>{
-  if(e.pointerType !== "mouse") return;
-  if(!(e.target.closest && e.target.closest(CAMP_SEL))) return;
-  if(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(CAMP_SEL)) return;
-  campCerrar();
-});
-document.addEventListener("focusin", e=>{ if(e.target.closest && e.target.closest(CAMP_SEL)) campAbrir(); });
-document.addEventListener("focusout", e=>{
-  if(!(e.target.closest && e.target.closest(CAMP_SEL))) return;
-  if(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(CAMP_SEL)) return;
-  campCerrar();
-});
-
-/* ---- Qué abre cada objeto ---- */
-function campAbrirZona(k){
-  campCerrar(true);
-  if(k==="oro")        return abrirModal(modalCampOro());
-  if(k==="misiones")   return abrirModal(modalCampMisiones());
-  if(k==="beneficios") return abrirModal(modalCampBeneficios());
-  if(k==="trofeos")    return abrirModal(modalVitrina());
-  if(k==="stats")      return abrirHojaPersonaje();
-  if(k==="elenco"){
-    cerrarModal();
-    if(state.tab !== "perfil"){ state.tab = "perfil"; render(); }
-    const c = document.getElementById("camp"); if(c) c.scrollIntoView({block:"center", behavior:"instant"});
-    campAbrir();
-  }
-}
-
-/* Una cabeza del tablón. Tres casos y los tres hablan: el mismo que ya eres, el
-   bloqueo (con los días que faltan, que los calcula el servidor), o la pantalla de
-   confirmación. Elegir NO es un toque suelto porque arranca el bloqueo de cambio. */
-function campCabeza(clave){
-  const P = D.personaje, actual = miPersonaje();
-  if(clave === actual) return toast("", "check", "Este ya es tu personaje", "Pasa el mouse por los otros para conocerlos.", 3200);
-  if(P && !P.puedeCambiar){
-    return toast("risk","candado","Todavía no",
-      `Puedes volver a cambiar de personaje en ${P.faltanDias} día${P.faltanDias===1?"":"s"}.`, 5000);
-  }
-  campCerrar(true);
-  abrirModal(modalCampConfirmar(clave));
-}
-async function campConfirmar(clave){
-  cerrarModal();
-  await elegirPersonaje(clave);
-}
-
-/* ---- Ventanas ---- */
-function hojaVentana(eyebrow, titulo, cuerpo, pie, ancho){
-  return `<div class="veil" data-cerrar>
-    <div class="sheet" ${ancho?`style="max-width:${ancho}px"`:""} role="dialog" aria-modal="true" data-stop>
-      <div class="sheet-h"><div style="flex:1"><span class="eyebrow">${eyebrow}</span>
-        <h2 style="margin-top:4px">${titulo}</h2></div>
-        <button class="closebtn" data-cerrar aria-label="Cerrar">${IC.x}</button></div>
-      <div class="sheet-b">${cuerpo}</div>
-      <div class="sheet-f">${pie}</div>
-    </div></div>`;
-}
-
-function modalCampOro(){
-  const L = D.lotes;
-  const lotes = !L || !L.lotes || !L.lotes.length
-    ? `<div class="empty">Todavía no tienes Oro acumulado.</div>`
-    : `<div class="stack g8">
-        ${L.venceEn7>0?`<div class="note risk" style="margin:0"><b>${fmt(L.venceEn7)} de Oro</b> se te vencen en los próximos 7 días.</div>`
-         :L.venceEn30>0?`<div class="note gold" style="margin:0"><b>${fmt(L.venceEn30)} de Oro</b> se te vencen dentro de 30 días.</div>`:""}
-        ${L.lotes.slice(0,6).map(l=>`
-          <div class="row wrap g8" style="justify-content:space-between; align-items:baseline">
-            <span class="sub">Ganado el ${esc(fechaCorta(new Date(l.ganadoEl)))}</span>
-            <span class="row g6" style="align-items:baseline">
-              <b class="num">${fmt(l.oro)}</b>
-              <span class="chip ${l.diasParaVencer<=7?"risk":l.diasParaVencer<=30?"gold":""}">vence ${esc(fechaCorta(new Date(l.venceEl)))}</span>
-            </span>
-          </div>`).join("")}
-        <div class="sub">El Oro caduca a los ${fmt(L.decayDias)} días. Cuando pides un beneficio se gasta primero el más viejo, así que lo que está por vencerse se va primero.</div>
-      </div>`;
-  return hojaVentana("Tu Oro", `${fmt(D.saldo)} de Oro disponible`,
-    `<div class="sec-h" style="margin:0"><h2 style="font-size:15px">Tus lotes</h2></div>${lotes}`,
-    `<button class="btn" data-reglas>Cómo funciona el Oro</button>
-     <button class="btn primary" style="flex:1" data-tab="tienda">${IC.tienda} Ir a la Tienda</button>`, 560);
-}
-
-function modalCampMisiones(){
-  const mias  = (D.misiones||[]).filter(esMia);
-  const venc  = mias.filter(enRiesgo).length;
-  const rev   = mias.filter(m=>m.estado==="entregada" && !enRiesgo(m)).length;
-  const marcha= mias.filter(m=>viva(m) && m.estado!=="entregada" && !enRiesgo(m)).length;
-  const cerr  = mias.filter(m=>m.estado==="cerrada").length;
-  const k = m => venceEn(m)===null ? Number.MAX_SAFE_INTEGER : venceEn(m);
-  const prox = mias.filter(viva).sort((a,b)=>k(a)-k(b)).slice(0,4);
-  const cuerpo = `
-    <div class="stat-strip" style="grid-template-columns:repeat(4,1fr)">
-      <div class="stat"><div class="l">En marcha</div><div class="v">${marcha}</div></div>
-      <div class="stat"><div class="l">En revisión</div><div class="v">${rev}</div></div>
-      <div class="stat"><div class="l">Vencidas</div><div class="v" style="color:${venc?"var(--risk)":"inherit"}">${venc}</div></div>
-      <div class="stat"><div class="l">Cerradas</div><div class="v">${cerr}</div></div>
-    </div>
-    <div class="sec-h" style="margin:0"><h2 style="font-size:15px">Lo que se te viene</h2></div>
-    ${prox.length ? `<div class="stack g8">${prox.map(tarjetaMision).join("")}</div>`
-                  : `<div class="empty">No tienes misiones vivas ahora mismo.</div>`}`;
-  return hojaVentana("Tus misiones", `${fmt(mias.length)} misiones tuyas`, cuerpo,
-    `<button class="btn" data-cerrar>Cerrar</button>
-     <button class="btn primary" style="flex:1" data-filtro-ir="mias">Ver todas en Misiones</button>`, 600);
-}
-
-function modalCampBeneficios(){
-  const act = beneficiosActivos();
-  const cuerpo = `
-    <div class="row wrap g6">
-      <div class="seg">${[["","Todos"],["pronto","Vencen pronto"],["lejos","Vencen después"]].map(([k,n])=>
-        `<button data-orden-canjes="${k}" aria-pressed="${(state.ordenCanjes||"")===k}">${n}</button>`).join("")}</div>
-      <span style="flex:1"></span>
-      <button class="btn sm" data-historial-pedidos>Historial de pedidos</button>
-    </div>
-    <div class="stack g8">
-    ${D.canjes.length ? canjesOrdenados(activosPrimero(D.canjes)).map(c=>{
-      const e = ESTADO_CANJE_G[c.estado] || {chip:"", txt:c.estado};
-      return `<div class="benefit ${c.estado==="INDETERMINADO"?"ind":""}">
-        <span class="item-ico">${IC.ticket}</span>
-        <div style="flex:1; min-width:0">
-          <div class="row wrap g8" style="justify-content:space-between; align-items:flex-start">
-            <h4 style="flex:1; min-width:0">${esc(nombreCanje(c))}</h4>
-            ${chipVencimiento(c)}
-          </div>
-          <div class="area-tag" style="margin-top:3px">Pedido ${esc(fecha(new Date(c.createdAt)))} · ${fmt(c.precioOroAplicado)} de Oro</div>
-          <div class="row wrap g8" style="margin-top:8px">
-            <span class="chip ${e.chip}">${esc(e.txt)}</span>
-            ${c.motivoRechazo?`<span class="chip risk">${esc(c.motivoRechazo)}</span>`:""}
-          </div>
-          ${c.estado==="INDETERMINADO"?`<div class="note sync" style="margin-top:10px">
-            <b>No sabemos si el aliado registró tu canje.</b> No es culpa tuya y tampoco es un fallo confirmado. Este estado existe a propósito: un tiempo de espera agotado no es lo mismo que un error, y decirte «listo» sin saberlo sería mentirte.
-          </div>`:""}
-        </div>
-      </div>`;
-    }).join("") : `<div class="empty">No has pedido ningún beneficio.</div>`}
-    </div>`;
-  return hojaVentana("Tus beneficios", `${fmt(act.length)} activo${act.length===1?"":"s"}`, cuerpo,
-    `<button class="btn" data-cerrar>Cerrar</button>
-     ${optIn()?`<button class="btn primary" style="flex:1" data-tab="tienda">${IC.tienda} Ir a la Tienda</button>`:""}`, 600);
-}
-
-function modalCampConfirmar(clave){
-  const P = D.personaje, nuevo = !miPersonaje();
-  const dias = P && P.diasBloqueo ? P.diasBloqueo : null;
-  const x = PJ[clave];
-  const cuerpo = `
-    <div class="hoja-top">
-      <div class="hoja-fig">${cuerpoPersonaje(clave, 96)}</div>
-      <div style="flex:1; min-width:0">
-        <h2 style="font-size:24px; margin:0 0 4px">${esc(x.nombre)}</h2>
-        <p class="sub" style="margin:0">${esc(x.d)}</p>
-      </div>
-    </div>
-    <div class="note gold"><b>${dias?`Después de elegir no podrás cambiar por ${dias} días.`:"Después de elegir, el cambio queda bloqueado un tiempo."}</b>
-      Es cómo te ven tus compañeros en el ranking y en tu ficha.</div>
-    <div class="note">Hoy elegir personaje es elegir cómo te ves, no cómo juegas: los poderes todavía no están.</div>`;
-  return hojaVentana(nuevo?"Elegir personaje":"Cambiar de personaje", `¿Ser ${esc(x.nombre)}?`, cuerpo,
-    `<button class="btn" data-cerrar>Volver</button>
-     <button class="btn primary" style="flex:1" data-camp-confirmar="${esc(clave)}">Confirmar</button>`, 520);
-}
-
 function widgetMeta(){
   const M = D.meta;
   if(!M) return "";
   if(M.objetivo === null){
-    return `<section class="w">
+    return `<section class="w" style="margin-bottom:14px">
       <div class="w-h"><span class="wi">${IC.diana}</span><h3>Tu meta del mes</h3></div>
       <div class="w-body">
         ${M.puedeCambiar
@@ -3285,7 +2784,7 @@ function widgetMeta(){
       </div></section>`;
   }
   const pct = Math.min(100, Math.round((M.cerradas / M.objetivo) * 100));
-  return `<section class="w">
+  return `<section class="w" style="margin-bottom:14px">
     <div class="w-h"><span class="wi">${IC.diana}</span><h3>Tu meta del mes</h3>
       <span class="c">${M.cerradas} de ${M.objetivo}</span></div>
     <div class="w-body">
@@ -3513,7 +3012,7 @@ function modalHojaPersonaje(){
   const fila = (etiqueta, valor, nota) => `<div class="kv"><span>${esc(etiqueta)}${nota?` <span class="sub">· ${esc(nota)}</span>`:""}</span><span class="num">${valor}</span></div>`;
 
   const cuerpo = !c
-    ? `<div class="empty">Todavía no eliges personaje. En tu perfil, toca el letrero HÉROES de arriba a la derecha del campamento y elige uno.</div>`
+    ? `<div class="empty">Todavía no eliges personaje. Baja a «El elenco», en tu perfil, y elige uno.</div>`
     : `
     <div class="hoja-top">
       <div class="hoja-fig">${cuerpoPersonaje(c, 110)}</div>
@@ -3530,8 +3029,8 @@ function modalHojaPersonaje(){
         : `<div class="empty" style="margin-top:14px">Cargando tus estadísticas…</div>`) : `
       <div class="stat-strip" style="margin-top:16px">
         <div class="stat"><div class="l">Nivel</div><div class="v">${f.nivel}</div></div>
-        <div class="stat"><div class="l">En la empresa</div><div class="v">${f.puestoGeneral?`#${f.puestoGeneral}`:"—"}${indicadorPuesto("general")}</div></div>
-        <div class="stat"><div class="l">En tu área</div><div class="v">${f.puestoArea?`#${f.puestoArea}`:"—"}${indicadorPuesto("area")}</div></div>
+        <div class="stat"><div class="l">En la empresa</div><div class="v">${f.puestoGeneral?`#${f.puestoGeneral}`:"—"}</div></div>
+        <div class="stat"><div class="l">En tu área</div><div class="v">${f.puestoArea?`#${f.puestoArea}`:"—"}</div></div>
       </div>
 
       <div class="sec-h" style="margin-top:16px"><h2 style="font-size:15px">Tus misiones</h2></div>
@@ -3565,7 +3064,7 @@ function modalHojaPersonaje(){
       <div class="sheet-b">${cuerpo}</div>
       <div class="sheet-f">
         <button class="btn" style="flex:1" data-cerrar>Cerrar</button>
-        <button class="btn primary" style="flex:1" data-camp="elenco">Cambiar personaje</button>
+        <button class="btn primary" style="flex:1" data-tab="perfil">Cambiar personaje</button>
       </div>
     </div></div>`;
 }
@@ -3630,10 +3129,8 @@ async function pedirBeneficio(itemId){
 document.addEventListener("click", e=>{
   const dentroAvisos = e.target.closest("#avisosdrop, #bell");
   if(!dentroAvisos) toggleAvisos(false);
-  /* 08/10: el tablón del elenco se cierra al tocar fuera de él. */
-  if(!e.target.closest("#campRoster,[data-camp-flecha],[data-camp='elenco']")) campCerrar(true);
 
-  const t = e.target.closest("[data-tab],[data-periodo],[data-filtro],[data-filtro-ir],[data-mision],[data-cerrar],[data-aceptar],[data-cerrarmision],[data-shopfam],[data-pedir],[data-confirmar],[data-reglas],[data-plegar],[data-nueva],[data-crear],[data-info],[data-recargar],[data-salir],[data-leer],[data-optin],[data-ranking-pref],[data-ranking-ambito],[data-objetivo],[data-enviar-msg],[data-borrar-msg],[data-sumar-colab],[data-quitar-colab],[data-ficha],[data-ranking-var],[data-apagar-juego],[data-historial-pedidos],[data-orden-canjes],[data-vitrina],[data-fijar-meta],[data-elegir-pj],[data-hoja-pj],[data-camp],[data-camp-flecha],[data-camp-cab],[data-camp-confirmar],#bell,[data-stop]");
+  const t = e.target.closest("[data-tab],[data-periodo],[data-filtro],[data-filtro-ir],[data-mision],[data-cerrar],[data-aceptar],[data-cerrarmision],[data-shopfam],[data-pedir],[data-confirmar],[data-reglas],[data-plegar],[data-nueva],[data-crear],[data-info],[data-recargar],[data-salir],[data-leer],[data-optin],[data-ranking-pref],[data-ranking-ambito],[data-objetivo],[data-enviar-msg],[data-borrar-msg],[data-sumar-colab],[data-quitar-colab],[data-ficha],[data-ranking-var],[data-apagar-juego],[data-historial-pedidos],[data-orden-canjes],[data-vitrina],[data-fijar-meta],[data-elegir-pj],[data-hoja-pj],#bell,[data-stop]");
   if(!t) return;
 
   const lv = e.target.closest("[data-leer-varios]"); if(lv){ marcarLeidos(lv.dataset.leerVarios.split(",")); }
@@ -3649,18 +3146,8 @@ document.addEventListener("click", e=>{
   if(t.hasAttribute("data-vitrina")){ abrirModal(modalVitrina()); return; }
   if(t.hasAttribute("data-elegir-pj")){ elegirPersonaje(t.dataset.elegirPj); return; }
   if(t.hasAttribute("data-hoja-pj")){ abrirHojaPersonaje(); return; }
-  if(t.hasAttribute("data-camp")){ campAbrirZona(t.dataset.camp); return; }
-  if(t.hasAttribute("data-camp-flecha")){ campAbrir(); return; }
-  if(t.hasAttribute("data-camp-cab")){ campCabeza(t.dataset.campCab); return; }
-  if(t.hasAttribute("data-camp-confirmar")){ campConfirmar(t.dataset.campConfirmar); return; }
   if(t.hasAttribute("data-fijar-meta")){ fijarMeta(t.dataset.fijarMeta); return; }
-  /* 08/10: el orden de los canjes ahora también vive dentro de la ventana de beneficios; si el clic
-     vino de ahí, se vuelve a pintar la ventana en vez de la pantalla (que está debajo). */
-  if(t.hasAttribute("data-orden-canjes")){
-    state.ordenCanjes = t.dataset.ordenCanjes;
-    if(t.closest("#modal")) abrirModal(modalCampBeneficios()); else render();
-    return;
-  }
+  if(t.hasAttribute("data-orden-canjes")){ state.ordenCanjes = t.dataset.ordenCanjes; render(); return; }
 
   if(t.id==="bell"){ toggleAvisos(); return; }
 
@@ -3682,7 +3169,7 @@ document.addEventListener("click", e=>{
   if(t.hasAttribute("data-tab")){ cerrarModal(); state.tab=t.dataset.tab; render(); return; }
   if(t.hasAttribute("data-periodo")){ state.periodo=t.dataset.periodo; render(); return; }
   if(t.hasAttribute("data-filtro")){ state.filtro=t.dataset.filtro; render(); return; }
-  if(t.hasAttribute("data-filtro-ir")){ cerrarModal(); state.tab="misiones"; state.filtro=t.dataset.filtroIr; render(); return; }
+  if(t.hasAttribute("data-filtro-ir")){ state.tab="misiones"; state.filtro=t.dataset.filtroIr; render(); return; }
   if(t.hasAttribute("data-shopfam")){ state.shopFamilia=t.dataset.shopfam; render(); return; }
   if(t.hasAttribute("data-plegar")){ const k=t.dataset.plegar; state.plegado[k]=!state.plegado[k]; render(); return; }
 
@@ -3723,7 +3210,7 @@ document.addEventListener("click", e=>{
 });
 
 document.addEventListener("keydown", e=>{
-  if(e.key==="Escape"){ cerrarModal(); toggleAvisos(false); campCerrar(true); state.abierta=null; }
+  if(e.key==="Escape"){ cerrarModal(); toggleAvisos(false); state.abierta=null; }
 });
 
 /* =========================================================

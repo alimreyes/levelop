@@ -1,9 +1,5 @@
 User-agent: *
 Allow: /
-Disallow: /app
-Disallow: /lider
-Disallow: /gerencia
-Disallow: /levelop-interno
 
 # Buscadores con IA bienvenidos
 User-agent: GPTBot

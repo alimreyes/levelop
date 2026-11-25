@@ -700,7 +700,7 @@ ol.loop{list-style:none;margin:0;padding:0}
 .pt{position:absolute;left:0;bottom:0;width:300px;height:auto;display:block;opacity:0;transform:translateY(60px);animation:ptin 24s infinite;animation-delay:var(--d)}
 @keyframes ptin{0%{opacity:0;transform:translateY(80px)}1.5%{opacity:1;transform:translateY(-8px)}2.6%{transform:translateY(0)}11%{opacity:1;transform:translateY(0)}12.5%,100%{opacity:0;transform:translateY(80px)}}
 @media (max-width:760px){.portraits{display:none}}
-/* hero cómo se juega: más aire */
+/* hero cómo funciona: más aire */
 .ph-grid{grid-template-columns:minmax(0,1.5fr) minmax(0,.6fr);gap:72px}
 .ph-grid h1{font-size:clamp(26px,3.5vw,50px)}
 .quest{max-width:300px}
@@ -777,3 +777,8 @@ footer .brand .logo{height:34px}
   .nav .iconbtn{margin-left:auto}
 }
 @media (max-width:1320px) and (min-width:1101px){.nav-links{gap:14px}.nav-links a{font-size:10.5px;letter-spacing:.05em}.nav .nav-acc-btn{font-size:10.5px;padding:10px 2px}.nav .brand .logo{height:26px}.nav .btn-p{padding:12px 16px}}
+
+/* línea de puntos verde Levelop */
+.dot-line{height:6px;margin:0;background:repeating-linear-gradient(90deg,#C3F03A 0 6px,transparent 6px 16px);opacity:.9;animation:dotmove 1.6s steps(8) infinite}
+@keyframes dotmove{to{background-position:16px 0}}
+@media (prefers-reduced-motion:reduce){.dot-line{animation:none}}
