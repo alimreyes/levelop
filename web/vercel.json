@@ -188,5 +188,12 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/como-se-juega.html",
+      "destination": "/como-funciona.html",
+      "permanent": true
+    }
   ]
 }

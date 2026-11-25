@@ -13,7 +13,7 @@ Datos clave:
 
 ## Páginas
 - [Inicio](https://levelop-pi.vercel.app/): qué resuelve Levelop y para quién
-- [Cómo se juega](https://levelop-pi.vercel.app/como-se-juega.html): ciclo de misión, economía XP/Oro, estados, glosario
+- [Cómo funciona](https://levelop-pi.vercel.app/como-funciona.html): ciclo de misión, economía XP/Oro, estados, glosario
 - [Personajes](https://levelop-pi.vercel.app/personajes.html): los ocho personajes y sus reglas de elección
 - [Alianzas](https://levelop-pi.vercel.app/alianzas.html): tipos de beneficio y red de aliados
 - [Precio](https://levelop-pi.vercel.app/precio.html): plan, calculadora y Programa Fundadores
