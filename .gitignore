@@ -21,3 +21,9 @@ dist/
 *.backup
 *.dump
 *.sql.gz
+
+# --- Carpetas de entrega, no de codigo ---
+# `Nueva Web/` es la carpeta de donde se copio la web publica v0.5 a `web/`.
+# Es una copia de trabajo, no la fuente: si entrara al repo tendriamos dos
+# versiones del mismo sitio y nadie sabria cual manda.
+Nueva Web/

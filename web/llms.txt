@@ -1,0 +1,20 @@
+# Levelop (LVL UP!)
+
+> Sistema de beneficios por desempeño con experiencia de juego para PyMEs venezolanas de 10 a 100 empleados. Conecta el trabajo que cada persona hizo con los beneficios que la empresa ya da, usando reglas publicadas.
+
+Datos clave:
+- Mercado: Venezuela. Empresas de 10 a 100 personas.
+- Precio: $30 USD al mes con 10 asientos incluidos; $4 por asiento adicional. Programa Fundadores: $60 por 3 meses (cinco empresas).
+- Mecánica: misiones con valor = urgencia × importancia × esfuerzo; XP (nivel) y Oro (canjeable). El Oro no es dinero y vence a los 90 días.
+- Beneficios: intrarrecompensas de tiempo (día libre, salida anticipada) y comercio aliado en 10 categorías. Pool de comercio aparte, desde $0.
+- Reglas: el juego es opcional; ninguna pantalla de gerencia señala a una persona; ranking solo ±3.
+- Personajes: 8 avatares pixel art elegidos libremente, cambiables cada 30 días.
+- Contacto: hola@levelop.app
+
+## Páginas
+- [Inicio](https://levelop-pi.vercel.app/): qué resuelve Levelop y para quién
+- [Cómo se juega](https://levelop-pi.vercel.app/como-se-juega.html): ciclo de misión, economía XP/Oro, estados, glosario
+- [Personajes](https://levelop-pi.vercel.app/personajes.html): los ocho personajes y sus reglas de elección
+- [Alianzas](https://levelop-pi.vercel.app/alianzas.html): tipos de beneficio y red de aliados
+- [Precio](https://levelop-pi.vercel.app/precio.html): plan, calculadora y Programa Fundadores
+- [Preguntas frecuentes](https://levelop-pi.vercel.app/faq.html): respuestas por rol

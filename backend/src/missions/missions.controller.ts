@@ -17,7 +17,13 @@ import { DataSource } from 'typeorm';
 import { CurrentMembership } from '../auth/current-membership.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TenantMembershipGuard } from '../auth/tenant-membership.guard';
-import { EstadoMision, PerfilConexion, TipoNotificacion } from '../common/enums';
+import {
+  EstadoMision,
+  MotivoRechazo,
+  PerfilConexion,
+  RolMembership,
+  TipoNotificacion,
+} from '../common/enums';
 import { EconomyService, EventoRechazado } from '../economy/economy.service';
 import { Area, Membership } from '../identity/identity.entities';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -211,9 +217,56 @@ export class MissionsController {
   }
 
   /**
+   * Quién trabajó la misión, que es quién cobra.
+   *
+   * Es quien la aceptó. Si no la aceptó nadie, es quien la creó — trabajo
+   * propio, que da XP y no da Oro, igual que antes. Nunca es «quien pulsa el
+   * botón»: esa confusión era el agujero.
+   */
+  private beneficiarioDe(mision: Mission): string {
+    return mision.aceptadaPorMembershipId ?? mision.creadorMembershipId;
+  }
+
+  /**
+   * Quién puede cerrar. Cuatro casos, y ninguno es «cualquier compañero»:
+   * quien la trabajó, quien la creó si todavía no la aceptó nadie, el líder del
+   * área de la misión, y gerencia.
+   *
+   * El líder entra desde hoy a propósito: en el flujo que Alim describió el
+   * 13/10, quien hace el trabajo lo marca como entregado y el líder verifica.
+   * Ese flujo todavía no está construido —falta el estado intermedio—, pero
+   * dejar al líder fuera hoy obligaría a volver a abrir esta función para
+   * meterlo la semana que viene. Que el líder cierre no le paga nada: el pago
+   * lo decide `beneficiarioDe`, que no mira quién cierra.
+   */
+  private async puedeCerrar(m: Membership, mision: Mission): Promise<boolean> {
+    if (mision.aceptadaPorMembershipId) {
+      if (mision.aceptadaPorMembershipId === m.id) return true;
+    } else if (mision.creadorMembershipId === m.id) {
+      return true;
+    }
+    if (m.rol === RolMembership.GERENCIA || m.rol === RolMembership.ADMIN_TENANT) return true;
+    if (m.rol === RolMembership.LIDER_AREA && mision.areaId) {
+      const area = await this.ds.getRepository(Area).findOne({ where: { id: mision.areaId } });
+      if (area?.liderMembershipId === m.id) return true;
+    }
+    return false;
+  }
+
+  /**
    * Cierre de misión. El cálculo de XP/Oro vive en EconomyService, no aquí —
    * una regla económica escrita en un controlador es una sugerencia, no una
    * regla (ver el comentario original en el servicio).
+   *
+   * 13/10/26 — ACA ESTABA EL AGUJERO, y eran dos cosas a la vez: esta función
+   * no miraba quién cerraba, y el servicio le pagaba a quien cerraba. Las dos
+   * juntas significaban que A podía cerrar la misión que trabajó B y cobrarse
+   * el XP y el Oro de B.
+   *
+   * Se arreglan las dos por separado, y el orden importa: aunque mañana cambie
+   * quién puede cerrar —y va a cambiar, cuando entre el paso de verificación
+   * del líder—, **quién cobra no vuelve a depender de quién pulsa el botón**.
+   * Esa es la parte que no hay que volver a tocar.
    */
   @Post(':id/cerrar')
   async cerrar(
@@ -227,11 +280,26 @@ export class MissionsController {
     if (mision.estado === EstadoMision.CERRADA) {
       throw new BadRequestException('La misión ya está cerrada');
     }
+    if (!(await this.puedeCerrar(m, mision))) {
+      throw new BadRequestException({ motivoRechazo: MotivoRechazo.CIERRE_NO_AUTORIZADO });
+    }
+
+    /* El beneficiario se carga de la base y no se deduce de quien llama. Si la
+       membresía no existe —borrada entre que aceptó y que se cierra— no se paga
+       a nadie en vez de pagarle a quien cerró, que es justo el error de antes. */
+    const beneficiario = await this.ds
+      .getRepository(Membership)
+      .findOne({ where: { id: this.beneficiarioDe(mision), tenantId: m.tenantId } });
+    if (!beneficiario) {
+      throw new BadRequestException(
+        'No se puede cerrar: la persona que trabajó esta misión ya no está en la empresa.',
+      );
+    }
 
     try {
       const resultado = await this.economy.registrarMisionCerrada(
         mision,
-        m,
+        beneficiario,
         dto.clientOccurredAt,
       );
       mision.estado = EstadoMision.CERRADA;
